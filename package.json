@@ -11,7 +11,7 @@
     "clean": "lerna run clean --parallel && rm -rf dist",
     "test": "lerna run test",
     "prepublish": "npm run clean && npm run build",
-    "publish": "lerna publish --ignore-private",
+    "publish": "lerna publish",
     "version:patch": "lerna version patch",
     "version:minor": "lerna version minor",
     "version:major": "lerna version major"
