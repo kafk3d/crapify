@@ -1,50 +1,48 @@
 import path from 'path';
-import { ProcessResult, CommentPattern } from './types';
+import { ProcessResult } from './types';
+
+interface Token {
+    type: 'string' | 'comment' | 'code';
+    value: string;
+}
 
 export class CommentRemover {
-    private readonly keepPatterns: RegExp[];
-    private readonly languagePatterns: Map<string, CommentPattern[]>;
+    private readonly keepPatterns: string[];
 
     constructor(keepPatterns: string[]) {
-        this.keepPatterns = this.compileKeepPatterns(keepPatterns);
-        this.languagePatterns = this.initializeLanguagePatterns();
+        this.keepPatterns = keepPatterns.filter(p => p.trim().length > 0);
     }
 
-    private compileKeepPatterns(patterns: string[]): RegExp[] {
-        if (patterns.length === 0) return [];
-        
-        return patterns
-            .filter(p => p.trim().length > 0)
-            .map(pattern => {
-                const escaped = pattern.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                return new RegExp(`\\b${escaped}\\b`, 'i');
-            });
-    }
 
     removeComments(content: string, filePath: string): ProcessResult {
         const extension = this.getFileExtension(filePath);
-        const patterns = this.getLanguagePatterns(extension);
         
-        if (patterns.length === 0) {
-            return { content, modified: false, removed: 0, preserved: 0 };
+        
+        const tokens = this.tokenize(content, extension);
+        const result: string[] = [];
+        let removed = 0;
+        let preserved = 0;
+
+        for (const token of tokens) {
+            if (token.type === 'comment') {
+                if (this.shouldPreserveComment(token.value)) {
+                    result.push(token.value);
+                    preserved++;
+                } else {
+                    removed++;
+                    
+                }
+            } else {
+                result.push(token.value);
+            }
         }
 
-        let processedContent = content;
-        let totalRemoved = 0;
-        let totalPreserved = 0;
-
-        for (const pattern of patterns) {
-            const result = this.processCommentPattern(processedContent, pattern);
-            processedContent = result.content;
-            totalRemoved += result.removed;
-            totalPreserved += result.preserved;
-        }
-
+        const processedContent = result.join('');
         return {
             content: processedContent,
             modified: content !== processedContent,
-            removed: totalRemoved,
-            preserved: totalPreserved
+            removed,
+            preserved
         };
     }
 
@@ -52,147 +50,193 @@ export class CommentRemover {
         return path.extname(filePath).slice(1).toLowerCase();
     }
 
-    private processCommentPattern(content: string, pattern: CommentPattern): ProcessResult {
-        let processedContent = content;
-        let removed = 0;
-        let preserved = 0;
+    private tokenize(content: string, extension: string): Token[] {
+        const tokens: Token[] = [];
+        let i = 0;
 
-        if (pattern.inline) {
-            processedContent = this.processInlineComments(processedContent, pattern, (r, p) => {
-                removed += r;
-                preserved += p;
-            });
-        } else if (pattern.end) {
-            processedContent = this.processBlockComments(processedContent, pattern, (r, p) => {
-                removed += r;
-                preserved += p;
-            });
+        while (i < content.length) {
+            const char = content[i];
+            const next = content[i + 1];
+
+            
+            if (char === "'") {
+                const str = this.parseString(content, i, "'");
+                tokens.push({ type: 'string', value: str.value });
+                i = str.end;
+                continue;
+            }
+
+            
+            if (char === '"') {
+                const str = this.parseString(content, i, '"');
+                tokens.push({ type: 'string', value: str.value });
+                i = str.end;
+                continue;
+            }
+
+            
+            if (char === '`') {
+                const str = this.parseTemplateString(content, i);
+                tokens.push({ type: 'string', value: str.value });
+                i = str.end;
+                continue;
+            }
+
+            
+            if (char === '/' && next === '*') {
+                const comment = this.parseBlockComment(content, i);
+                tokens.push({ type: 'comment', value: comment.value });
+                i = comment.end;
+                continue;
+            }
+
+            
+            if (char === '/' && next === '/') {
+                const comment = this.parseLineComment(content, i);
+                tokens.push({ type: 'comment', value: comment.value });
+                i = comment.end;
+                continue;
+            }
+
+            
+            if (char === '<' && content.substr(i, 4) === '<!--') {
+                const comment = this.parseHtmlComment(content, i);
+                tokens.push({ type: 'comment', value: comment.value });
+                i = comment.end;
+                continue;
+            }
+
+            
+            if (char === '#' && this.isHashCommentFile(extension)) {
+                const comment = this.parseHashComment(content, i);
+                tokens.push({ type: 'comment', value: comment.value });
+                i = comment.end;
+                continue;
+            }
+
+            
+            tokens.push({ type: 'code', value: char });
+            i++;
         }
 
-        return { content: processedContent, modified: false, removed, preserved };
+        return tokens;
     }
 
-    private processInlineComments(
-        content: string, 
-        pattern: CommentPattern, 
-        callback: (removed: number, preserved: number) => void
-    ): string {
-        const regex = new RegExp(`${pattern.start}.*$`, 'gm');
-        return content.replace(regex, (match) => {
-            if (this.shouldPreserveComment(match)) {
-                callback(0, 1);
-                return match;
+    private parseString(content: string, start: number, quote: string): { value: string; end: number } {
+        let i = start + 1; 
+        let value = quote;
+
+        while (i < content.length) {
+            const char = content[i];
+            value += char;
+
+            if (char === '\\') {
+                
+                i++;
+                if (i < content.length) {
+                    value += content[i];
+                }
+            } else if (char === quote) {
+                
+                return { value, end: i + 1 };
             }
-            callback(1, 0);
-            return '';
-        });
+            i++;
+        }
+
+        return { value, end: i };
     }
 
-    private processBlockComments(
-        content: string, 
-        pattern: CommentPattern, 
-        callback: (removed: number, preserved: number) => void
-    ): string {
-        const regex = new RegExp(`${pattern.start}[\\s\\S]*?${pattern.end}`, 'g');
-        return content.replace(regex, (match) => {
-            if (this.shouldPreserveComment(match)) {
-                callback(0, 1);
-                return match;
+    private parseTemplateString(content: string, start: number): { value: string; end: number } {
+        let i = start + 1; 
+        let value = '`';
+
+        while (i < content.length) {
+            const char = content[i];
+            value += char;
+
+            if (char === '\\') {
+                
+                i++;
+                if (i < content.length) {
+                    value += content[i];
+                }
+            } else if (char === '`') {
+                
+                return { value, end: i + 1 };
             }
-            callback(1, 0);
-            return '';
-        });
+            i++;
+        }
+
+        return { value, end: i };
+    }
+
+    private parseLineComment(content: string, start: number): { value: string; end: number } {
+        let i = start;
+        let value = '';
+
+        while (i < content.length && content[i] !== '\n') {
+            value += content[i];
+            i++;
+        }
+
+        return { value, end: i };
+    }
+
+    private parseBlockComment(content: string, start: number): { value: string; end: number } {
+        let i = start + 2; 
+        let value = '/*';
+
+        while (i < content.length - 1) {
+            value += content[i];
+            if (content[i] === '*' && content[i + 1] === '/') {
+                value += '/';
+                return { value, end: i + 2 };
+            }
+            i++;
+        }
+
+        return { value, end: i };
+    }
+
+    private parseHtmlComment(content: string, start: number): { value: string; end: number } {
+        let i = start + 4; 
+        let value = '<!--';
+
+        while (i < content.length - 2) {
+            value += content[i];
+            if (content.substr(i, 3) === '-->') {
+                value += '-->';
+                return { value, end: i + 3 };
+            }
+            i++;
+        }
+
+        return { value, end: i };
+    }
+
+    private parseHashComment(content: string, start: number): { value: string; end: number } {
+        let i = start;
+        let value = '';
+
+        while (i < content.length && content[i] !== '\n') {
+            value += content[i];
+            i++;
+        }
+
+        return { value, end: i };
+    }
+
+    private isHashCommentFile(extension: string): boolean {
+        const hashCommentExtensions = ['py', 'sh', 'bash', 'zsh', 'fish', 'rb', 'pl', 'yaml', 'yml'];
+        return hashCommentExtensions.includes(extension);
     }
 
     private shouldPreserveComment(comment: string): boolean {
-        return this.keepPatterns.length > 0 && 
-               this.keepPatterns.some(pattern => pattern.test(comment));
-    }
-
-    private getLanguagePatterns(extension: string): CommentPattern[] {
-        return this.languagePatterns.get(extension) || this.languagePatterns.get('default') || [];
-    }
-
-    private initializeLanguagePatterns(): Map<string, CommentPattern[]> {
-        const patterns = new Map<string, CommentPattern[]>();
-
+        if (this.keepPatterns.length === 0) return false;
         
-        const cStylePatterns: CommentPattern[] = [
-            { start: '//', inline: true },
-            { start: '/\\*', end: '\\*/' }
-        ];
-
-        
-        const markupPatterns: CommentPattern[] = [
-            { start: '<!--', end: '-->' }
-        ];
-
-        
-        const cssPatterns: CommentPattern[] = [
-            { start: '/\\*', end: '\\*/' }
-        ];
-
-        
-        const hashPatterns: CommentPattern[] = [
-            { start: '#', inline: true }
-        ];
-
-        
-        const languageMap: Record<string, CommentPattern[]> = {
-            
-            'js': cStylePatterns,
-            'jsx': cStylePatterns,  
-            'ts': cStylePatterns,
-            'tsx': cStylePatterns,
-            'mjs': cStylePatterns,
-            'cjs': cStylePatterns,
-            
-            
-            'c': cStylePatterns,
-            'cpp': cStylePatterns,
-            'cc': cStylePatterns,
-            'cxx': cStylePatterns,
-            'h': cStylePatterns,
-            'hpp': cStylePatterns,
-            'java': cStylePatterns,
-            'cs': cStylePatterns,
-            'php': cStylePatterns,
-            
-            
-            'html': markupPatterns,
-            'htm': markupPatterns,
-            'xml': markupPatterns,
-            'svg': markupPatterns,
-            
-            
-            'vue': [...cStylePatterns, ...markupPatterns],
-            'svelte': [...cStylePatterns, ...markupPatterns],
-            
-            
-            'css': cssPatterns,
-            'scss': [...cssPatterns, { start: '//', inline: true }],
-            'sass': cssPatterns,
-            'less': cssPatterns,
-            
-            
-            'py': hashPatterns,
-            'sh': hashPatterns,
-            'bash': hashPatterns,
-            'zsh': hashPatterns,
-            'fish': hashPatterns,
-            'rb': hashPatterns,
-            'pl': hashPatterns,
-            'yaml': hashPatterns,
-            'yml': hashPatterns,
-            
-            
-            'default': cStylePatterns
-        };
-
-        Object.entries(languageMap).forEach(([ext, commentPatterns]) => {
-            patterns.set(ext, commentPatterns);
+        return this.keepPatterns.some(pattern => {
+            const regex = new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+            return regex.test(comment);
         });
-
-        return patterns;
     }
 }
