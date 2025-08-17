@@ -10,10 +10,59 @@ export interface ProcessResult {
     modified: boolean;
     removed: number;
     preserved: number;
+    errors?: any[];
+    warnings?: string[];
+    hasErrors?: boolean;
+    hasCriticalErrors?: boolean;
+    performanceMetrics?: any; // Optional performance metrics from PerformanceMonitor
 }
 
 export interface CommentPattern {
     start: string | RegExp;
     end?: string | RegExp;
     inline?: boolean;
+}
+
+// Enhanced tokenizer types
+export interface TokenContext {
+    type: 'code' | 'string' | 'regex' | 'comment' | 'template';
+    quote?: string;
+    depth?: number;
+    interpolationDepth?: number;
+}
+
+export interface EnhancedToken {
+    type: 'string' | 'regex' | 'comment' | 'code';
+    value: string;
+    context: TokenContext;
+    startPos: number;
+    endPos: number;
+}
+
+export enum LexerState {
+    CODE = 'code',
+    SINGLE_STRING = 'single_string',
+    DOUBLE_STRING = 'double_string',
+    TEMPLATE_STRING = 'template_string',
+    REGEX = 'regex',
+    LINE_COMMENT = 'line_comment',
+    BLOCK_COMMENT = 'block_comment',
+    HTML_COMMENT = 'html_comment'
+}
+
+export enum CommentCategory {
+    DEVELOPMENT = 'development',
+    FRAMEWORK = 'framework', 
+    TOOLING = 'tooling',
+    DOCUMENTATION = 'documentation',
+    CUSTOM = 'custom',
+    REGULAR = 'regular'
+}
+
+export interface PreservationRule {
+    name: string;
+    pattern: RegExp;
+    priority: number;
+    description: string;
+    category?: CommentCategory;
 }

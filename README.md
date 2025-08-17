@@ -166,19 +166,11 @@ node packages/crapify-comments/dist/cli.js --help
 
 ## Roadmap
 
-- **crapify-whitespace** - Smart whitespace cleanup
-- **crapify-imports** - Import statement optimization
-- **crapify-styles** - CSS/SCSS cleanup
-- **crapify-config** - Configuration file cleanup
 - **crapify-logs** - Debug statement removal
 
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
-
-## Contributing
-
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ---
 

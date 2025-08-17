@@ -2,6 +2,18 @@ import { ExitCode, Logger, loadConfig, findFiles, readFile, writeFile, createFil
 import { CommentRemover } from './comment-remover';
 import { CommentStats } from './types';
 
+// Export preservation rule system
+export { 
+    BasePreservationRule,
+    FrameworkPreservationRule,
+    DevelopmentPreservationRule,
+    ToolingPreservationRule,
+    DocumentationPreservationRule,
+    CustomPreservationRule
+} from './preservation-rules';
+export { PreservationRuleManager, CommentClassification } from './rule-manager';
+export { CommentCategory, PreservationRule } from './types';
+
 export interface CrapifyCommentsOptions {
     keep?: string;
     extensions?: string;
@@ -10,6 +22,14 @@ export interface CrapifyCommentsOptions {
     verbose?: boolean;
     quiet?: boolean;
     json?: boolean;
+    useEnhancedTokenizer?: boolean;
+    // Enhanced preservation rule options
+    preserveFramework?: boolean;
+    preserveDevelopment?: boolean;
+    preserveTooling?: boolean;
+    preserveDocumentation?: boolean;
+    customRules?: string;
+    rulePriority?: number;
 }
 
 export class CrapifyComments {
@@ -37,7 +57,17 @@ export class CrapifyComments {
         );
 
         const keepPatterns = this.options.keep?.split(',').map(p => p.trim()) || [];
-        this.remover = new CommentRemover(keepPatterns);
+        const customRules = this.options.customRules?.split(',').map(p => p.trim()).filter(Boolean) || [];
+        
+        this.remover = new CommentRemover(keepPatterns, {
+            useEnhancedTokenizer: this.options.useEnhancedTokenizer,
+            preserveFramework: this.options.preserveFramework,
+            preserveDevelopment: this.options.preserveDevelopment,
+            preserveTooling: this.options.preserveTooling,
+            preserveDocumentation: this.options.preserveDocumentation,
+            customRules,
+            rulePriority: this.options.rulePriority
+        });
     }
 
     async execute(paths: string[]): Promise<ExitCode> {
@@ -64,7 +94,15 @@ export class CrapifyComments {
 
             if (!this.options.quiet) {
                 this.logger.info(`Found ${files.length} file${files.length === 1 ? '' : 's'} to process`);
-                this.logger.info(`Keep patterns: ${this.options.keep || 'none'}`);
+                
+                // Show preservation configuration
+                const preservationInfo = this.getPreservationInfo();
+                this.logger.info(`Preservation rules: ${preservationInfo}`);
+                
+                if (this.options.keep) {
+                    this.logger.info(`Legacy keep patterns: ${this.options.keep}`);
+                }
+                
                 if (this.options.dryRun) {
                     this.logger.info('DRY RUN - No files will be modified');
                 }
@@ -153,6 +191,32 @@ export class CrapifyComments {
             this.logger.warn('DRY RUN MODE - No files were actually modified');
             this.logger.info('Remove --dry-run to apply changes');
         }
+    }
+
+    private getPreservationInfo(): string {
+        const activeCategories = [];
+        
+        if (this.options.preserveFramework !== false) {
+            activeCategories.push('Framework');
+        }
+        if (this.options.preserveDevelopment !== false) {
+            activeCategories.push('Development');
+        }
+        if (this.options.preserveTooling !== false) {
+            activeCategories.push('Tooling');
+        }
+        if (this.options.preserveDocumentation !== false) {
+            activeCategories.push('Documentation');
+        }
+        
+        if (this.options.customRules) {
+            const customCount = this.options.customRules.split(',').filter(Boolean).length;
+            if (customCount > 0) {
+                activeCategories.push(`Custom (${customCount})`);
+            }
+        }
+        
+        return activeCategories.length > 0 ? activeCategories.join(', ') : 'None';
     }
 
     private determineExitCode(): ExitCode {
