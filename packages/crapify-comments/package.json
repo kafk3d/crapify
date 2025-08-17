@@ -1,0 +1,25 @@
+{
+  "name": "crapify-comments",
+  "version": "1.0.0",
+  "bin": {
+    "crapify-comments": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@babel/generator": "^7.28.3",
+    "@babel/parser": "^7.28.3",
+    "@babel/traverse": "^7.28.3",
+    "@crapify/shared": "file:../shared",
+    "commander": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/babel__generator": "^7.27.0",
+    "@types/babel__traverse": "^7.28.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
