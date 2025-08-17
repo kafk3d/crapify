@@ -1,8 +1,6 @@
 import { PreservationRule, CommentCategory } from './types';
 
-/**
- * Base class for preservation rules that define how comments should be categorized and preserved
- */
+
 export abstract class BasePreservationRule implements PreservationRule {
     public readonly name: string;
     public readonly pattern: RegExp;
@@ -24,24 +22,18 @@ export abstract class BasePreservationRule implements PreservationRule {
         this.category = category;
     }
 
-    /**
-     * Test if a comment matches this preservation rule
-     */
+    
     matches(comment: string): boolean {
         return this.pattern.test(comment);
     }
 
-    /**
-     * Extract additional metadata from the comment if needed
-     */
+    
     extractMetadata(comment: string): Record<string, any> {
         return {};
     }
 }
 
-/**
- * Framework-specific preservation rule for comments that are required by frameworks
- */
+
 export class FrameworkPreservationRule extends BasePreservationRule {
     public readonly framework: string;
 
@@ -93,9 +85,7 @@ export class DevelopmentPreservationRule extends BasePreservationRule {
     }
 }
 
-/**
- * Tooling directive preservation rule for linter/compiler directives
- */
+
 export class ToolingPreservationRule extends BasePreservationRule {
     public readonly tool: string;
 
@@ -118,9 +108,7 @@ export class ToolingPreservationRule extends BasePreservationRule {
     }
 }
 
-/**
- * Documentation preservation rule for JSDoc and similar documentation comments
- */
+
 export class DocumentationPreservationRule extends BasePreservationRule {
     constructor(
         name: string,
@@ -132,7 +120,7 @@ export class DocumentationPreservationRule extends BasePreservationRule {
     }
 
     extractMetadata(comment: string): Record<string, any> {
-        // Extract JSDoc tags if present
+        
         const jsdocTags = comment.match(/@\w+/g) || [];
         
         return {
@@ -142,9 +130,7 @@ export class DocumentationPreservationRule extends BasePreservationRule {
     }
 }
 
-/**
- * Custom preservation rule for user-defined patterns
- */
+
 export class CustomPreservationRule extends BasePreservationRule {
     public readonly userPattern: string;
 

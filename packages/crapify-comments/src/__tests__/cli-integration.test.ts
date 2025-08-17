@@ -46,7 +46,7 @@ describe('CLI Integration Tests', () => {
             const tool = new CrapifyComments(options);
             const ruleManager = (tool as any).remover.getRuleManager();
             
-            // Should have custom rules added
+            
             const rules = ruleManager.getRules();
             const customRules = rules.filter((rule: any) => rule.name.startsWith('cli-custom-pattern-'));
             expect(customRules.length).toBe(3);
@@ -62,7 +62,7 @@ describe('CLI Integration Tests', () => {
             const tool = new CrapifyComments(options);
             const ruleManager = (tool as any).remover.getRuleManager();
             
-            // Should have fewer rules due to disabled categories
+            
             const rules = ruleManager.getRules();
             const frameworkRules = rules.filter((rule: any) => rule.category === 'framework');
             const developmentRules = rules.filter((rule: any) => rule.category === 'development');

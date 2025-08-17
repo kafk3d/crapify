@@ -14,7 +14,7 @@ describe('PreservationRuleManager', () => {
             const rules = manager.getRules();
             expect(rules.length).toBeGreaterThan(0);
             
-            // Should have rules for all categories
+            
             const categories = rules.map(rule => rule.category);
             expect(categories).toContain(CommentCategory.FRAMEWORK);
             expect(categories).toContain(CommentCategory.DEVELOPMENT);
@@ -686,9 +686,9 @@ describe('PreservationRuleManager', () => {
                     '// Meeting @ 3pm today'
                 ];
 
-                // These might still match the @\w+ pattern, but they're not typical JSDoc
-                // The current implementation is broad and will match these
-                // This is acceptable as it's better to over-preserve than under-preserve
+                
+                
+                
             });
         });
 
@@ -860,7 +860,7 @@ describe('PreservationRuleManager', () => {
 
                 styleVariations.forEach(comment => {
                     const shouldPreserve = manager.shouldPreserveComment(comment);
-                    // Most should be preserved, HTML and shell comments might not match
+                    
                     if (comment.includes('eslint-disable') || comment.includes('prettier-ignore')) {
                         expect(shouldPreserve).toBe(true);
                     }

@@ -55,7 +55,7 @@ export function createFilePatterns(paths: string[], extensions: string[]): strin
                 return `${resolved}/**/*.{${extensions.join(',')}}`;
             }
         } catch {
-            // If stat fails, assume it's a pattern or directory
+            
         }
         
         return `${resolved}/**/*.{${extensions.join(',')}}`;

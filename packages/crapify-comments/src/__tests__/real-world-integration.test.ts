@@ -35,15 +35,15 @@ function removeComments(content) {
 
             const result = remover.removeComments(problematicCode, 'test.js');
 
-            // The regex pattern should be preserved intact
+            
             expect(result.content).toContain('/\\/\\*[\\s\\S]*?\\*\\//g');
             expect(result.content).toContain('/\\/\\/.*$/gm');
             
-            // Should not be truncated at the first comment-like pattern
+            
             expect(result.content).toContain('(match) => {');
             expect(result.content).toContain("return '';");
             
-            // Regular comments should be removed
+            
             expect(result.content).not.toContain('// Remove block comments');
             expect(result.content).not.toContain('// Remove line comments');
             
@@ -76,7 +76,7 @@ function validateInput(input) {
 
             const result = remover.removeComments(codeWithComplexRegex, 'validator.js');
 
-            // All regex patterns should be preserved
+            
             expect(result.content).toContain('/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/');
             expect(result.content).toContain('/https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)/');
             expect(result.content).toContain('/(?:\\/\\*[\\s\\S]*?\\*\\/|\\/\\/.*$)/gm');
@@ -85,7 +85,7 @@ function validateInput(input) {
             // TODO comment should be preserved
             expect(result.content).toContain('/* TODO: Add more validation rules */');
             
-            // Regular comments should be removed
+            
             expect(result.content).not.toContain('// This is a regular comment that should be removed');
             expect(result.content).not.toContain('// Check if it\'s a URL');
             
@@ -125,22 +125,22 @@ const testCases = [
 
             const result = remover.removeComments(complexCode, 'processor.js');
 
-            // Template literal with regex pattern should be preserved
+            
             expect(result.content).toContain('`/\\/\\*[\\s\\S]*?\\*\\//${flags}`');
             
-            // All regex patterns in the patterns object should be preserved
+            
             expect(result.content).toContain('/\\/\\*[\\s\\S]*?\\*\\//g');
             expect(result.content).toContain('/\\/\\/.*$/gm');
             expect(result.content).toContain('/"(?:[^"\\\\]|\\\\.)*"|\'(?:[^\'\\\\]|\\\\.)*\'/g');
             expect(result.content).toContain('/\\/(?:[^\\/\\\\\\n]|\\\\.)+\\/[gimsuyvd]*/g');
             
-            // Test case regex should be preserved
+            
             expect(result.content).toContain('/test\\/pattern/g');
             
             // FIXME comment should be preserved
             expect(result.content).toContain('/* FIXME: This needs optimization */');
             
-            // Regular comments should be removed
+            
             expect(result.content).not.toContain('// Regular comment to remove');
             expect(result.content).not.toContain('// Another comment to remove');
             
@@ -188,7 +188,7 @@ const testCases = [
 
             const result = remover.removeComments(svelteComponent, 'Counter.svelte');
 
-            // Svelte ignore directives should be preserved
+            
             expect(result.content).toContain('<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->');
             expect(result.content).toContain('<!-- svelte-ignore a11y_click_events_have_key_events -->');
             expect(result.content).toContain('<!-- svelte-ignore a11y_missing_attribute -->');
@@ -197,7 +197,7 @@ const testCases = [
             expect(result.content).toContain('/* TODO: Add proper validation */');
             expect(result.content).toContain('/* TODO: Improve styling */');
             
-            // Regular comments should be removed
+            
             expect(result.content).not.toContain('// Regular comment to remove');
             expect(result.content).not.toContain('<!-- This is a regular HTML comment -->');
             expect(result.content).not.toContain('/* Regular CSS comment */');
@@ -240,10 +240,10 @@ export default function App() {
 
             const result = remover.removeComments(reactComponent, 'App.jsx');
 
-            // JSX pragma should be preserved
+            
             expect(result.content).toContain('/** @jsx jsx */');
             
-            // Webpack magic comments should be preserved
+            
             expect(result.content).toContain('/* webpackChunkName: "lazy-component" */');
             expect(result.content).toContain('/* webpackMode: "lazy" */');
             expect(result.content).toContain('/* webpackChunkName: "async-component" */');
@@ -253,7 +253,7 @@ export default function App() {
             // TODO comment should be preserved
             expect(result.content).toContain('// TODO: Add error boundary');
             
-            // Regular comments should be removed
+            
             expect(result.content).not.toContain('// Regular import comment');
             expect(result.content).not.toContain('/* Regular block comment */');
             
@@ -293,19 +293,19 @@ function legacyFunction() {
 
             const result = remover.removeComments(typescriptCode, 'events.ts');
 
-            // TypeScript reference directives should be preserved
+            
             expect(result.content).toContain('/// <reference path="./types/global.d.ts" />');
             
-            // TypeScript ignore comments should be preserved
+            
             expect(result.content).toContain('// @ts-ignore: legacy compatibility');
             expect(result.content).toContain('// @ts-expect-error: testing error handling');
             expect(result.content).toContain('// @ts-nocheck');
             
-            // Development keywords should be preserved
+            
             expect(result.content).toContain('/* TODO: Add proper type definitions */');
             expect(result.content).toContain('/* FIXME: Validate event structure */');
             
-            // Regular comments should be removed
+            
             expect(result.content).not.toContain('// Regular comment');
             expect(result.content).not.toContain('// Regular method comment');
             expect(result.content).not.toContain('// This function has type issues');
@@ -360,7 +360,7 @@ class DataProcessor {
 
             const result = remover.removeComments(codebaseExample, 'processor.js');
 
-            // All development keywords should be preserved (case-insensitive)
+            
             expect(result.content).toContain('// TODO: Validate options parameter');
             expect(result.content).toContain('/* FIXME: This method is too complex and needs refactoring */');
             expect(result.content).toContain('// HACK: Quick fix for null data - should be handled properly');
@@ -370,7 +370,7 @@ class DataProcessor {
             expect(result.content).toContain('// WARNING: This operation is expensive for large datasets');
             expect(result.content).toContain('// WARN: Validation rules are not comprehensive');
             
-            // Regular comments should be removed
+            
             expect(result.content).not.toContain('// Regular comment about the class');
             expect(result.content).not.toContain('// Regular implementation comment');
             expect(result.content).not.toContain('/* Regular validation comment */');
@@ -417,7 +417,7 @@ function example() {
 
             const result = remover.removeComments(mixedCaseCode, 'mixed-case.js');
 
-            // All variations should be preserved
+            
             expect(result.content).toContain('// todo: lowercase version');
             expect(result.content).toContain('/* Todo: Title case version */');
             expect(result.content).toContain('// TODO: Uppercase version');
@@ -438,7 +438,7 @@ function example() {
             expect(result.content).toContain('/* WARN: Alert */');
             expect(result.content).toContain('// TODO: Add error handling here');
             
-            // Regular comment should be removed
+            
             expect(result.content).not.toContain('// Regular comment that should be removed');
             
             expect(result.removed).toBe(1);
@@ -500,32 +500,32 @@ const result = factorial(5);
 
             const result = remover.removeComments(projectCode, 'project.js');
 
-            // ESLint directives should be preserved
+            
             expect(result.content).toContain('// eslint-disable-next-line @typescript-eslint/no-var-requires');
             expect(result.content).toContain('/* eslint-disable no-console, no-alert */');
             expect(result.content).toContain('/* eslint-enable no-console */');
             
-            // Prettier ignore should be preserved
+            
             expect(result.content).toContain('// prettier-ignore');
             
-            // JSDoc comments should be preserved
+            
             expect(result.content).toContain('* @param {number} n - The number to calculate factorial for');
             expect(result.content).toContain('* @returns {number} The factorial result');
             expect(result.content).toContain('* @example');
             expect(result.content).toContain('* @since 1.0.0');
             expect(result.content).toContain('* @author John Doe');
             
-            // TypeScript ignore comments should be preserved
+            
             expect(result.content).toContain('// @ts-ignore: legacy code compatibility');
             expect(result.content).toContain('// @ts-expect-error: intentional type error for testing');
             expect(result.content).toContain('// @ts-nocheck');
             
-            // Coverage ignore comments should be preserved
+            
             expect(result.content).toContain('/* istanbul ignore next */');
             expect(result.content).toContain('// c8 ignore start');
             expect(result.content).toContain('// c8 ignore stop');
             
-            // Regular comments should be removed
+            
             expect(result.content).not.toContain('// Regular comment in legacy code');
             expect(result.content).not.toContain('// Regular comment that should be removed');
             
@@ -570,25 +570,25 @@ const usage = buildComplexTemplate({ strict: true });
 
             const result = remover.removeComments(complexNestedCode, 'complex.js');
 
-            // Regex pattern should be preserved
+            
             expect(result.content).toContain('/\\/\\*[\\s\\S]*?\\*\\//g');
             
-            // Template literal content should be preserved (including comments inside it)
+            
             expect(result.content).toContain('// This comment is inside a template literal');
             expect(result.content).toContain('/* This block comment is also in the template */');
             expect(result.content).toContain('// TODO: Add validation for the result');
             expect(result.content).toContain('/* FIXME: Improve validation logic */');
             expect(result.content).toContain('// Another comment in template');
             
-            // Nested regex in template should be preserved
+            
             expect(result.content).toContain('/^[a-zA-Z0-9\\s]*$/');
             
-            // Regular comments outside template should be removed
+            
             expect(result.content).not.toContain('// Regular comment to remove');
             expect(result.content).not.toContain('/* Regular block comment outside template */');
             
             expect(result.removed).toBe(2);
-            expect(result.preserved).toBe(0); // Comments inside template literals are not preserved by rules
+            expect(result.preserved).toBe(0); 
         });
     });
 });

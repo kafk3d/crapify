@@ -129,7 +129,7 @@ describe('ErrorHandler', () => {
         });
 
         it('should handle recovery failures gracefully', () => {
-            const errorHandler = new ErrorHandler(mockLogger, false); // Disable recovery
+            const errorHandler = new ErrorHandler(mockLogger, false); 
             
             const error: ParseError = {
                 category: ErrorCategory.PARSING,
@@ -149,7 +149,7 @@ describe('ErrorHandler', () => {
     describe('Utility Functions', () => {
         it('should calculate line and column correctly', () => {
             const content = 'line 1\nline 2\nline 3';
-            const position = 10; // Position of 'e' in 'line 2'
+            const position = 10; 
             
             const { line, column } = errorHandler.calculateLineColumn(content, position);
             
@@ -159,7 +159,7 @@ describe('ErrorHandler', () => {
 
         it('should provide context around error position', () => {
             const content = 'This is a long piece of content with an error in the middle somewhere';
-            const position = 35; // Position of 'error'
+            const position = 35; 
             
             const context = errorHandler.getContext(content, position, 10);
             
@@ -168,20 +168,20 @@ describe('ErrorHandler', () => {
         });
 
         it('should validate parsing completion', () => {
-            // Valid scenario
+            
             expect(errorHandler.validateParsingCompletion(100, 80, 10)).toBe(true);
             
-            // Invalid scenario - too much content lost
+            
             expect(errorHandler.validateParsingCompletion(100, 10, 5)).toBe(false);
             
-            // Invalid scenario - no tokens processed
+            
             expect(errorHandler.validateParsingCompletion(100, 100, 0)).toBe(false);
         });
     });
 
     describe('Error Analysis', () => {
         beforeEach(() => {
-            // Add various errors for testing
+            
             errorHandler.recordError({
                 category: ErrorCategory.PARSING,
                 severity: ErrorSeverity.LOW,
@@ -240,17 +240,17 @@ describe('ErrorHandler', () => {
             const content = 'short';
             const { line, column } = errorHandler.calculateLineColumn(content, 100);
             expect(line).toBe(1);
-            expect(column).toBe(6); // After the last character
+            expect(column).toBe(6); 
         });
 
         it('should handle context at content boundaries', () => {
             const content = 'short';
             
-            // Context at start
+            
             const startContext = errorHandler.getContext(content, 0, 10);
             expect(startContext).toContain('<<<ERROR>>>');
             
-            // Context at end
+            
             const endContext = errorHandler.getContext(content, content.length - 1, 10);
             expect(endContext).toContain('<<<ERROR>>>');
         });

@@ -48,11 +48,11 @@ Note: The --keep option is legacy and works alongside the new preservation syste
     .option('-q, --quiet', 'Suppress output')
     .option('--json', 'Output as JSON')
     .action(async (paths, options) => {
-        // Convert legacy-tokenizer flag to useEnhancedTokenizer option
+        
         const toolOptions = {
             ...options,
             useEnhancedTokenizer: !options.legacyTokenizer,
-            // Parse custom rule priority
+            
             rulePriority: parseInt(options.rulePriority, 10) || 100
         };
         

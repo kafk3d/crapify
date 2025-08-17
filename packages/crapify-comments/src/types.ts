@@ -14,7 +14,7 @@ export interface ProcessResult {
     warnings?: string[];
     hasErrors?: boolean;
     hasCriticalErrors?: boolean;
-    performanceMetrics?: any; // Optional performance metrics from PerformanceMonitor
+    performanceMetrics?: any; 
 }
 
 export interface CommentPattern {
@@ -23,7 +23,7 @@ export interface CommentPattern {
     inline?: boolean;
 }
 
-// Enhanced tokenizer types
+
 export interface TokenContext {
     type: 'code' | 'string' | 'regex' | 'comment' | 'template';
     quote?: string;

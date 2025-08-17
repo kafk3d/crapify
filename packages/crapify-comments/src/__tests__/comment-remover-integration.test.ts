@@ -7,7 +7,7 @@ describe('CommentRemover Integration', () => {
             const remover = new CommentRemover([]);
             expect(remover).toBeDefined();
             
-            // Test that enhanced tokenizer handles regex patterns correctly
+            
             const code = `
                 const pattern = /\\/\\*[\\s\\S]*?\\*\\//g;
                 // This is a regular comment
@@ -37,7 +37,7 @@ describe('CommentRemover Integration', () => {
             
             const result = remover.removeComments(code, 'test.svelte');
             
-            // Should preserve framework comments
+            
             expect(result.content).toContain('svelte-ignore');
             expect(result.content).toContain('@jsx jsx');
             expect(result.content).not.toContain('// Regular comment to remove');
@@ -67,7 +67,7 @@ describe('CommentRemover Integration', () => {
         it('should fallback to legacy tokenizer when enhanced tokenizer fails', () => {
             const remover = new CommentRemover([]);
             
-            // Mock the enhanced tokenizer to throw an error
+            
             const originalTokenize = remover['enhancedTokenizer'].tokenize;
             remover['enhancedTokenizer'].tokenize = () => {
                 throw new Error('Enhanced tokenizer failed');
@@ -80,12 +80,12 @@ describe('CommentRemover Integration', () => {
             
             const result = remover.removeComments(code, 'test.js');
             
-            // Should still work with legacy tokenizer
+            
             expect(result.content).not.toContain('Regular comment');
             expect(result.content).not.toContain('Block comment');
             expect(result.removed).toBe(2);
             
-            // Restore original method
+            
             remover['enhancedTokenizer'].tokenize = originalTokenize;
         });
 
@@ -99,8 +99,8 @@ describe('CommentRemover Integration', () => {
             
             const result = remover.removeComments(code, 'test.js');
             
-            // With legacy tokenizer, simple regex should be preserved
-            // and regular comment should be removed
+            
+            
             expect(result.content).toContain('/simple-regex/g');
             expect(result.content).not.toContain('// Regular comment');
         });
@@ -148,7 +148,7 @@ describe('CommentRemover Integration', () => {
             
             const result = remover.removeComments(code, 'test.js');
             
-            // Should preserve template literal and regex content
+            
             expect(result.content).toContain('// This is inside a template literal');
             expect(result.content).toContain('/* not a real comment */');
             expect(result.content).toContain('/\\/\\/ not a comment/g');
@@ -170,7 +170,7 @@ describe('CommentRemover Integration', () => {
             
             const result = remover.removeComments(malformedCode, 'test.js');
             
-            // Should not throw and should process what it can
+            
             expect(result).toBeDefined();
             expect(result.content).toBeDefined();
         });
@@ -207,7 +207,7 @@ describe('CommentRemover Integration', () => {
         it('should handle large files efficiently', () => {
             const remover = new CommentRemover([]);
             
-            // Generate a large code string
+            
             const lines = [];
             for (let i = 0; i < 1000; i++) {
                 lines.push(`const var${i} = "value${i}"; // Comment ${i}`);
@@ -219,7 +219,7 @@ describe('CommentRemover Integration', () => {
             const endTime = Date.now();
             
             expect(result.removed).toBe(1000);
-            expect(endTime - startTime).toBeLessThan(1000); // Should complete in under 1 second
+            expect(endTime - startTime).toBeLessThan(1000); 
         });
 
         it('should handle deeply nested contexts', () => {
@@ -238,7 +238,7 @@ describe('CommentRemover Integration', () => {
             
             const result = remover.removeComments(code, 'test.js');
             
-            // Should preserve nested content and only remove real comment
+            
             expect(result.content).toContain('// comment in nested template');
             expect(result.content).toContain('// comment in outer template');
             expect(result.content).toContain('/regex\\/\\*pattern/g');
@@ -296,17 +296,17 @@ describe('CommentRemover Integration', () => {
         });
 
         it('should fall back to legacy tokenizer on enhanced tokenizer failure', () => {
-            // Create a scenario that might cause enhanced tokenizer to fail
+            
             const problematicCode = '\x00\x01\x02 const x = 5; // comment';
             const result = removerWithLogger.removeComments(problematicCode, 'test.js');
 
             expect(result).toBeDefined();
             expect(result.content).toBeDefined();
-            // Should have processed the comment even with problematic characters
+            
         });
 
         it('should return original content when all parsing fails', () => {
-            // Mock both tokenizers to fail
+            
             const originalTokenize = removerWithLogger['tokenize'];
             const originalEnhancedTokenize = removerWithLogger['enhancedTokenizer']['tokenize'];
             
@@ -321,17 +321,17 @@ describe('CommentRemover Integration', () => {
             const code = 'const x = 5; // comment';
             const result = removerWithLogger.removeComments(code, 'test.js');
 
-            expect(result.content).toBe(code); // Should return original content
+            expect(result.content).toBe(code); 
             expect(result.modified).toBe(false);
             expect(result.hasCriticalErrors).toBe(true);
 
-            // Restore original methods
+            
             removerWithLogger['tokenize'] = originalTokenize;
             removerWithLogger['enhancedTokenizer']['tokenize'] = originalEnhancedTokenize;
         });
 
         it('should handle preservation errors gracefully', () => {
-            // Mock preservation logic to throw errors
+            
             const originalShouldPreserve = removerWithLogger['shouldPreserveCommentEnhanced'];
             removerWithLogger['shouldPreserveCommentEnhanced'] = jest.fn().mockImplementation(() => {
                 throw new Error('Preservation logic failed');
@@ -342,10 +342,10 @@ describe('CommentRemover Integration', () => {
 
             expect(result).toBeDefined();
             expect(result.hasErrors).toBe(true);
-            // Should preserve comments when preservation logic fails
+            
             expect(result.preserved).toBeGreaterThan(0);
 
-            // Restore original method
+            
             removerWithLogger['shouldPreserveCommentEnhanced'] = originalShouldPreserve;
         });
 
@@ -355,12 +355,12 @@ describe('CommentRemover Integration', () => {
 
             expect(result).toBeDefined();
             
-            // Should not have excessive content loss
+            
             const originalLength = code.length;
             const processedLength = result.content.length;
             const lossPercentage = (originalLength - processedLength) / originalLength;
             
-            expect(lossPercentage).toBeLessThan(0.8); // Less than 80% loss
+            expect(lossPercentage).toBeLessThan(0.8); 
         });
 
         it('should provide comprehensive processing statistics', () => {
@@ -393,18 +393,18 @@ describe('CommentRemover Integration', () => {
                 e.message && e.message.includes('encoding')
             );
             
-            // Should detect potential encoding issues
+            
             expect(encodingErrors.length).toBeGreaterThan(0);
         });
 
         it('should handle very large content without memory issues', () => {
-            // Create a large piece of content
+            
             const largeContent = 'const x = 5; // comment\n'.repeat(1000);
             const result = removerWithLogger.removeComments(largeContent, 'large.js');
 
             expect(result).toBeDefined();
             expect(result.content).toBeDefined();
-            // Should complete without memory issues
+            
         });
 
         it('should handle mixed comment types with errors', () => {
@@ -420,7 +420,7 @@ describe('CommentRemover Integration', () => {
             const result = removerWithLogger.removeComments(mixedCode, 'mixed.js');
 
             expect(result).toBeDefined();
-            expect(result.removed).toBeGreaterThan(0); // Should remove some comments
+            expect(result.removed).toBeGreaterThan(0); 
             expect(result.preserved).toBeGreaterThan(0); // Should preserve TODO comment
         });
 
@@ -428,7 +428,7 @@ describe('CommentRemover Integration', () => {
             const problematicCode = 'const str = "unterminated\nconst x = 5;';
             const result = removerWithLogger.removeComments(problematicCode, 'test.js');
 
-            // Should have logged warnings about errors
+            
             expect(mockLogger.warn).toHaveBeenCalled();
         });
 
@@ -468,7 +468,7 @@ describe('CommentRemover Integration', () => {
             const errorHandler = removerWithLogger.getErrorHandler();
             expect(errorHandler).toBeDefined();
             
-            // Should be able to access error handler methods
+            
             expect(typeof errorHandler.recordError).toBe('function');
             expect(typeof errorHandler.getErrors).toBe('function');
             expect(typeof errorHandler.getWarnings).toBe('function');

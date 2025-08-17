@@ -37,20 +37,20 @@ function removeComments(content) {
 
             const result = remover.removeComments(originalBugCode, 'original-bug.js');
 
-            // The key test: the regex should NOT be truncated
+            
             expect(result.content).toContain('/\\/\\*[\\s\\S]*?\\*\\//g');
             expect(result.content).toContain('/\\/\\/.*$/gm');
             
-            // The function should remain intact
+            
             expect(result.content).toContain('(match) => {');
             expect(result.content).toContain("return '';");
             expect(result.content).toContain('});');
             
-            // But the comments should be removed
+            
             expect(result.content).not.toContain('// Remove block comments');
             expect(result.content).not.toContain('// Remove line comments');
             
-            // Verify the function would still work if executed
+            
             expect(result.content).toContain('function removeComments(content)');
             expect(result.content).toContain('let result = content;');
             expect(result.content).toContain('return result;');
@@ -90,17 +90,17 @@ const cleaned = code
 
             const result = remover.removeComments(variousContexts, 'various-contexts.js');
 
-            // All regex patterns should be preserved in all contexts
+            
             const regexCount = (result.content.match(/\/\\\/\\\*\[\\s\\S\]\*\?\\\*\\\/\/g/g) || []).length;
-            expect(regexCount).toBe(7); // Should find all 7 instances
+            expect(regexCount).toBe(7); 
 
             const lineRegexCount = (result.content.match(/\/\\\/\\\/\.\*\$\/gm/g) || []).length;
-            expect(lineRegexCount).toBe(3); // Should find all 3 instances
+            expect(lineRegexCount).toBe(3); 
 
             // TODO comment should be preserved
             expect(result.content).toContain('// TODO: Handle block comments');
 
-            // Regular comments should be removed
+            
             expect(result.content).not.toContain('// Context 1: Direct assignment');
             expect(result.content).not.toContain('// Context 2: In function call');
         });
@@ -131,20 +131,20 @@ const dynamicPattern = \`/\${escapeRegex(searchTerm)}/gi\`;
 
             const result = remover.removeComments(edgeCases, 'edge-cases.js');
 
-            // All actual regex patterns should be preserved
+            
             expect(result.content).toContain('/\\/path\\/to\\/file/g');
             expect(result.content).toContain('/[/\\\\]/g');
             expect(result.content).toContain('/(?:\\/\\*[\\s\\S]*?\\*\\/|\\/\\/.*$|<!--[\\s\\S]*?-->)/gm');
             expect(result.content).toContain('/test/gim');
             expect(result.content).toContain('/${escapeRegex(searchTerm)}/gi');
 
-            // String content should be preserved
+            
             expect(result.content).toContain('"This /looks/ like regex but isn\'t"');
 
-            // Division should be preserved
+            
             expect(result.content).toContain('x / y / z');
 
-            // Comments should be removed
+            
             expect(result.content).not.toContain('// Edge case 1:');
             expect(result.content).not.toContain('// global, ignoreCase, multiline');
         });
@@ -174,21 +174,21 @@ function greet(name) {
 
             const result = remover.removeComments(existingFunctionality, 'existing.js');
 
-            // Basic functionality should work
+            
             expect(result.content).not.toContain('/* This should be removed */');
             expect(result.content).not.toContain('// Regular comment');
 
-            // Preservation should work
+            
             expect(result.content).toContain('// TODO comments should be preserved');
             expect(result.content).toContain('// eslint-disable-next-line no-console');
             expect(result.content).toContain('/** @param {string} name */');
 
-            // Template literals should be preserved
+            
             expect(result.content).toContain('`Hello ${name}`');
 
-            // Adjust expectations based on actual behavior
-            expect(result.removed).toBeGreaterThan(0); // Some comments removed
-            expect(result.preserved).toBeGreaterThan(0); // Some comments preserved
+            
+            expect(result.removed).toBeGreaterThan(0); 
+            expect(result.preserved).toBeGreaterThan(0); 
         });
 
         it('should maintain backward compatibility with custom patterns', () => {
@@ -205,15 +205,15 @@ function greet(name) {
 
             const result = customRemover.removeComments(codeWithCustomPatterns, 'custom.js');
 
-            // Custom patterns should be preserved
+            
             expect(result.content).toContain('/* KEEP: This should be preserved by custom pattern */');
             expect(result.content).toContain('// PRESERVE: This should also be preserved');
             expect(result.content).toContain('// KEEP this one too');
 
-            // Built-in rules should still work
+            
             expect(result.content).toContain('/* TODO: This should be preserved by built-in rule */');
 
-            // Regular comments should be removed
+            
             expect(result.content).not.toContain('// Regular comment to remove');
             expect(result.content).not.toContain('// Another regular comment');
 
@@ -233,7 +233,7 @@ const regex = /unterminated regex
 const valid = "this is valid";
             `.trim();
 
-            // Should not throw an error
+            
             expect(() => {
                 const result = remover.removeComments(malformedCode, 'malformed.js');
                 expect(result).toBeDefined();
@@ -244,7 +244,7 @@ const valid = "this is valid";
 
     describe('Performance regressions', () => {
         it('should not have exponential time complexity with nested patterns', () => {
-            // Create a pattern that could cause exponential backtracking
+            
             const nestedPattern = 'a'.repeat(20) + 'b'.repeat(20);
             const problematicRegex = `/a*b*/g`;
 
@@ -261,14 +261,14 @@ const test = "${nestedPattern}";
 
             const processingTime = endTime - startTime;
 
-            // Should complete quickly even with potentially problematic patterns
-            expect(processingTime).toBeLessThan(100); // Under 100ms
+            
+            expect(processingTime).toBeLessThan(100); 
             expect(result.content).toContain(problematicRegex);
             expect(result.content).toContain('// TODO: Optimize this pattern');
         });
 
         it('should handle repeated similar patterns efficiently', () => {
-            // Generate many similar regex patterns that could cause performance issues
+            
             const patterns: string[] = [];
             for (let i = 0; i < 100; i++) {
                 patterns.push(`const pattern${i} = /\\/\\*[\\s\\S]*?\\*\\//g;`);
@@ -283,10 +283,10 @@ const test = "${nestedPattern}";
 
             const processingTime = endTime - startTime;
 
-            expect(processingTime).toBeLessThan(200); // Should be fast
-            expect(result.removed).toBe(100); // All comments removed
+            expect(processingTime).toBeLessThan(200); 
+            expect(result.removed).toBe(100); 
             
-            // All regex patterns should be preserved
+            
             for (let i = 0; i < 100; i++) {
                 expect(result.content).toContain(`const pattern${i} = /\\/\\*[\\s\\S]*?\\*\\//g;`);
             }
@@ -301,22 +301,22 @@ const pattern = /\\/\\*[\\s\\S]*?\\*\\//g;
 /* TODO: Preserve this */
             `.trim();
 
-            // Process the same code many times
+            
             for (let i = 0; i < 1000; i++) {
                 const result = remover.removeComments(testCode, `test-${i}.js`);
                 
-                // Verify consistent results
+                
                 expect(result.removed).toBe(1);
                 expect(result.preserved).toBe(1);
                 
-                // Don't accumulate results to avoid memory buildup in test
+                
                 if (i % 100 === 0) {
-                    // Force garbage collection opportunity
+                    
                     global.gc && global.gc();
                 }
             }
 
-            // If we reach here without running out of memory, test passes
+            
             expect(true).toBe(true);
         });
     });
@@ -324,40 +324,40 @@ const pattern = /\\/\\*[\\s\\S]*?\\*\\//g;
     describe('Error handling regressions', () => {
         it('should gracefully handle all previously problematic inputs', () => {
             const problematicInputs = [
-                // Empty input
+                
                 '',
                 
-                // Only whitespace
+                
                 '   \n\t  ',
                 
-                // Only comments
+                
                 '// Just a comment',
                 
-                // Unterminated strings
+                
                 'const str = "unterminated',
                 
-                // Unterminated regex
+                
                 'const regex = /unterminated',
                 
-                // Unterminated template
+                
                 'const template = `unterminated',
                 
-                // Unterminated block comment
+                
                 '/* unterminated block comment',
                 
-                // Mixed unterminated
+                
                 'const str = "test"; /* unterminated',
                 
-                // Invalid regex flags
+                
                 'const regex = /test/xyz;',
                 
-                // Deeply nested structures
+                
                 '`${`${`${`${value}`}`}`}`',
                 
-                // Binary data (non-UTF8)
+                
                 'const binary = "\x00\x01\x02\x03";',
                 
-                // Very long lines
+                
                 'const longString = "' + 'x'.repeat(10000) + '";'
             ];
 
@@ -385,7 +385,7 @@ const template = \`also unterminated
             expect(result.errors).toBeDefined();
             expect(result.warnings).toBeDefined();
 
-            // Should still process what it can
+            
             expect(result.content).toBeDefined();
             expect(result.content.length).toBeGreaterThan(0);
         });
@@ -399,10 +399,10 @@ const regex = /\\/\\*[\\s\\S]*?\\*\\//g;
 /* TODO: Preserve this */
             `.trim();
 
-            // Test with enhanced tokenizer (default)
+            
             const enhancedResult = remover.removeComments(testCode, 'enhanced.js');
 
-            // Test with legacy tokenizer
+            
             const legacyRemover = new CommentRemover([], { 
                 useEnhancedTokenizer: false,
                 logger: mockLogger 
@@ -415,9 +415,9 @@ const regex = /\\/\\*[\\s\\S]*?\\*\\//g;
             expect(enhancedResult.removed).toBe(1);
             expect(enhancedResult.preserved).toBe(1);
 
-            // Legacy tokenizer might not preserve complex regex patterns perfectly
+            
             expect(legacyResult.content).toContain('/\\/\\*[\\s\\S]*?\\*\\');
-            // Legacy tokenizer behavior may differ
+            
             expect(legacyResult.removed).toBeGreaterThan(0);
             expect(legacyResult.preserved).toBeGreaterThanOrEqual(0);
         });
@@ -425,7 +425,7 @@ const regex = /\\/\\*[\\s\\S]*?\\*\\//g;
         it('should maintain rule manager functionality', () => {
             const ruleManager = remover.getRuleManager();
             
-            // Should be able to add custom rules
+            
             ruleManager.addCustomPattern('TEST', 'TEST:\\s*\\w+', 100);
             
             const testCode = `

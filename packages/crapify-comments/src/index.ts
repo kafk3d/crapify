@@ -2,7 +2,7 @@ import { ExitCode, Logger, loadConfig, findFiles, readFile, writeFile, createFil
 import { CommentRemover } from './comment-remover';
 import { CommentStats } from './types';
 
-// Export preservation rule system
+
 export { 
     BasePreservationRule,
     FrameworkPreservationRule,
@@ -23,7 +23,7 @@ export interface CrapifyCommentsOptions {
     quiet?: boolean;
     json?: boolean;
     useEnhancedTokenizer?: boolean;
-    // Enhanced preservation rule options
+    
     preserveFramework?: boolean;
     preserveDevelopment?: boolean;
     preserveTooling?: boolean;
@@ -95,7 +95,7 @@ export class CrapifyComments {
             if (!this.options.quiet) {
                 this.logger.info(`Found ${files.length} file${files.length === 1 ? '' : 's'} to process`);
                 
-                // Show preservation configuration
+                
                 const preservationInfo = this.getPreservationInfo();
                 this.logger.info(`Preservation rules: ${preservationInfo}`);
                 

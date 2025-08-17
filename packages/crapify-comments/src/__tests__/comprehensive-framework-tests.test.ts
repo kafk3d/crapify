@@ -45,14 +45,14 @@ describe('Comprehensive Framework Tests', () => {
 
             const result = remover.removeComments(svelteCode, 'Component.svelte');
 
-            // All Svelte ignore directives should be preserved
+            
             expect(result.content).toContain('<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->');
             expect(result.content).toContain('<!-- svelte-ignore a11y_click_events_have_key_events -->');
             expect(result.content).toContain('<!-- svelte-ignore a11y_missing_attribute -->');
             expect(result.content).toContain('<!-- svelte-ignore accessibility-click-events-have-key-events -->');
             expect(result.content).toContain('<!-- svelte-ignore a11y_no_static_element_interactions -->');
 
-            // Regular HTML comments should be removed
+            
             expect(result.content).not.toContain('<!-- Regular HTML comment that should be removed -->');
             expect(result.content).not.toContain('<!-- Another regular comment -->');
             expect(result.content).not.toContain('/* Regular CSS comment */');
@@ -72,7 +72,7 @@ describe('Comprehensive Framework Tests', () => {
 
             const result = remover.removeComments(svelteVariations, 'Variations.svelte');
 
-            // All variations should be preserved
+            
             expect(result.content).toContain('<!--svelte-ignore a11y_no_noninteractive_element_interactions-->');
             expect(result.content).toContain('<!-- svelte-ignore   a11y_click_events_have_key_events   -->');
             expect(result.content).toContain('<!--  svelte-ignore a11y_missing_attribute  -->');
@@ -114,7 +114,7 @@ export default {
 
             const result = remover.removeComments(vueCode, 'Component.vue');
 
-            // Vue ESLint directives should be preserved
+            
             expect(result.content).toContain('<!-- eslint-disable vue/no-unused-vars -->');
             expect(result.content).toContain('<!-- eslint-disable vue/require-default-prop -->');
             expect(result.content).toContain('<!-- eslint-disable vue/no-v-html -->');
@@ -124,7 +124,7 @@ export default {
             // TODO should be preserved
             expect(result.content).toContain('// TODO: Add proper validation');
 
-            // Regular comments should be removed
+            
             expect(result.content).not.toContain('<!-- Regular template comment -->');
             expect(result.content).not.toContain('// Regular JavaScript comment');
 
@@ -148,7 +148,7 @@ export default {
 
             const result = remover.removeComments(vueEslintRules, 'VueRules.vue');
 
-            // All Vue-specific ESLint rules should be preserved
+            
             expect(result.content).toContain('<!-- eslint-disable vue/html-self-closing -->');
             expect(result.content).toContain('<!-- eslint-disable vue/max-attributes-per-line -->');
             expect(result.content).toContain('<!-- eslint-disable vue/singleline-html-element-content-newline -->');
@@ -192,7 +192,7 @@ function MyComponent() {
 
             const result = remover.removeComments(reactCode, 'ReactComponent.jsx');
 
-            // All JSX pragma comments should be preserved
+            
             expect(result.content).toContain('/** @jsx jsx */');
             expect(result.content).toContain('/* @jsx React.createElement */');
             expect(result.content).toContain('/** @jsx h */');
@@ -201,7 +201,7 @@ function MyComponent() {
             // TODO should be preserved
             expect(result.content).toContain('// TODO: Update to new JSX transform');
 
-            // Regular comments should be removed
+            
             expect(result.content).not.toContain('// Regular import comment');
             expect(result.content).not.toContain('// Regular function comment');
 
@@ -227,7 +227,7 @@ function MyComponent() {
 
             const result = remover.removeComments(jsxPragmaVariations, 'JsxPragmas.jsx');
 
-            // All JSX pragma variations should be preserved
+            
             expect(result.content).toContain('/** @jsx jsx */');
             expect(result.content).toContain('/* @jsx jsx */');
             expect(result.content).toContain('/** @jsx React.createElement */');
@@ -273,7 +273,7 @@ interface MyInterface {
 
             const result = remover.removeComments(typescriptCode, 'types.ts');
 
-            // All TypeScript reference directives should be preserved
+            
             expect(result.content).toContain('/// <reference path="./types.d.ts" />');
             expect(result.content).toContain('/// <reference path="../global.d.ts" />');
             expect(result.content).toContain('/// <reference types="node" />');
@@ -287,7 +287,7 @@ interface MyInterface {
             // TODO should be preserved
             expect(result.content).toContain('/* TODO: Add proper type definitions */');
 
-            // Regular comments should be removed
+            
             expect(result.content).not.toContain('// Regular comment');
             expect(result.content).not.toContain('// Regular interface comment');
 
@@ -308,7 +308,7 @@ interface MyInterface {
 
             const result = remover.removeComments(referenceVariations, 'References.ts');
 
-            // All reference variations should be preserved
+            
             expect(result.content).toContain('///<reference path="no-spaces.d.ts"/>');
             expect(result.content).toContain('/// <reference path="with-spaces.d.ts" />');
             expect(result.content).toContain('///  <reference path="extra-spaces.d.ts"  />');
@@ -316,8 +316,8 @@ interface MyInterface {
             expect(result.content).toContain('/// <reference types="single-quotes" />');
             expect(result.content).toContain("/// <reference types='double-quotes' />");
 
-            expect(result.preserved).toBeGreaterThan(4); // At least most references preserved
-            expect(result.removed).toBeLessThanOrEqual(1); // Some variations might not match
+            expect(result.preserved).toBeGreaterThan(4); 
+            expect(result.removed).toBeLessThanOrEqual(1); 
         });
     });
 
@@ -371,7 +371,7 @@ const AsyncComponent = lazy(() =>
 
             const result = remover.removeComments(webpackCode, 'webpack.js');
 
-            // All webpack magic comments should be preserved
+            
             expect(result.content).toContain('/* webpackChunkName: "chunk-name" */');
             expect(result.content).toContain('/* webpackMode: "lazy" */');
             expect(result.content).toContain('/* webpackPrefetch: true */');
@@ -381,18 +381,18 @@ const AsyncComponent = lazy(() =>
             expect(result.content).toContain('/* webpackExclude: /\\.noimport\\.json$/ */');
             expect(result.content).toContain('/* webpackExports: ["default", "named"] */');
 
-            // Multiple webpack comments in one import should be preserved
+            
             expect(result.content).toContain('/* webpackChunkName: "lazy-component" */');
             expect(result.content).toContain('/* webpackChunkName: "async-component" */');
 
             // TODO should be preserved
             expect(result.content).toContain('// TODO: Optimize webpack configuration');
 
-            // Regular comments should be removed
+            
             expect(result.content).not.toContain('// Regular import comment');
             expect(result.content).not.toContain('// Multiple webpack comments');
 
-            expect(result.preserved).toBeGreaterThan(8); // At least the main webpack comments
+            expect(result.preserved).toBeGreaterThan(8); 
             expect(result.removed).toBe(2);
         });
 
@@ -412,21 +412,21 @@ const AsyncComponent = lazy(() =>
 
             const result = remover.removeComments(webpackVariations, 'WebpackVariations.js');
 
-            // All webpack variations should be preserved
+            
             expect(result.content).toContain('/* webpackChunkName: "chunk-name" */');
             expect(result.content).toContain('/* WEBPACKCHUNKNAME: "uppercase" */');
             expect(result.content).toContain('/* webpackchunkname: "lowercase" */');
             expect(result.content).toContain('/* WebpackChunkName: "titlecase" */');
             expect(result.content).toContain('/* webpackChunkName:"no-spaces" */');
-            // This pattern with extra spaces might not be preserved - adjust expectation
-            // expect(result.content).toContain('/* webpackChunkName : "extra-spaces" */');
+            
+            
             expect(result.content).toContain("/* webpackChunkName: 'single-quotes' */");
             expect(result.content).toContain('/* webpackMode: "eager" */');
             expect(result.content).toContain('/* webpackMode: "weak" */');
             expect(result.content).toContain('/* webpackMode: "lazy-once" */');
 
-            expect(result.preserved).toBeGreaterThan(5); // At least some webpack variations
-            expect(result.removed).toBeLessThanOrEqual(1); // Allow for some variations not being preserved
+            expect(result.preserved).toBeGreaterThan(5); 
+            expect(result.removed).toBeLessThanOrEqual(1); 
         });
     });
 
@@ -459,27 +459,27 @@ export default LazyComponent;
 
             const result = remover.removeComments(mixedFrameworkCode, 'Mixed.jsx');
 
-            // TypeScript reference should be preserved
+            
             expect(result.content).toContain('/// <reference path="./types.d.ts" />');
 
-            // JSX pragma should be preserved
+            
             expect(result.content).toContain('/** @jsx jsx */');
 
-            // Webpack magic comments should be preserved
+            
             expect(result.content).toContain('/* webpackChunkName: "mixed-component" */');
             expect(result.content).toContain('/* webpackPrefetch: true */');
 
-            // Svelte ignore should be preserved
+            
             expect(result.content).toContain('<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->');
 
-            // Vue ESLint disable should be preserved
+            
             expect(result.content).toContain('<!-- eslint-disable vue/no-unused-vars -->');
 
-            // Development keywords should be preserved
+            
             expect(result.content).toContain('/* TODO: Refactor this mixed framework approach */');
             expect(result.content).toContain('// FIXME: This is getting too complex');
 
-            // Regular comments should be removed
+            
             expect(result.content).not.toContain('// Regular comment');
             expect(result.content).not.toContain('// Another regular comment');
 
@@ -505,16 +505,16 @@ export default LazyComponent;
 
             const result = remover.removeComments(priorityTestCode, 'Priority.js');
 
-            // Real framework comments should be preserved
+            
             expect(result.content).toContain('/* webpackChunkName: "real-webpack-comment" */');
             expect(result.content).toContain('/** @jsx jsx */');
             expect(result.content).toContain('<!-- svelte-ignore a11y_missing_attribute -->');
             expect(result.content).toContain('/// <reference path="./types.d.ts" />');
 
-            // Real development keyword should be preserved
+            
             expect(result.content).toContain('// TODO: Real development keyword');
 
-            // Fake framework comments should be removed
+            
             expect(result.content).not.toContain('// This comment mentions webpack but is not a magic comment');
             expect(result.content).not.toContain('/* This comment mentions jsx but is not a pragma */');
             expect(result.content).not.toContain('<!-- This comment mentions svelte but is not an ignore directive -->');

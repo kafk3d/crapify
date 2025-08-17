@@ -37,9 +37,7 @@ export interface ErrorRecoveryResult {
     warnings: string[];
 }
 
-/**
- * Comprehensive error handling system for the comment removal process
- */
+
 export class ErrorHandler {
     private errors: ParseError[] = [];
     private warnings: string[] = [];
@@ -51,9 +49,7 @@ export class ErrorHandler {
         this.enableRecovery = enableRecovery;
     }
 
-    /**
-     * Records a parsing error with context information
-     */
+    
     recordError(error: Partial<ParseError> & { category: ErrorCategory; message: string }): void {
         const fullError: ParseError = {
             severity: ErrorSeverity.MEDIUM,
@@ -68,7 +64,7 @@ export class ErrorHandler {
 
         this.errors.push(fullError);
         
-        // Log error based on severity
+        
         switch (fullError.severity) {
             case ErrorSeverity.CRITICAL:
                 this.logger.error(`CRITICAL ${fullError.category}: ${fullError.message}`, fullError.originalError);
@@ -93,9 +89,7 @@ export class ErrorHandler {
         this.logger.warn(message);
     }
 
-    /**
-     * Attempts to recover from a parsing error using various strategies
-     */
+    
     attemptRecovery(error: ParseError, content: string, position: number): ErrorRecoveryResult {
         if (!this.enableRecovery) {
             return {
@@ -145,9 +139,7 @@ export class ErrorHandler {
         }
     }
 
-    /**
-     * Recovers from string parsing errors
-     */
+    
     private recoverFromStringError(error: ParseError, content: string, position: number): ErrorRecoveryResult {
         const result: ErrorRecoveryResult = {
             recovered: false,
@@ -156,7 +148,7 @@ export class ErrorHandler {
             warnings: ['Attempting string parsing recovery']
         };
 
-        // Strategy 1: Find the next quote character and assume string ends there
+        
         const quote = this.detectQuoteType(content, position);
         if (quote) {
             const nextQuote = content.indexOf(quote, position + 1);
@@ -167,7 +159,7 @@ export class ErrorHandler {
             }
         }
 
-        // Strategy 2: Find the next line break and assume string ends there
+        
         const nextNewline = content.indexOf('\n', position);
         if (nextNewline !== -1) {
             result.recovered = true;
@@ -175,15 +167,13 @@ export class ErrorHandler {
             return result;
         }
 
-        // Strategy 3: End string at end of content
+        
         result.recovered = true;
         result.warnings.push('Recovered unterminated string by ending at end of content');
         return result;
     }
 
-    /**
-     * Recovers from template literal parsing errors
-     */
+    
     private recoverFromTemplateError(error: ParseError, content: string, position: number): ErrorRecoveryResult {
         const result: ErrorRecoveryResult = {
             recovered: false,
@@ -192,7 +182,7 @@ export class ErrorHandler {
             warnings: ['Attempting template literal recovery']
         };
 
-        // Strategy 1: Find the next backtick
+        
         const nextBacktick = content.indexOf('`', position + 1);
         if (nextBacktick !== -1) {
             result.recovered = true;
@@ -200,7 +190,7 @@ export class ErrorHandler {
             return result;
         }
 
-        // Strategy 2: Treat as regular string and find next quote
+        
         const nextQuote = this.findNextQuote(content, position + 1);
         if (nextQuote !== -1) {
             result.recovered = true;
@@ -208,15 +198,13 @@ export class ErrorHandler {
             return result;
         }
 
-        // Strategy 3: End at end of content
+        
         result.recovered = true;
         result.warnings.push('Recovered template literal by ending at end of content');
         return result;
     }
 
-    /**
-     * Recovers from regex parsing errors
-     */
+    
     private recoverFromRegexError(error: ParseError, content: string, position: number): ErrorRecoveryResult {
         const result: ErrorRecoveryResult = {
             recovered: false,
@@ -225,7 +213,7 @@ export class ErrorHandler {
             warnings: ['Attempting regex parsing recovery']
         };
 
-        // Strategy 1: Find the next unescaped forward slash
+        
         let i = position + 1;
         while (i < content.length) {
             if (content[i] === '/' && (i === 0 || content[i - 1] !== '\\')) {
@@ -236,7 +224,7 @@ export class ErrorHandler {
             i++;
         }
 
-        // Strategy 2: Find next whitespace or operator
+        
         i = position + 1;
         while (i < content.length && !/[\s;,)}]/.test(content[i])) {
             i++;
@@ -248,15 +236,13 @@ export class ErrorHandler {
             return result;
         }
 
-        // Strategy 3: End at end of content
+        
         result.recovered = true;
         result.warnings.push('Recovered regex by ending at end of content');
         return result;
     }
 
-    /**
-     * Recovers from comment detection errors
-     */
+    
     private recoverFromCommentError(error: ParseError, content: string, position: number): ErrorRecoveryResult {
         const result: ErrorRecoveryResult = {
             recovered: false,
@@ -265,7 +251,7 @@ export class ErrorHandler {
             warnings: ['Attempting comment parsing recovery']
         };
 
-        // Strategy 1: For block comments, find next */
+        
         if (content.substring(position, position + 2) === '/*') {
             const endComment = content.indexOf('*/', position + 2);
             if (endComment !== -1) {
@@ -275,7 +261,7 @@ export class ErrorHandler {
             }
         }
 
-        // Strategy 2: For line comments, find next newline
+        
         if (content.substring(position, position + 2) === '//') {
             const nextNewline = content.indexOf('\n', position);
             if (nextNewline !== -1) {
@@ -285,7 +271,7 @@ export class ErrorHandler {
             }
         }
 
-        // Strategy 3: For HTML comments, find next -->
+        
         if (content.substring(position, position + 4) === '<!--') {
             const endComment = content.indexOf('-->', position + 4);
             if (endComment !== -1) {
@@ -295,15 +281,13 @@ export class ErrorHandler {
             }
         }
 
-        // Strategy 4: End at end of content
+        
         result.recovered = true;
         result.warnings.push('Recovered comment by ending at end of content');
         return result;
     }
 
-    /**
-     * Recovers from general tokenization errors
-     */
+    
     private recoverFromTokenizationError(error: ParseError, content: string, position: number): ErrorRecoveryResult {
         const result: ErrorRecoveryResult = {
             recovered: true,
@@ -315,9 +299,7 @@ export class ErrorHandler {
         return result;
     }
 
-    /**
-     * Generic recovery strategy for unknown error types
-     */
+    
     private recoverFromGenericError(error: ParseError, content: string, position: number): ErrorRecoveryResult {
         const result: ErrorRecoveryResult = {
             recovered: true,
@@ -329,9 +311,7 @@ export class ErrorHandler {
         return result;
     }
 
-    /**
-     * Detects the quote type at a given position
-     */
+    
     private detectQuoteType(content: string, position: number): string | null {
         if (position >= content.length) return null;
         
@@ -343,9 +323,7 @@ export class ErrorHandler {
         return null;
     }
 
-    /**
-     * Finds the next quote character (any type)
-     */
+    
     private findNextQuote(content: string, startPosition: number): number {
         for (let i = startPosition; i < content.length; i++) {
             const char = content[i];
@@ -356,9 +334,7 @@ export class ErrorHandler {
         return -1;
     }
 
-    /**
-     * Calculates line and column from position
-     */
+    
     calculateLineColumn(content: string, position: number): { line: number; column: number } {
         let line = 1;
         let column = 1;
@@ -375,26 +351,22 @@ export class ErrorHandler {
         return { line, column };
     }
 
-    /**
-     * Gets context around a position for error reporting
-     */
+    
     getContext(content: string, position: number, contextSize: number = 50): string {
         const start = Math.max(0, position - contextSize);
         const end = Math.min(content.length, position + contextSize);
         const context = content.substring(start, end);
         
-        // Add markers to show the error position
+        
         const relativePos = position - start;
         return context.substring(0, relativePos) + '<<<ERROR>>>' + context.substring(relativePos);
     }
 
-    /**
-     * Validates that parsing completed successfully
-     */
+    
     validateParsingCompletion(originalLength: number, processedLength: number, tokensProcessed: number): boolean {
-        // Allow for some variance due to comment removal
+        
         const lengthDifference = Math.abs(originalLength - processedLength);
-        const maxAllowedDifference = originalLength * 0.5; // Allow up to 50% difference (aggressive comment removal)
+        const maxAllowedDifference = originalLength * 0.5; 
         
         if (lengthDifference > maxAllowedDifference) {
             this.recordError({
@@ -417,30 +389,22 @@ export class ErrorHandler {
         return true;
     }
 
-    /**
-     * Gets all recorded errors
-     */
+    
     getErrors(): ParseError[] {
         return [...this.errors];
     }
 
-    /**
-     * Gets all recorded warnings
-     */
+    
     getWarnings(): string[] {
         return [...this.warnings];
     }
 
-    /**
-     * Checks if any critical errors were recorded
-     */
+    
     hasCriticalErrors(): boolean {
         return this.errors.some(error => error.severity === ErrorSeverity.CRITICAL);
     }
 
-    /**
-     * Gets error summary for reporting
-     */
+    
     getErrorSummary(): { total: number; bySeverity: Record<ErrorSeverity, number>; byCategory: Record<ErrorCategory, number> } {
         const bySeverity = {
             [ErrorSeverity.LOW]: 0,
@@ -472,9 +436,7 @@ export class ErrorHandler {
         };
     }
 
-    /**
-     * Clears all recorded errors and warnings
-     */
+    
     clear(): void {
         this.errors = [];
         this.warnings = [];

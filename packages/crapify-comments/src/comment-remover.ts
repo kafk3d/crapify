@@ -37,13 +37,13 @@ export class CommentRemover {
         this.errorHandler = new ErrorHandler(this.logger, true);
         this.enhancedTokenizer = new EnhancedTokenizer(this.logger);
         this.ruleManager = new PreservationRuleManager();
-        this.useEnhancedTokenizer = options.useEnhancedTokenizer !== false; // Default to true
+        this.useEnhancedTokenizer = options.useEnhancedTokenizer !== false; 
         this.performanceMonitor = new PerformanceMonitor(this.logger);
         
-        // Configure preservation rules based on options
+        
         this.configurePreservationRules(options);
         
-        // Add custom patterns from keepPatterns to rule manager (for backward compatibility)
+        
         this.addCustomPatterns();
     }
 
@@ -53,7 +53,7 @@ export class CommentRemover {
         this.errorHandler.clear();
         
         try {
-            // Use enhanced tokenizer by default with fallback to legacy tokenizer
+            
             if (this.useEnhancedTokenizer) {
                 const result = this.removeCommentsWithEnhancedTokenizer(content, filePath);
                 return this.enhanceResultWithErrorInfo(result, filePath);
@@ -62,7 +62,7 @@ export class CommentRemover {
                 return this.enhanceResultWithErrorInfo(result, filePath);
             }
         } catch (error) {
-            // Record the critical error
+            
             this.errorHandler.recordError({
                 category: ErrorCategory.FILE_PROCESSING,
                 severity: ErrorSeverity.CRITICAL,
@@ -70,14 +70,14 @@ export class CommentRemover {
                 originalError: error instanceof Error ? error : undefined
             });
 
-            // Fallback to legacy tokenizer if enhanced tokenizer fails
+            
             this.logger.warn(`Enhanced tokenizer failed for ${filePath}, falling back to legacy tokenizer`);
             
             try {
                 const result = this.removeCommentsWithLegacyTokenizer(content, extension);
                 return this.enhanceResultWithErrorInfo(result, filePath);
             } catch (fallbackError) {
-                // Even fallback failed - return original content with error info
+                
                 this.errorHandler.recordError({
                     category: ErrorCategory.FILE_PROCESSING,
                     severity: ErrorSeverity.CRITICAL,
@@ -90,18 +90,16 @@ export class CommentRemover {
         }
     }
 
-    /**
-     * Remove comments using the enhanced context-aware tokenizer with error handling
-     */
+    
     private removeCommentsWithEnhancedTokenizer(content: string, filePath: string): ProcessResult {
         try {
-            // Start performance monitoring
+            
             this.performanceMonitor.startMonitoring();
             
             const tokens = this.enhancedTokenizer.tokenize(content);
             
-            // Use optimized string builder for large files
-            const useOptimizedBuilder = content.length > 100000; // 100KB threshold
+            
+            const useOptimizedBuilder = content.length > 100000; 
             const result = useOptimizedBuilder ? new OptimizedStringBuilder() : [];
             let removed = 0;
             let preserved = 0;
@@ -118,10 +116,10 @@ export class CommentRemover {
                             preserved++;
                         } else {
                             removed++;
-                            // Don't add removed comments to result
+                            
                         }
                     } catch (preservationError) {
-                        // Error in preservation logic - default to preserving the comment
+                        
                         this.errorHandler.recordError({
                             category: ErrorCategory.PRESERVATION,
                             severity: ErrorSeverity.MEDIUM,
@@ -150,10 +148,10 @@ export class CommentRemover {
                 ? (result as OptimizedStringBuilder).toString()
                 : (result as string[]).join('');
             
-            // Stop performance monitoring
+            
             const metrics = this.performanceMonitor.stopMonitoring(tokens.length, content.length);
             
-            // Validate the result
+            
             this.validateProcessingResult(content, processedContent, tokens.length, filePath);
             
             return {
@@ -170,13 +168,11 @@ export class CommentRemover {
                 message: `Enhanced tokenizer processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
                 originalError: error instanceof Error ? error : undefined
             });
-            throw error; // Re-throw to trigger fallback
+            throw error; 
         }
     }
 
-    /**
-     * Remove comments using the legacy tokenizer (for backward compatibility) with error handling
-     */
+    
     private removeCommentsWithLegacyTokenizer(content: string, extension: string): ProcessResult {
         try {
             const tokens = this.tokenizeWithErrorHandling(content, extension);
@@ -192,10 +188,10 @@ export class CommentRemover {
                             preserved++;
                         } else {
                             removed++;
-                            // Don't add removed comments to result
+                            
                         }
                     } catch (preservationError) {
-                        // Error in preservation logic - default to preserving the comment
+                        
                         this.errorHandler.recordError({
                             category: ErrorCategory.PRESERVATION,
                             severity: ErrorSeverity.MEDIUM,
@@ -213,7 +209,7 @@ export class CommentRemover {
 
             const processedContent = result.join('');
             
-            // Validate the result
+            
             this.validateProcessingResult(content, processedContent, tokens.length, extension);
             
             return {
@@ -229,7 +225,7 @@ export class CommentRemover {
                 message: `Legacy tokenizer processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
                 originalError: error instanceof Error ? error : undefined
             });
-            throw error; // Re-throw to trigger failsafe
+            throw error; 
         }
     }
 
@@ -418,22 +414,18 @@ export class CommentRemover {
         return hashCommentExtensions.includes(extension);
     }
 
-    /**
-     * Enhanced comment preservation logic using rule manager and legacy patterns
-     */
+    
     private shouldPreserveCommentEnhanced(comment: string): boolean {
-        // First check with rule manager (framework, development, tooling rules)
+        
         if (this.ruleManager.shouldPreserveComment(comment)) {
             return true;
         }
 
-        // Fallback to legacy keepPatterns for backward compatibility
+        
         return this.shouldPreserveComment(comment);
     }
 
-    /**
-     * Legacy comment preservation logic (for backward compatibility)
-     */
+    
     private shouldPreserveComment(comment: string): boolean {
         if (this.keepPatterns.length === 0) return false;
         
@@ -443,11 +435,9 @@ export class CommentRemover {
         });
     }
 
-    /**
-     * Configure preservation rules based on options
-     */
+    
     private configurePreservationRules(options: CommentRemoverOptions): void {
-        // If any preservation option is explicitly set to false, remove those rule categories
+        
         if (options.preserveFramework === false) {
             this.ruleManager.getRulesByCategory(CommentCategory.FRAMEWORK).forEach(rule => {
                 this.ruleManager.removeRule(rule.name);
@@ -472,7 +462,7 @@ export class CommentRemover {
             });
         }
         
-        // Add custom rules from options
+        
         if (options.customRules && options.customRules.length > 0) {
             const priority = options.rulePriority || 100;
             options.customRules.forEach((pattern, index) => {
@@ -489,46 +479,38 @@ export class CommentRemover {
         }
     }
 
-    /**
-     * Add custom patterns from keepPatterns to the rule manager
-     */
+    
     private addCustomPatterns(): void {
         this.keepPatterns.forEach((pattern, index) => {
             try {
                 this.ruleManager.addCustomPattern(
                     `custom-pattern-${index}`,
                     pattern,
-                    50 // Lower priority than built-in rules
+                    50 
                 );
             } catch (error) {
-                // If pattern is not a valid regex, it will still work with legacy logic
+                
                 console.warn(`Invalid regex pattern ignored: ${pattern}`);
             }
         });
     }
 
-    /**
-     * Get the rule manager for advanced configuration
-     */
+    
     public getRuleManager(): PreservationRuleManager {
         return this.ruleManager;
     }
 
-    /**
-     * Enable or disable enhanced tokenizer
-     */
+    
     public setUseEnhancedTokenizer(enabled: boolean): void {
         (this as any).useEnhancedTokenizer = enabled;
     }
 
-    /**
-     * Enhances the process result with error information
-     */
+    
     private enhanceResultWithErrorInfo(result: ProcessResult, filePath: string): ProcessResult {
         const tokenizerErrors = this.enhancedTokenizer.getErrorHandler().getErrors();
         const allErrors = [...this.errorHandler.getErrors(), ...tokenizerErrors];
         
-        // Add error information to the result
+        
         const enhancedResult = {
             ...result,
             errors: allErrors,
@@ -537,7 +519,7 @@ export class CommentRemover {
             hasCriticalErrors: allErrors.some(error => error.severity === ErrorSeverity.CRITICAL)
         };
 
-        // Log summary if there were errors
+        
         if (allErrors.length > 0) {
             const errorSummary = this.getErrorSummary(allErrors);
             this.logger.warn(`File ${filePath} processed with ${errorSummary.total} errors: ${JSON.stringify(errorSummary.bySeverity)}`);
@@ -546,9 +528,7 @@ export class CommentRemover {
         return enhancedResult;
     }
 
-    /**
-     * Creates a failsafe result when all parsing methods fail
-     */
+    
     private createFailsafeResult(content: string, filePath: string): ProcessResult {
         this.logger.error(`All parsing methods failed for ${filePath}, returning original content`);
         
@@ -568,9 +548,7 @@ export class CommentRemover {
 
 
 
-    /**
-     * Tokenize with error handling wrapper
-     */
+    
     private tokenizeWithErrorHandling(content: string, extension: string): Token[] {
         try {
             return this.tokenize(content, extension);
@@ -582,7 +560,7 @@ export class CommentRemover {
                 originalError: error instanceof Error ? error : undefined
             });
 
-            // Create a single fallback token
+            
             return [{
                 type: 'code',
                 value: content
@@ -590,16 +568,14 @@ export class CommentRemover {
         }
     }
 
-    /**
-     * Validates the processing result for consistency
-     */
+    
     private validateProcessingResult(originalContent: string, processedContent: string, tokensProcessed: number, context: string): void {
-        // Check for significant content loss (beyond expected comment removal)
+        
         const originalLength = originalContent.length;
         const processedLength = processedContent.length;
         const lengthDifference = originalLength - processedLength;
         
-        // Allow up to 80% content removal (very aggressive comment removal scenario)
+        
         const maxAllowedRemoval = originalLength * 0.8;
         
         if (lengthDifference > maxAllowedRemoval) {
@@ -610,7 +586,7 @@ export class CommentRemover {
             });
         }
 
-        // Check for no tokens processed despite content
+        
         if (tokensProcessed === 0 && originalLength > 0) {
             this.errorHandler.recordError({
                 category: ErrorCategory.TOKENIZATION,
@@ -619,7 +595,7 @@ export class CommentRemover {
             });
         }
 
-        // Check for potential encoding issues
+        
         if (processedContent.includes('\uFFFD')) {
             this.errorHandler.recordError({
                 category: ErrorCategory.FILE_PROCESSING,
@@ -629,9 +605,7 @@ export class CommentRemover {
         }
     }
 
-    /**
-     * Gets error summary from a list of errors
-     */
+    
     private getErrorSummary(errors: any[]): { total: number; bySeverity: Record<string, number> } {
         const bySeverity: Record<string, number> = {
             [ErrorSeverity.LOW]: 0,
@@ -652,16 +626,12 @@ export class CommentRemover {
         };
     }
 
-    /**
-     * Gets the error handler for external access
-     */
+    
     public getErrorHandler(): ErrorHandler {
         return this.errorHandler;
     }
 
-    /**
-     * Gets comprehensive error and processing statistics
-     */
+    
     public getProcessingStats(): {
         errors: any[];
         warnings: string[];
@@ -682,9 +652,7 @@ export class CommentRemover {
         };
     }
 
-    /**
-     * Gets detailed error summary with categories
-     */
+    
     private getErrorSummaryDetailed(errors: any[]): { total: number; bySeverity: Record<string, number>; byCategory: Record<string, number> } {
         const bySeverity: Record<string, number> = {
             [ErrorSeverity.LOW]: 0,

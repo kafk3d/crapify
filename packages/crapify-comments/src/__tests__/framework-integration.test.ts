@@ -61,7 +61,7 @@ if (process.env.NODE_ENV === 'test') {
                 }
             });
 
-            // Verify preserved comments
+            
             expect(preservedComments).toContain('<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->');
             expect(preservedComments).toContain('/** @jsx jsx */');
             expect(preservedComments).toContain('/// <reference path="./types.d.ts" />');
@@ -72,13 +72,13 @@ if (process.env.NODE_ENV === 'test') {
             expect(preservedComments).toContain('// @ts-ignore');
             expect(preservedComments).toContain('/* istanbul ignore next */');
 
-            // Verify removed comments
+            
             expect(removedComments).toContain('// Regular comment that should be removed');
             expect(removedComments).toContain('/* Another regular comment */');
             expect(removedComments).toContain('// This comment should be removed');
             expect(removedComments).toContain('// Test-only code');
 
-            // Verify counts
+            
             expect(preservedComments.length).toBe(9);
             expect(removedComments.length).toBe(4);
         });
@@ -120,30 +120,30 @@ if (process.env.NODE_ENV === 'test') {
                 expect(classification.metadata.framework).toBe(expectedFramework);
                 expect(classification.rule).toBeTruthy();
                 
-                // Verify the rule has high priority (framework rules should be 900)
+                
                 expect(classification.rule!.priority).toBe(900);
             });
         });
 
         it('should handle edge cases in framework patterns', () => {
             const edgeCases = [
-                // Svelte with different spacing
+                
                 '<!--svelte-ignore a11y_click_events_have_key_events-->',
                 '<!-- svelte-ignore   accessibility-missing-attribute   -->',
                 
-                // Vue with different formats
+                
                 '<!--eslint-disable-->',
                 '<!-- eslint-disable vue/require-default-prop -->',
                 
-                // JSX with different pragma formats
+                
                 '/* @jsx h */',
                 '/** @jsx React.createElement */',
                 
-                // TypeScript references with different paths
+                
                 '///<reference path="global.d.ts"/>',
                 '/// <reference path="../types/index.d.ts" />',
                 
-                // Webpack with different casing
+                
                 '/* WEBPACKCHUNKNAME: "uppercase" */',
                 '/* webpackmode: "lazy" */',
                 '/* webpackPrefetch: true */',
@@ -176,7 +176,7 @@ if (process.env.NODE_ENV === 'test') {
 
     describe('Framework Rule Priority and Precedence', () => {
         it('should prioritize framework rules over other categories', () => {
-            // Framework rules should have priority 900, which is higher than others
+            
             const frameworkRules = manager.getRulesByCategory(CommentCategory.FRAMEWORK);
             const developmentRules = manager.getRulesByCategory(CommentCategory.DEVELOPMENT);
             const toolingRules = manager.getRulesByCategory(CommentCategory.TOOLING);
@@ -185,31 +185,31 @@ if (process.env.NODE_ENV === 'test') {
                 expect(rule.priority).toBe(900);
             });
 
-            // Verify framework rules have higher priority than development rules (700)
+            
             developmentRules.forEach(devRule => {
                 frameworkRules.forEach(frameworkRule => {
                     expect(frameworkRule.priority).toBeGreaterThan(devRule.priority);
                 });
             });
 
-            // Verify framework rules have higher priority than most tooling rules (800)
+            
             // Note: Some tooling rules also have priority 800, but framework should be 900
             const allRules = manager.getRules();
             const highestPriorityRules = allRules.filter(rule => rule.priority === 900);
             
-            // All highest priority rules should be framework rules
+            
             highestPriorityRules.forEach(rule => {
                 expect(rule.category).toBe(CommentCategory.FRAMEWORK);
             });
         });
 
         it('should handle overlapping patterns correctly', () => {
-            // Test a comment that could match multiple patterns
+            
             const comment = '// eslint-disable-next-line @typescript-eslint/no-unused-vars';
             
             const classification = manager.classifyComment(comment);
             
-            // Should be classified as tooling (ESLint) rather than framework
+            
             expect(classification.category).toBe(CommentCategory.TOOLING);
             expect(classification.metadata.tool).toBe('ESLint');
         });
@@ -284,39 +284,39 @@ function processData(data: unknown) {
                 }
             });
 
-            // Verify ESLint directives are preserved (Requirement 4.1)
+            
             expect(preservedComments).toContain('// eslint-disable-next-line no-console');
             expect(preservedComments).toContain('/* eslint-disable no-unused-vars, @typescript-eslint/no-explicit-any */');
             expect(preservedComments).toContain('/* eslint-enable no-unused-vars */');
 
-            // Verify Prettier ignore is preserved (Requirement 4.2)
+            
             expect(preservedComments).toContain('// prettier-ignore');
 
-            // Verify JSDoc comments are preserved (Requirement 4.3)
+            
             expect(preservedComments.some(comment => comment.includes('@param'))).toBe(true);
             expect(preservedComments.some(comment => comment.includes('@returns'))).toBe(true);
             expect(preservedComments.some(comment => comment.includes('@example'))).toBe(true);
 
-            // Verify TypeScript ignore comments are preserved (Requirement 4.4)
+            
             expect(preservedComments).toContain('// @ts-ignore: Legacy code compatibility');
             expect(preservedComments).toContain('// @ts-expect-error: This should fail type checking in tests');
             expect(preservedComments).toContain('// @ts-nocheck');
 
-            // Verify coverage ignore comments are preserved (Requirement 4.5)
+            
             expect(preservedComments).toContain('/* istanbul ignore next */');
             expect(preservedComments).toContain('// c8 ignore start');
             expect(preservedComments).toContain('// c8 ignore stop');
 
-            // Verify development keywords are preserved
+            
             expect(preservedComments).toContain('// TODO: Add proper error handling');
             expect(preservedComments).toContain('// FIXME: This function needs optimization');
 
-            // Verify regular comments are removed
+            
             expect(removedComments).toContain('// Regular comment that should be removed');
             expect(removedComments).toContain('/* Another regular comment */');
             expect(removedComments).toContain('// Regular comment to be removed');
 
-            // Verify we have the expected number of preserved vs removed comments
+            
             expect(preservedComments.length).toBeGreaterThan(10);
             expect(removedComments.length).toBeGreaterThan(0);
         });
@@ -353,7 +353,7 @@ function processData(data: unknown) {
                 expect(classification.metadata.tool).toBe(expectedTool);
                 expect(classification.rule).toBeTruthy();
                 
-                // Verify the rule has high priority (tooling rules should be 800)
+                
                 expect(classification.rule!.priority).toBe(800);
             });
         });
@@ -375,32 +375,32 @@ function processData(data: unknown) {
                 expect(classification.metadata.jsdocTags).toBeDefined();
                 expect(classification.metadata.jsdocTags.length).toBeGreaterThan(0);
                 
-                // JSDoc should have priority 750 (higher than development keywords)
+                
                 expect(classification.rule!.priority).toBe(750);
             });
         });
 
         it('should handle complex tooling directive scenarios', () => {
             const complexScenarios = [
-                // Multiple ESLint rules in one directive
+                
                 '// eslint-disable-next-line no-console, no-alert, @typescript-eslint/no-explicit-any',
                 
-                // ESLint with explanatory text
+                
                 '/* eslint-disable no-unused-vars -- needed for interface compatibility */',
                 
-                // Prettier with context
+                
                 '// prettier-ignore: complex mathematical expression formatting',
                 
-                // TypeScript with explanation
+                
                 '// @ts-ignore TODO: fix type definitions in next version',
                 
-                // Coverage with reason
+                
                 '/* istanbul ignore next: generated code from template */',
                 
-                // Mixed JSDoc tags
+                
                 '/** @param {Object} config @param {string} config.name @param {number} config.age */',
                 
-                // Nested tooling directives
+                
                 '// eslint-disable-next-line @typescript-eslint/ban-ts-comment\n// @ts-ignore'
             ];
 
@@ -430,10 +430,10 @@ function processData(data: unknown) {
 
             nonToolingComments.forEach(comment => {
                 const shouldPreserve = manager.shouldPreserveComment(comment);
-                // These should either not be preserved, or if preserved, should be for other reasons (like development keywords)
+                
                 if (shouldPreserve) {
                     const classification = manager.classifyComment(comment);
-                    // If preserved, it should not be because of tooling rules
+                    
                     expect(classification.category).not.toBe(CommentCategory.TOOLING);
                 }
             });
@@ -441,23 +441,23 @@ function processData(data: unknown) {
 
         it('should handle tooling directives with various comment styles', () => {
             const styleVariations = [
-                // Line comments
+                
                 '// eslint-disable-next-line',
                 '// prettier-ignore',
                 '// @ts-ignore',
                 '// istanbul ignore next',
                 
-                // Block comments
+                
                 '/* eslint-disable */',
                 '/* prettier-ignore */',
                 '/* @ts-expect-error */',
                 '/* c8 ignore start */',
                 
-                // JSDoc style
+                
                 '/** @param {string} name */',
                 '/** @returns {boolean} */',
                 
-                // Mixed with other content
+                
                 '// TODO: eslint-disable-next-line no-console',
                 '/* FIXME: @ts-ignore needed here */'
             ];

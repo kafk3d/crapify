@@ -8,9 +8,7 @@ import {
     CustomPreservationRule
 } from './preservation-rules';
 
-/**
- * Result of comment classification
- */
+
 export interface CommentClassification {
     category: CommentCategory;
     rule: BasePreservationRule | null;
@@ -18,9 +16,7 @@ export interface CommentClassification {
     metadata: Record<string, any>;
 }
 
-/**
- * Manages preservation rules and handles comment classification with priority system
- */
+
 export class PreservationRuleManager {
     private rules: BasePreservationRule[] = [];
 
@@ -28,42 +24,32 @@ export class PreservationRuleManager {
         this.initializeDefaultRules();
     }
 
-    /**
-     * Add a preservation rule to the manager
-     */
+    
     addRule(rule: BasePreservationRule): void {
         this.rules.push(rule);
         this.sortRulesByPriority();
     }
 
-    /**
-     * Remove a rule by name
-     */
+    
     removeRule(name: string): boolean {
         const initialLength = this.rules.length;
         this.rules = this.rules.filter(rule => rule.name !== name);
         return this.rules.length < initialLength;
     }
 
-    /**
-     * Get all rules, sorted by priority (highest first)
-     */
+    
     getRules(): BasePreservationRule[] {
         return [...this.rules];
     }
 
-    /**
-     * Get rules by category
-     */
+    
     getRulesByCategory(category: CommentCategory): BasePreservationRule[] {
         return this.rules.filter(rule => rule.category === category);
     }
 
-    /**
-     * Classify a comment and determine if it should be preserved
-     */
+    
     classifyComment(comment: string): CommentClassification {
-        // Find the first matching rule (highest priority)
+        
         for (const rule of this.rules) {
             if (rule.matches(comment)) {
                 return {
@@ -75,7 +61,7 @@ export class PreservationRuleManager {
             }
         }
 
-        // No matching rule found - regular comment
+        
         return {
             category: CommentCategory.REGULAR,
             rule: null,
@@ -84,16 +70,12 @@ export class PreservationRuleManager {
         };
     }
 
-    /**
-     * Check if a comment should be preserved based on rules
-     */
+    
     shouldPreserveComment(comment: string): boolean {
         return this.classifyComment(comment).shouldPreserve;
     }
 
-    /**
-     * Add custom pattern as a preservation rule
-     */
+    
     addCustomPattern(name: string, pattern: string, priority: number = 100): void {
         try {
             const regex = new RegExp(pattern, 'i');
@@ -110,47 +92,39 @@ export class PreservationRuleManager {
         }
     }
 
-    /**
-     * Clear all rules
-     */
+    
     clearRules(): void {
         this.rules = [];
     }
 
-    /**
-     * Reset to default rules only
-     */
+    
     resetToDefaults(): void {
         this.clearRules();
         this.initializeDefaultRules();
     }
 
-    /**
-     * Sort rules by priority (highest first) to ensure proper precedence
-     */
+    
     private sortRulesByPriority(): void {
         this.rules.sort((a, b) => b.priority - a.priority);
     }
 
-    /**
-     * Initialize default preservation rules based on requirements
-     */
+    
     private initializeDefaultRules(): void {
-        // Framework-specific rules (Requirements 2.1-2.5) - High priority
+        
         this.addFrameworkRules();
         
-        // Development keyword rules (Requirements 3.1-3.7) - Medium priority  
+        
         this.addDevelopmentRules();
         
-        // Tooling directive rules (Requirements 4.1-4.5) - High priority
+        
         this.addToolingRules();
         
-        // Documentation rules - Medium priority
+        
         this.addDocumentationRules();
     }
 
     private addFrameworkRules(): void {
-        // Svelte (Requirement 2.1)
+        
         this.addRule(new FrameworkPreservationRule(
             'svelte-ignore',
             /svelte-ignore\s+[\w_-]+/i,
@@ -159,7 +133,7 @@ export class PreservationRuleManager {
             'Svelte'
         ));
 
-        // Vue.js (Requirement 2.2)
+        
         this.addRule(new FrameworkPreservationRule(
             'vue-eslint-disable',
             /<!--\s*eslint-disable/i,
@@ -168,7 +142,7 @@ export class PreservationRuleManager {
             'Vue'
         ));
 
-        // React/JSX pragma (Requirement 2.3)
+        
         this.addRule(new FrameworkPreservationRule(
             'jsx-pragma',
             /@jsx\s+\w+/,
@@ -177,7 +151,7 @@ export class PreservationRuleManager {
             'React'
         ));
 
-        // TypeScript compiler directives (Requirement 2.4)
+        
         this.addRule(new FrameworkPreservationRule(
             'typescript-reference',
             /\/\/\/\s*<reference\s+(path|types|lib|no-default-lib)=/,
@@ -186,7 +160,7 @@ export class PreservationRuleManager {
             'TypeScript'
         ));
 
-        // Webpack magic comments (Requirement 2.5)
+        
         this.addRule(new FrameworkPreservationRule(
             'webpack-magic',
             /webpack(ChunkName|Mode|Prefetch|Preload|Ignore|Include|Exclude|Exports):/i,
@@ -197,7 +171,7 @@ export class PreservationRuleManager {
     }
 
     private addDevelopmentRules(): void {
-        // Development keywords (Requirements 3.1-3.7)
+        
         const keywords = ['TODO', 'FIXME', 'HACK', 'NOTE', 'XXX', 'BUG', 'WARN', 'WARNING'];
         
         this.addRule(new DevelopmentPreservationRule(
@@ -210,7 +184,7 @@ export class PreservationRuleManager {
     }
 
     private addToolingRules(): void {
-        // ESLint directives (Requirement 4.1)
+        
         this.addRule(new ToolingPreservationRule(
             'eslint-directives',
             /eslint-(disable|enable)(-next-line)?/i,
@@ -219,7 +193,7 @@ export class PreservationRuleManager {
             'ESLint'
         ));
 
-        // Prettier ignore (Requirement 4.2)
+        
         this.addRule(new ToolingPreservationRule(
             'prettier-ignore',
             /prettier-ignore/i,
@@ -228,7 +202,7 @@ export class PreservationRuleManager {
             'Prettier'
         ));
 
-        // TypeScript ignore comments (Requirement 4.4)
+        
         this.addRule(new ToolingPreservationRule(
             'typescript-ignore',
             /@ts-(ignore|expect-error|nocheck)\b/i,
@@ -237,7 +211,7 @@ export class PreservationRuleManager {
             'TypeScript'
         ));
 
-        // Coverage ignore comments (Requirement 4.5)
+        
         this.addRule(new ToolingPreservationRule(
             'coverage-ignore',
             /(istanbul|c8)\s+ignore/i,
@@ -248,8 +222,8 @@ export class PreservationRuleManager {
     }
 
     private addDocumentationRules(): void {
-        // JSDoc comments (Requirement 4.3) - Higher priority than development keywords
-        // More specific pattern for common JSDoc tags to avoid false positives
+        
+        
         const jsdocTags = [
             'param', 'returns?', 'return', 'throws?', 'throw', 'example', 'since', 'author', 'see', 'todo',
             'override', 'readonly', 'static', 'private', 'public', 'protected', 'abstract', 'final',

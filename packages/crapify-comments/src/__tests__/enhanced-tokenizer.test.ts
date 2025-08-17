@@ -110,7 +110,7 @@ describe('EnhancedTokenizer', () => {
             expect(stringToken).toBeDefined();
             expect(stringToken?.value).toBe('"Unterminated string');
             
-            // Should continue parsing after the unterminated string
+            
             expect(tokens.length).toBeGreaterThan(1);
         });
 
@@ -335,7 +335,7 @@ describe('EnhancedTokenizer', () => {
             expect(regexToken).toBeDefined();
             expect(regexToken?.value).toBe('/\\/\\*[\\s\\S]*?\\*\\//g');
             
-            // Ensure the regex is complete and not truncated
+            
             expect(regexToken?.value).toContain('*\\//g');
         });
 
@@ -406,10 +406,10 @@ describe('EnhancedTokenizer', () => {
             const code = 'const pattern = /unterminated\nconst x = 5;';
             const tokens = tokenizer.tokenize(code);
 
-            // Should not crash and should continue parsing
+            
             expect(tokens.length).toBeGreaterThan(0);
             
-            // The unterminated regex should be parsed as far as possible
+            
             const regexToken = tokens.find(t => t.type === 'regex');
             expect(regexToken).toBeDefined();
             expect(regexToken?.value).toBe('/unterminated');
@@ -568,8 +568,8 @@ describe('EnhancedTokenizer', () => {
             const commentTokens = tokens.filter(t => t.type === 'comment');
 
             expect(regexTokens).toHaveLength(1);
-            expect(stringTokens).toHaveLength(2); // One regular string, one template
-            expect(commentTokens).toHaveLength(2); // Line comment and block comment
+            expect(stringTokens).toHaveLength(2); 
+            expect(commentTokens).toHaveLength(2); 
         });
     });
 
@@ -578,8 +578,8 @@ describe('EnhancedTokenizer', () => {
             const code = 'const str = "hello";';
             const tokens = tokenizer.tokenize(code);
 
-            expect(tokens[0].startPos).toBe(0); // First token starts at 0
-            expect(tokens[0].endPos).toBeGreaterThan(0); // And has some length
+            expect(tokens[0].startPos).toBe(0); 
+            expect(tokens[0].endPos).toBeGreaterThan(0); 
 
             const stringToken = tokens.find(t => t.type === 'string');
             expect(stringToken?.startPos).toBeDefined();
@@ -620,7 +620,7 @@ describe('EnhancedTokenizer', () => {
             const commentTokens = tokens.filter(t => t.type === 'comment');
             expect(commentTokens.length).toBe(4);
             
-            // Verify each development keyword comment is properly tokenized
+            
             const todoComment = commentTokens.find(t => t.value.includes('TODO'));
             const fixmeComment = commentTokens.find(t => t.value.includes('FIXME'));
             const hackComment = commentTokens.find(t => t.value.includes('HACK'));
@@ -648,7 +648,7 @@ describe('EnhancedTokenizer', () => {
             
             expect(commentTokens.length).toBe(7);
             
-            // Verify all development keywords are preserved in their respective comment tokens
+            
             const keywords = ['TODO', 'FIXME', 'HACK', 'NOTE', 'XXX', 'BUG', 'WARNING'];
             keywords.forEach(keyword => {
                 const keywordComment = commentTokens.find(t => t.value.includes(keyword));
@@ -670,11 +670,11 @@ describe('EnhancedTokenizer', () => {
             const stringTokens = tokens.filter(t => t.type === 'string');
             const regexTokens = tokens.filter(t => t.type === 'regex');
             
-            // Only one real comment should be found
+            
             expect(commentTokens.length).toBe(1);
             expect(commentTokens[0].value).toContain('TODO: but this is a real comment');
             
-            // String and regex tokens should contain the keywords but not be classified as comments
+            
             expect(stringTokens.length).toBe(2);
             expect(regexTokens.length).toBe(1);
             
@@ -704,7 +704,7 @@ describe('EnhancedTokenizer', () => {
             
             expect(commentTokens.length).toBe(8);
             
-            // Verify both development keywords and framework comments are tokenized
+            
             const developmentComments = commentTokens.filter(t => 
                 /\b(TODO|FIXME|NOTE|WARNING)\b/i.test(t.value)
             );
@@ -738,14 +738,14 @@ describe('EnhancedTokenizer', () => {
             const commentTokens = tokens.filter(t => t.type === 'comment');
             const regexTokens = tokens.filter(t => t.type === 'regex');
             
-            // Should have 4 development keyword comments
+            
             expect(commentTokens.length).toBe(4);
             
-            // Should have 1 regex token (the complex pattern)
+            
             expect(regexTokens.length).toBe(1);
             expect(regexTokens[0].value).toBe('/\\/\\*[\\s\\S]*?\\*\\//g');
             
-            // Verify all development keywords are preserved
+            
             const keywords = ['TODO', 'FIXME', 'HACK', 'NOTE'];
             keywords.forEach(keyword => {
                 const keywordComment = commentTokens.find(t => t.value.includes(keyword));
@@ -770,7 +770,7 @@ describe('EnhancedTokenizer', () => {
             
             expect(commentTokens.length).toBe(8);
             
-            // All should be properly tokenized regardless of case
+            
             const expectedKeywords = ['todo', 'FIXME', 'Hack', 'nOtE', 'XXX', 'bug', 'Warning', 'WARN'];
             expectedKeywords.forEach(keyword => {
                 const keywordComment = commentTokens.find(t => t.value.includes(keyword));
@@ -781,8 +781,8 @@ describe('EnhancedTokenizer', () => {
 
     describe('Edge cases', () => {
         it('should handle division operator vs regex ambiguity', () => {
-            const code1 = 'const result = x / y;'; // Division
-            const code2 = 'const pattern = /test/;'; // Regex
+            const code1 = 'const result = x / y;'; 
+            const code2 = 'const pattern = /test/;'; 
 
             const tokens1 = tokenizer.tokenize(code1);
             const tokens2 = tokenizer.tokenize(code2);
@@ -836,7 +836,7 @@ describe('EnhancedTokenizer', () => {
             const errorHandler = tokenizerWithLogger.getErrorHandler();
             const errors = errorHandler.getErrors();
             
-            // Should have recorded an error for the unterminated string
+            
             const stringErrors = errors.filter(e => e.category === ErrorCategory.STRING_HANDLING);
             expect(stringErrors.length).toBeGreaterThan(0);
         });
@@ -850,7 +850,7 @@ describe('EnhancedTokenizer', () => {
             const errorHandler = tokenizerWithLogger.getErrorHandler();
             const errors = errorHandler.getErrors();
             
-            // Should have recorded an error for the unterminated template
+            
             const templateErrors = errors.filter(e => e.category === ErrorCategory.TEMPLATE_LITERAL);
             expect(templateErrors.length).toBeGreaterThan(0);
         });
@@ -864,14 +864,14 @@ describe('EnhancedTokenizer', () => {
             const errorHandler = tokenizerWithLogger.getErrorHandler();
             const errors = errorHandler.getErrors();
             
-            // Should have recorded an error for the unterminated regex
+            
             const regexErrors = errors.filter(e => e.category === ErrorCategory.REGEX);
             expect(regexErrors.length).toBeGreaterThan(0);
         });
 
         it('should prevent infinite loops with safety mechanisms', () => {
-            // Create a scenario that could cause infinite loops
-            const code = '\x00\x01\x02'; // Control characters that might cause issues
+            
+            const code = '\x00\x01\x02'; 
             const tokens = tokenizerWithLogger.tokenize(code);
 
             expect(tokens.length).toBeGreaterThan(0);
@@ -879,7 +879,7 @@ describe('EnhancedTokenizer', () => {
             const errorHandler = tokenizerWithLogger.getErrorHandler();
             const errors = errorHandler.getErrors();
             
-            // Should complete without hanging
+            
             expect(Array.isArray(tokens)).toBe(true);
         });
 
@@ -889,7 +889,7 @@ describe('EnhancedTokenizer', () => {
 
             const errorHandler = tokenizerWithLogger.getErrorHandler();
             
-            // Should validate that parsing completed successfully
+            
             const originalLength = code.length;
             const processedLength = tokens.reduce((sum, token) => sum + token.value.length, 0);
             
@@ -900,7 +900,7 @@ describe('EnhancedTokenizer', () => {
         it('should detect excessive content loss', () => {
             const errorHandler = tokenizerWithLogger.getErrorHandler();
             
-            // Simulate excessive content loss
+            
             const isValid = errorHandler.validateParsingCompletion(1000, 50, 5);
             expect(isValid).toBe(false);
             
@@ -951,10 +951,10 @@ describe('EnhancedTokenizer', () => {
             const code = 'const str = "unterminated\nconst next = "complete";';
             const tokens = tokenizerWithLogger.tokenize(code);
 
-            // Should recover and continue parsing
+            
             expect(tokens.length).toBeGreaterThan(1);
             
-            // Should find the complete string
+            
             const completeString = tokens.find(t => t.type === 'string' && t.value.includes('complete'));
             expect(completeString).toBeDefined();
         });
@@ -963,10 +963,10 @@ describe('EnhancedTokenizer', () => {
             const code = 'const tmpl = `unterminated\nconst next = `complete`;';
             const tokens = tokenizerWithLogger.tokenize(code);
 
-            // Should recover and continue parsing
+            
             expect(tokens.length).toBeGreaterThan(1);
             
-            // Should find the "complete" part (it will be parsed as code since the first template consumed the backtick)
+            
             const completeToken = tokens.find(t => t.value.includes('complete'));
             expect(completeToken).toBeDefined();
         });
@@ -975,16 +975,16 @@ describe('EnhancedTokenizer', () => {
             const code = 'const regex = /unterminated\nconst next = /complete/g;';
             const tokens = tokenizerWithLogger.tokenize(code);
 
-            // Should recover and continue parsing
+            
             expect(tokens.length).toBeGreaterThan(1);
             
-            // Should find the complete regex
+            
             const completeRegex = tokens.find(t => t.type === 'regex' && t.value.includes('complete'));
             expect(completeRegex).toBeDefined();
         });
 
         it('should provide error summary statistics', () => {
-            // Generate multiple types of errors
+            
             const code = `
                 const str = "unterminated
                 const tmpl = \`also unterminated
@@ -1002,10 +1002,10 @@ describe('EnhancedTokenizer', () => {
         });
 
         it('should handle critical errors without crashing', () => {
-            // Simulate a critical error scenario
+            
             const tokenizerWithoutFallback = new EnhancedTokenizer(mockLogger, false);
             
-            // This should not crash even with fallback disabled
+            
             const code = 'const problematic = "\x00\x01\x02";';
             const tokens = tokenizerWithoutFallback.tokenize(code);
             
@@ -1016,7 +1016,7 @@ describe('EnhancedTokenizer', () => {
             const code = 'const str = "unterminated\nconst x = 5;';
             const tokens = tokenizerWithLogger.tokenize(code);
 
-            // Should have logged warnings or errors
+            
             expect(mockLogger.warn).toHaveBeenCalled();
         });
 
@@ -1033,27 +1033,27 @@ describe('EnhancedTokenizer', () => {
             const tokens2 = tokenizerWithLogger.tokenize(code2);
             const errors2 = errorHandler.getErrors();
             
-            // Errors should be cleared for the new tokenization
+            
             expect(errors2.length).toBe(0);
         });
 
         it('should handle edge cases in error recovery', () => {
-            // Test various edge cases
+            
             const edgeCases = [
-                '', // Empty string
-                '\n', // Just newline
-                '"', // Just quote
-                '`', // Just backtick
-                '/', // Just slash
-                '/*', // Incomplete block comment start
-                '//', // Just line comment start
-                '\\', // Just backslash
+                '', 
+                '\n', 
+                '"', 
+                '`', 
+                '/', 
+                '/*', 
+                '//', 
+                '\\', 
             ];
             
             edgeCases.forEach(code => {
                 const tokens = tokenizerWithLogger.tokenize(code);
                 expect(Array.isArray(tokens)).toBe(true);
-                // Should not crash on any edge case
+                
             });
         });
 
@@ -1066,7 +1066,7 @@ describe('EnhancedTokenizer', () => {
             const errorHandler = tokenizerWithLogger.getErrorHandler();
             const errors = errorHandler.getErrors();
             
-            // Should handle nested parsing errors gracefully
+            
             expect(Array.isArray(errors)).toBe(true);
         });
 
