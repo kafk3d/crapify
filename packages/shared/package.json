@@ -1,11 +1,42 @@
 {
   "name": "@crapify/shared",
   "version": "1.0.0",
+  "description": "Shared utilities and components for Crapify Tools",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "crapify",
+    "shared",
+    "utilities",
+    "cli",
+    "typescript"
+  ],
+  "author": "kafked",
+  "license": "MIT",
+  "homepage": "https://crapify.me",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kafk3d/crapify.git",
+    "directory": "packages/shared"
+  },
+  "bugs": {
+    "url": "https://github.com/kafk3d/crapify/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
     "chalk": "^4.1.2",

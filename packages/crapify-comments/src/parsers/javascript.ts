@@ -49,7 +49,7 @@ export class JavaScriptParser {
             return '';
         });
 
-        result = result.replace(/\/\*[\s\S]*?\*\
+        result = result.replace(/\/\*[\s\S]*?\*\//g, (match) => {
             if (keepPatterns.some(p => p.test(match))) return match;
             return '';
         });

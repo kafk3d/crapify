@@ -118,7 +118,7 @@ export class CommentRemover {
 
         
         const cStylePatterns: CommentPattern[] = [
-            { start: '
+            { start: '//', inline: true },
             { start: '/\\*', end: '\\*/' }
         ];
 
@@ -170,7 +170,7 @@ export class CommentRemover {
             
             
             'css': cssPatterns,
-            'scss': [...cssPatterns, { start: '
+            'scss': [...cssPatterns, { start: '//', inline: true }],
             'sass': cssPatterns,
             'less': cssPatterns,
             
