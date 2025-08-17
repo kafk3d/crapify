@@ -47,27 +47,11 @@ export class EnhancedTokenizer {
         const maxIterations = content.length * 2; 
         const originalLength = content.length;
         
-        
-        let lastMemoryCheck = 0;
-        const memoryCheckInterval = Math.max(1000, Math.ceil(content.length / 100));
 
         try {
             while (this.position < this.content.length && iterations < maxIterations) {
                 const startPos = this.position;
                 
-                
-                if (iterations - lastMemoryCheck > memoryCheckInterval) {
-                    const currentMemory = this.performanceMonitor.getMemoryUsage();
-                    if (!this.performanceMonitor.isMemoryUsageAcceptable(currentMemory, content.length)) {
-                        this.errorHandler.recordError({
-                            category: ErrorCategory.TOKENIZATION,
-                            severity: ErrorSeverity.HIGH,
-                            message: `High memory usage detected: ${(currentMemory.heapUsed / 1024 / 1024).toFixed(2)}MB for ${(content.length / 1024).toFixed(2)}KB file`,
-                            position: this.position
-                        });
-                    }
-                    lastMemoryCheck = iterations;
-                }
                 
                 try {
                     const token = this.nextTokenOptimized();
@@ -664,15 +648,18 @@ export class EnhancedTokenizer {
                 case "'":
                 case '"':
                 case '`':
+                    this.position = endPos;
                     return this.createCodeToken(startPos, endPos);
                 case '/':
                     const next = endPos + 1 < this.content.length ? this.content[endPos + 1] : '';
                     if (next === '/' || next === '*' || this.couldBeRegexAtPosition(endPos)) {
+                        this.position = endPos;
                         return this.createCodeToken(startPos, endPos);
                     }
                     break;
                 case '<':
                     if (this.content.substring(endPos, endPos + 4) === '<!--') {
+                        this.position = endPos;
                         return this.createCodeToken(startPos, endPos);
                     }
                     break;
@@ -682,7 +669,6 @@ export class EnhancedTokenizer {
 
             
             if (EnhancedTokenizer.WHITESPACE.test(char)) {
-                endPos++; 
                 break;
             }
         }
