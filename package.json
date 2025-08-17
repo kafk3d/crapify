@@ -4,7 +4,7 @@
   "description": "Ultra-fast developer productivity tools for code cleanup and optimization",
   "private": true,
   "scripts": {
-    "build": "lerna run build",
+    "build": "npm run build:shared && npm run build:comments",
     "build:shared": "cd packages/shared && npm run build",
     "build:comments": "cd packages/crapify-comments && npm run build",
     "dev": "lerna run dev --parallel",
