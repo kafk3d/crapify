@@ -61,3 +61,35 @@ export function createFilePatterns(paths: string[], extensions: string[]): strin
         return `${resolved}/**/*.{${extensions.join(',')}}`;
     });
 }
+
+export function detectVersionControl(startPath: string = process.cwd()): { detected: boolean; type?: string; path?: string } {
+    const vcsMarkers = [
+        { name: 'git', marker: '.git' },
+        { name: 'svn', marker: '.svn' },
+        { name: 'hg', marker: '.hg' },
+        { name: 'bzr', marker: '.bzr' }
+    ];
+    
+    let currentPath = path.resolve(startPath);
+    const rootPath = path.parse(currentPath).root;
+    
+    while (currentPath !== rootPath) {
+        for (const vcs of vcsMarkers) {
+            const vcsPath = path.join(currentPath, vcs.marker);
+            try {
+                if (fssync.existsSync(vcsPath)) {
+                    return {
+                        detected: true,
+                        type: vcs.name,
+                        path: currentPath
+                    };
+                }
+            } catch {
+                
+            }
+        }
+        currentPath = path.dirname(currentPath);
+    }
+    
+    return { detected: false };
+}

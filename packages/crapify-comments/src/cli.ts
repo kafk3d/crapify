@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import { CrapifyComments } from './index';
-import { showBanner } from '@kafked/shared';
+import { showBanner, detectVersionControl } from '@kafked/shared';
 import * as pkg from '../package.json';
 
 showBanner();
@@ -16,6 +16,7 @@ program
 Examples:
   $ crapify-comments src/                    # Process all files in src/
   $ crapify-comments --dry-run .            # Preview changes without modifying files
+  $ crapify-comments --force                # Proceed without version control
   $ crapify-comments --no-preserve-framework # Disable framework comment preservation
   $ crapify-comments --custom-rules "api,config" # Add custom preservation patterns
   $ crapify-comments --legacy-tokenizer     # Use legacy parsing (less accurate)
@@ -47,7 +48,31 @@ Note: The --keep option is legacy and works alongside the new preservation syste
     .option('-v, --verbose', 'Verbose output')
     .option('-q, --quiet', 'Suppress output')
     .option('--json', 'Output as JSON')
+    .option('--force', 'Proceed even without version control detected')
     .action(async (paths, options) => {
+        if (!options.force) {
+            const vcsResult = detectVersionControl();
+            if (!vcsResult.detected) {
+                console.error('❌ No version control system detected in this project or its parent directories.');
+                console.error('');
+                console.error('This tool removes comments from your code, which is a potentially');
+                console.error('destructive operation. Version control is recommended to track changes.');
+                console.error('');
+                console.error('Supported version control systems:');
+                console.error('  • Git (.git)');
+                console.error('  • Subversion (.svn)');
+                console.error('  • Mercurial (.hg)');
+                console.error('  • Bazaar (.bzr)');
+                console.error('');
+                console.error('Use --force to proceed without version control.');
+                process.exit(2);
+            }
+            
+            if (options.verbose) {
+                console.log(`✓ Version control detected: ${vcsResult.type} at ${vcsResult.path}`);
+                console.log('');
+            }
+        }
         
         const toolOptions = {
             ...options,

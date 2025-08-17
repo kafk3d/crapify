@@ -48,6 +48,7 @@ npx crapify-comments file.js
 - **Smart Preservation** - Keeps TODO, FIXME, HACK, eslint-disable, ts-ignore
 - **Multi-Language** - Supports 20+ programming languages
 - **Dry Run Mode** - Preview changes before applying
+- **Version Control Safety** - Requires VCS detection or `--force` flag
 - **Detailed Reports** - See exactly what was processed
 - **Ultra Fast** - Processes thousands of files in seconds
 - **Beautiful Output** - Clean, informative CLI interface
@@ -99,6 +100,9 @@ npx crapify-comments --json
 
 # Quiet mode (errors only)
 npx crapify-comments --quiet
+
+# Force operation without version control
+npx crapify-comments --force
 ```
 
 ### Options
@@ -109,6 +113,7 @@ npx crapify-comments --quiet
 | `--extensions` | `-e` | File extensions to process | `js,ts,jsx,tsx,vue,svelte` |
 | `--exclude` | `-x` | Glob patterns to exclude | - |
 | `--dry-run` | - | Preview changes without modifying files | `false` |
+| `--force` | - | Proceed without version control detection | `false` |
 | `--verbose` | `-v` | Detailed output | `false` |
 | `--quiet` | `-q` | Suppress output | `false` |
 | `--json` | - | JSON output format | `false` |
