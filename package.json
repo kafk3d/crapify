@@ -12,6 +12,8 @@
     "test": "lerna run test",
     "prepublish": "npm run clean && npm run build",
     "publish": "lerna publish",
+    "publish:shared": "cd packages/shared && npm publish",
+    "publish:comments": "cd packages/crapify-comments && npm publish",
     "version:patch": "lerna version patch",
     "version:minor": "lerna version minor",
     "version:major": "lerna version major"
