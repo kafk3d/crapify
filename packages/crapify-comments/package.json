@@ -1,6 +1,6 @@
 {
   "name": "crapify-comments",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Intelligent comment removal tool that preserves important comments (TODO, FIXME, HACK, etc.)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
