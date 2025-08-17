@@ -10,11 +10,14 @@
 ## Quick Start
 
 ```bash
-# Install globally
-npm install -g crapify-tools
+# Run from any directory (processes current directory by default)
+npx crapify-comments
 
-# Or use without installing
-npx crapify-comments src/ --dry-run
+# Preview changes before applying
+npx crapify-comments --dry-run
+
+# Process specific directory
+npx crapify-comments src/
 ```
 
 ## Tools
@@ -24,17 +27,20 @@ npx crapify-comments src/ --dry-run
 Intelligently removes code comments while preserving the important ones (TODO, FIXME, HACK, etc.).
 
 ```bash
-# Remove comments from a single file
-crapify-comments file.js
+# Process current directory (default behavior)
+npx crapify-comments
 
-# Process entire directory
-crapify-comments src/
+# Preview changes without modifying files
+npx crapify-comments --dry-run
 
-# Dry run to preview changes
-crapify-comments src/ --dry-run
+# Process specific directory
+npx crapify-comments src/
 
 # Keep specific patterns
-crapify-comments src/ --keep "todo,fixme,hack,copyright"
+npx crapify-comments --keep "todo,fixme,hack,copyright"
+
+# Process single file
+npx crapify-comments file.js
 ```
 
 #### Features
@@ -66,33 +72,33 @@ crapify-comments src/ --keep "todo,fixme,hack,copyright"
 ### Basic Examples
 
 ```bash
-# Process current directory
-crapify-comments .
+# Process current directory (default)
+npx crapify-comments
 
 # Process specific files
-crapify-comments src/app.js src/utils.ts
+npx crapify-comments src/app.js src/utils.ts
 
 # Process with custom extensions
-crapify-comments src/ --extensions "js,ts,vue"
+npx crapify-comments --extensions "js,ts,vue"
 
 # Exclude certain patterns
-crapify-comments src/ --exclude "node_modules,dist,*.min.js"
+npx crapify-comments --exclude "node_modules,dist,*.min.js"
 ```
 
 ### Advanced Examples
 
 ```bash
 # Keep custom patterns
-crapify-comments src/ --keep "todo,fixme,hack,copyright,license"
+npx crapify-comments --keep "todo,fixme,hack,copyright,license"
 
 # Verbose output with dry run
-crapify-comments src/ --dry-run --verbose
+npx crapify-comments --dry-run --verbose
 
 # JSON output for CI/CD
-crapify-comments src/ --json
+npx crapify-comments --json
 
 # Quiet mode (errors only)
-crapify-comments src/ --quiet
+npx crapify-comments --quiet
 ```
 
 ### Options
@@ -113,17 +119,20 @@ crapify-comments src/ --quiet
 
 ### Clean up legacy codebase
 ```bash
-# Preview what would be removed
-crapify-comments legacy-app/ --dry-run --verbose
+# Preview what would be removed from current directory
+npx crapify-comments --dry-run --verbose
 
-# Apply changes
-crapify-comments legacy-app/ --keep "todo,fixme,copyright"
+# Apply changes to specific directory
+npx crapify-comments legacy-app/ --keep "todo,fixme,copyright"
 ```
 
 ### CI/CD Integration
 ```bash
-# Check if files need comment cleanup
-crapify-comments src/ --json > comment-report.json
+# Check if files need comment cleanup in current directory
+npx crapify-comments --json > comment-report.json
+
+# Check specific directory
+npx crapify-comments src/ --json > comment-report.json
 
 # Exit codes:
 # 0 = No changes needed
@@ -135,7 +144,7 @@ crapify-comments src/ --json > comment-report.json
 ```bash
 #!/bin/bash
 # .git/hooks/pre-commit
-crapify-comments $(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|ts|jsx|tsx)$') --dry-run
+npx crapify-comments $(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|ts|jsx|tsx)$') --dry-run
 ```
 
 ## Development

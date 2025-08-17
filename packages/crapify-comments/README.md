@@ -7,11 +7,14 @@ Part of the [Crapify Tools](https://github.com/kafk3d/crapify) collection.
 ## Quick Start
 
 ```bash
-# Install globally
-npm install -g crapify-comments
+# Run from any directory (processes current directory by default)
+npx crapify-comments
 
-# Use anywhere
-crapify-comments src/ --dry-run
+# Preview changes before applying
+npx crapify-comments --dry-run
+
+# Process specific directory
+npx crapify-comments src/
 ```
 
 ## Features
@@ -24,14 +27,20 @@ crapify-comments src/ --dry-run
 ## Usage
 
 ```bash
-# Process current directory
-crapify-comments .
+# Process current directory (default behavior)
+npx crapify-comments
 
-# Preview changes
-crapify-comments src/ --dry-run
+# Preview changes without modifying files
+npx crapify-comments --dry-run
+
+# Process specific directory
+npx crapify-comments src/
 
 # Keep custom patterns
-crapify-comments src/ --keep "todo,fixme,copyright"
+npx crapify-comments --keep "todo,fixme,copyright"
+
+# Process multiple directories
+npx crapify-comments src/ lib/ --verbose
 ```
 
 ## Documentation

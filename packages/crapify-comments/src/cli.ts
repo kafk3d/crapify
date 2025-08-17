@@ -12,7 +12,7 @@ program
     .name('crapify-comments')
     .description('Remove code comments while preserving important ones')
     .version(pkg.version)
-    .argument('[paths...]', 'Files or directories to process', ['./src'])
+    .argument('[paths...]', 'Files or directories to process', ['.'])
     .option('-k, --keep <patterns>', 'Comma-separated patterns to preserve', 'todo,fixme,hack,ts-ignore,eslint-disable')
     .option('-e, --extensions <ext>', 'File extensions to process', 'js,ts,jsx,tsx,vue,svelte')
     .option('-x, --exclude <patterns>', 'Glob patterns to exclude')
