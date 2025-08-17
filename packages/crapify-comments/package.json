@@ -1,6 +1,6 @@
 {
   "name": "crapify-comments",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "Intelligent comment removal tool that preserves important comments (TODO, FIXME, HACK, etc.)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -48,7 +48,7 @@
     "@babel/generator": "^7.28.3",
     "@babel/parser": "^7.28.3",
     "@babel/traverse": "^7.28.3",
-    "@kafked/shared": "^1.0.1",
+    "@kafked/shared": "^1.0.0",
     "commander": "^11.0.0"
   },
   "devDependencies": {

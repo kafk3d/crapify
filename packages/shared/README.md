@@ -1,4 +1,4 @@
-# @crapify/shared
+# @kafked/shared
 
 > Shared utilities and components for Crapify Tools
 
@@ -7,13 +7,13 @@ This package contains common utilities, types, and components used across all Cr
 ## Installation
 
 ```bash
-npm install @crapify/shared
+npm install @kafked/shared
 ```
 
 ## Usage
 
 ```typescript
-import { Logger, loadConfig, findFiles } from '@crapify/shared';
+import { Logger, loadConfig, findFiles } from '@kafked/shared';
 
 const logger = new Logger(verbose, quiet, json);
 const config = loadConfig('tool-name');
