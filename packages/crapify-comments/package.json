@@ -1,6 +1,6 @@
 {
   "name": "crapify-comments",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Intelligent comment removal tool with enhanced preservation rules for framework-specific, development, tooling, and documentation comments",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -48,7 +48,7 @@
     "@babel/generator": "^7.28.3",
     "@babel/parser": "^7.28.3",
     "@babel/traverse": "^7.28.3",
-    "@kafked/shared": "^1.0.1",
+    "@kafked/shared": "^1.0.2",
     "commander": "^11.0.0"
   },
   "devDependencies": {
