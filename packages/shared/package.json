@@ -1,5 +1,5 @@
 {
-  "name": "@crapify/shared",
+  "name": "@kafked/shared",
   "version": "1.0.1",
   "description": "Shared utilities and components for Crapify Tools",
   "main": "dist/index.js",
@@ -46,5 +46,6 @@
   "devDependencies": {
     "@types/glob": "^8.1.0",
     "typescript": "^5.9.2"
-  }
+  },
+  "gitHead": "f14a46cb35b287fc2f7156f6f3fce1cdf5cd64be"
 }

@@ -1,4 +1,4 @@
-import { ExitCode, Logger, loadConfig, findFiles, readFile, writeFile, createFilePatterns } from '@crapify/shared';
+import { ExitCode, Logger, loadConfig, findFiles, readFile, writeFile, createFilePatterns } from '@kafked/shared';
 import { CommentRemover } from './comment-remover';
 import { CommentStats } from './types';
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import { CrapifyComments } from './index';
-import { showBanner } from '@crapify/shared';
+import { showBanner } from '@kafked/shared';
 import * as pkg from '../package.json';
 
 showBanner();
