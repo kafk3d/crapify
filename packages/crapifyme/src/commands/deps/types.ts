@@ -42,7 +42,6 @@ export interface SecurityVulnerability {
 	recommendation?: string;
 }
 
-
 export interface DependencyTreeNode {
 	name: string;
 	version: string;
@@ -164,7 +163,6 @@ export interface DepsStats {
 	sizeSavingsIdentified: number;
 	errors: Array<{ message: string; type: string }>;
 }
-
 
 export enum DependencyType {
 	PRODUCTION = 'production',

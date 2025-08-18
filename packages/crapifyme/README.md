@@ -15,7 +15,7 @@ npx crapifyme imports
 # Optimize imports: sort, group, remove unused, merge duplicates
 
 npx crapifyme deps
-# Analyze dependencies: security, size, alternatives
+# Analyze dependencies: security, size, unused
 
 npx crapifyme comments --dry-run
 # Preview changes without modifying files
@@ -193,17 +193,13 @@ crapifyme deps
 # Security-focused analysis
 crapifyme deps --security-only
 
-# Bundle size analysis with alternatives
+# Bundle analysis
 crapifyme deps --size-only --include-gzip
 
 # Specific analysis types
 crapifyme deps --outdated-only
 crapifyme deps --unused-only
 crapifyme deps --duplicates-only
-crapifyme deps --alternatives-only
-
-# Include development dependencies
-crapifyme deps --include-dev
 
 # Different output formats
 crapifyme deps --output=summary
@@ -219,7 +215,6 @@ crapifyme deps --pm=pnpm
 
 - **Security Vulnerabilities**: Integration with npm/yarn/pnpm audit commands
 - **Bundle Size Analysis**: Real-time size estimation using npmjs.org API
-- **Lighter Alternatives**: Curated suggestions (moment→dayjs, lodash→lodash-es, axios→fetch)
 - **Outdated Dependencies**: Compare installed vs latest versions
 - **Unused Dependencies**: Integration with depcheck for detection
 - **Duplicate Detection**: Find multiple versions of same package
@@ -228,10 +223,9 @@ crapifyme deps --pm=pnpm
 **Size Analysis:**
 
 - **Total Bundle Size**: Raw and gzipped sizes with formatted output
-- **Largest Packages**: Top contributors to bundle size with percentages  
+- **Largest Packages**: Top contributors to bundle size with percentages
 - **Tree-shakeable**: Packages that support ES modules and tree-shaking
 - **Side Effects**: Packages that have side effects and can't be tree-shaken
-- **Savings Estimation**: Potential size reduction from alternatives
 
 **Output Formats:**
 
@@ -258,14 +252,21 @@ crapifyme deps --pm=pnpm
 │ lodash@4.17.20      │ MODERATE │ Use lodash-es  │
 └─────────────────────┴──────────┴────────────────┘
 
-⚡ SIZE OPTIMIZATION (3 suggestions)
-┌──────────────┬─────────┬─────────────┬─────────────┐
-│ Current      │ Size    │ Alternative │ Savings     │
-├──────────────┼─────────┼─────────────┼─────────────┤
-│ moment       │ 329KB   │ dayjs       │ -284KB      │
-│ axios        │ 42KB    │ native fetch│ -42KB       │
-│ lodash       │ 533KB   │ lodash-es   │ -89KB (TSS) │
-└──────────────┴─────────┴─────────────┴─────────────┘
+📊 PACKAGE SIZES
+┌─────────────────────┬──────────┬──────────┬─────────┐
+│ Package             │ Raw      │ Gzipped  │ % Total │
+├─────────────────────┼──────────┼──────────┼─────────┤
+│ react               │ 2.1MB    │ 628.3KB  │ 45.2%   │
+│ @types/node         │ 1.7MB    │ 510.1KB  │ 36.7%   │
+│ lodash              │ 287.5KB  │ 86.2KB   │ 6.2%    │
+│ axios               │ 213.4KB  │ 64.0KB   │ 4.6%    │
+│ moment              │ 168.9KB  │ 50.7KB   │ 4.1%    │
+│ uuid                │ 45.2KB   │ 13.6KB   │ 1.0%    │
+│ chalk               │ 38.7KB   │ 11.6KB   │ 0.9%    │
+│ debug               │ 28.3KB   │ 8.5KB    │ 0.6%    │
+│ classnames          │ 15.1KB   │ 4.5KB    │ 0.3%    │
+│ tiny-invariant      │ 2.8KB    │ 841B     │ 0.1%    │
+└─────────────────────┴──────────┴──────────┴─────────┘
 ```
 
 ## Options
@@ -331,7 +332,6 @@ crapifyme deps --pm=pnpm
 | `--size-only` | **false** | Only perform bundle size analysis |
 | `--outdated-only` | **false** | Only check for outdated dependencies |
 | `--unused-only` | **false** | Only check for unused dependencies |
-| `--alternatives-only` | **false** | Only suggest lighter alternatives |
 | `--duplicates-only` | **false** | Only check for duplicate dependencies |
 | `--include-gzip` | **true** | Include gzipped size information |
 | `--no-include-gzip` | - | Exclude gzipped size information |
@@ -343,7 +343,6 @@ crapifyme deps --pm=pnpm
 | `--workspaces` | **false** | Analyze workspaces if available |
 | `--timeout <ms>` | 120000 | Request timeout in milliseconds |
 | `--output <format>` | table | Output format (table/json/tree/summary) |
-| `--no-alternatives` | - | Skip alternative package suggestions |
 | `--no-security` | - | Skip security vulnerability checks |
 | `--no-bundle-size` | - | Skip bundle size analysis |
 
@@ -372,7 +371,6 @@ crapifyme deps --security-only --output=json  # For CI/CD
 
 # Bundle size optimization
 crapifyme deps --size-only --include-gzip
-crapifyme deps --alternatives-only
 
 # Dependency maintenance
 crapifyme deps --outdated-only
@@ -400,7 +398,7 @@ crapifyme deps --output=summary --no-bundle-size      # Quick health check
 # Selective optimization
 crapifyme imports --no-remove-unused src/  # Keep unused imports
 crapifyme imports --no-sort --framework=vue src/  # Group only
-crapifyme deps --no-security --alternatives-only   # Focus on size
+crapifyme deps --no-security   # Focus on size
 ```
 
 ## Installation

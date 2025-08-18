@@ -23,7 +23,7 @@ Examples:
   $ crapifyme comments                  # Remove comments from current directory
   $ crapifyme logs                      # Remove console.log from current directory
   $ crapifyme imports                   # Optimize imports (sort, group, remove unused, merge duplicates)
-  $ crapifyme deps                      # Analyze dependencies (security, size, alternatives)
+  $ crapifyme deps                      # Analyze dependencies (security, size, unused)
   $ crapifyme comments --dry-run .      # Preview comment changes
   $ crapifyme logs --force              # Remove logs without VCS check
   $ crapifyme imports --style=absolute  # Convert to absolute imports  

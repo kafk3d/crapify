@@ -15,7 +15,7 @@ npx crapifyme imports
 # Optimize imports: sort, group, remove unused, merge duplicates
 
 npx crapifyme deps
-# Analyze dependencies: security vulnerabilities and bundle sizes
+# Analyze dependencies: security, size, unused
 
 npx crapifyme comments --dry-run
 # Preview changes without modifying files
@@ -40,7 +40,7 @@ crapifyme imports src/
 # Optimize all imports in src directory
 
 crapifyme deps
-# Analyze project dependencies for security vulnerabilities and bundle size
+# Analyze project dependencies for security and optimization
 ```
 
 ## Preservation System
@@ -184,7 +184,7 @@ crapifyme imports --no-sort --no-group src/
 
 ### Deps Tool
 
-Essential dependency analysis for security vulnerability detection and bundle size optimization.
+Comprehensive dependency analysis and optimization for security, size, and maintainability.
 
 ```bash
 # Complete dependency analysis (all features enabled by default)
@@ -193,16 +193,13 @@ crapifyme deps
 # Security-focused analysis
 crapifyme deps --security-only
 
-# Bundle size analysis only
+# Bundle analysis
 crapifyme deps --size-only --include-gzip
 
 # Specific analysis types
 crapifyme deps --outdated-only
 crapifyme deps --unused-only
 crapifyme deps --duplicates-only
-
-# Include development dependencies
-crapifyme deps --include-dev
 
 # Different output formats
 crapifyme deps --output=summary
@@ -217,8 +214,8 @@ crapifyme deps --pm=pnpm
 **Analysis Features:**
 
 - **Security Vulnerabilities**: Integration with npm/yarn/pnpm audit commands
-- **Bundle Size Analysis**: Accurate size estimation using npm registry API
-- **Outdated Dependencies**: Compare installed vs latest versions  
+- **Bundle Size Analysis**: Real-time size estimation using npmjs.org API
+- **Outdated Dependencies**: Compare installed vs latest versions
 - **Unused Dependencies**: Integration with depcheck for detection
 - **Duplicate Detection**: Find multiple versions of same package
 - **Package Manager Support**: Auto-detection for npm, yarn, pnpm
@@ -226,10 +223,9 @@ crapifyme deps --pm=pnpm
 **Size Analysis:**
 
 - **Total Bundle Size**: Raw and gzipped sizes with formatted output
-- **Largest Packages**: Top contributors to bundle size with percentages  
+- **Largest Packages**: Top contributors to bundle size with percentages
 - **Tree-shakeable**: Packages that support ES modules and tree-shaking
 - **Side Effects**: Packages that have side effects and can't be tree-shaken
-- **Detailed Breakdown**: Individual package sizes and bundle impact
 
 **Output Formats:**
 
@@ -241,11 +237,14 @@ crapifyme deps --pm=pnpm
 **Example Output:**
 ```
 📦 DEPENDENCY ANALYSIS
-Project: my-awesome-app
-Dependencies: 42 production, 18 dev
-Package Manager: npm v8.19.2
+┌─────────────────────────────────────────────┐
+│ Project: my-awesome-app                     │
+│ Dependencies: 42 production, 18 dev         │
+│ Total Bundle Size: 2.4MB (847KB gzipped)    │
+│ Package Manager: npm v8.19.2                │
+└─────────────────────────────────────────────┘
 
-🚨 SECURITY ISSUES
+🚨 SECURITY ISSUES (2)
 ┌─────────────────────┬──────────┬────────────────┐
 │ Package             │ Severity │ Recommendation │
 ├─────────────────────┼──────────┼────────────────┤
@@ -254,15 +253,20 @@ Package Manager: npm v8.19.2
 └─────────────────────┴──────────┴────────────────┘
 
 📊 PACKAGE SIZES
-┌─────────────────────┬─────────┬─────────┬─────────┐
-│ Package             │ Raw     │ Gzipped │ % Total │
-├─────────────────────┼─────────┼─────────┼─────────┤
-│ lodash              │ 533KB   │ 160KB   │ 22.1%   │
-│ moment              │ 329KB   │ 99KB    │ 13.7%   │
-│ react               │ 42KB    │ 13KB    │ 1.7%    │
-└─────────────────────┴─────────┴─────────┴─────────┘
-
-Total Bundle Size: 2.4MB (847KB gzipped)
+┌─────────────────────┬──────────┬──────────┬─────────┐
+│ Package             │ Raw      │ Gzipped  │ % Total │
+├─────────────────────┼──────────┼──────────┼─────────┤
+│ react               │ 2.1MB    │ 628.3KB  │ 45.2%   │
+│ @types/node         │ 1.7MB    │ 510.1KB  │ 36.7%   │
+│ lodash              │ 287.5KB  │ 86.2KB   │ 6.2%    │
+│ axios               │ 213.4KB  │ 64.0KB   │ 4.6%    │
+│ moment              │ 168.9KB  │ 50.7KB   │ 4.1%    │
+│ uuid                │ 45.2KB   │ 13.6KB   │ 1.0%    │
+│ chalk               │ 38.7KB   │ 11.6KB   │ 0.9%    │
+│ debug               │ 28.3KB   │ 8.5KB    │ 0.6%    │
+│ classnames          │ 15.1KB   │ 4.5KB    │ 0.3%    │
+│ tiny-invariant      │ 2.8KB    │ 841B     │ 0.1%    │
+└─────────────────────┴──────────┴──────────┴─────────┘
 ```
 
 ## Options
@@ -394,7 +398,7 @@ crapifyme deps --output=summary --no-bundle-size      # Quick health check
 # Selective optimization
 crapifyme imports --no-remove-unused src/  # Keep unused imports
 crapifyme imports --no-sort --framework=vue src/  # Group only
-crapifyme deps --no-security --size-only   # Focus on bundle size only
+crapifyme deps --no-security   # Focus on size
 ```
 
 ## Installation

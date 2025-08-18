@@ -61,7 +61,6 @@ export class BundleAnalyzer {
 					const sizeInfo = await this.getPackageSize(pkg.name, pkg.version);
 					packageSizes.set(pkg.name, sizeInfo);
 
-					// Brief delay to be respectful to npm registry
 					await this.delay(100);
 				} catch (error) {
 					if (i < 3) {

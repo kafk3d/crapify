@@ -13,8 +13,6 @@ export const depsCommand = new Command('deps')
 	.option('--duplicates-only', 'Only check for duplicate dependencies', false)
 	.option('--include-gzip', 'Include gzipped size information', true)
 	.option('--no-include-gzip', 'Exclude gzipped size information')
-	.option('--include-dev', 'Include development dependencies in analysis', true)
-	.option('--no-include-dev', 'Exclude development dependencies from analysis')
 	.option('--include-peer', 'Include peer dependencies in analysis', false)
 	.option('--include-optional', 'Include optional dependencies in analysis', false)
 	.option('--pm <manager>', 'Package manager to use (npm|yarn|pnpm|auto)', 'auto')
@@ -188,9 +186,25 @@ async function displayResults(
 			displaySummary(result.analysis, logger, stats);
 			break;
 		case OutputFormat.TREE:
-			displayTree(result.analysis, logger);
+			displayTree(result.analysis);
 			break;
 		case OutputFormat.JSON:
+			console.log(
+				JSON.stringify(
+					{
+						analysis: {
+							...result.analysis,
+							duplicateDependencies: Object.fromEntries(result.analysis.duplicateDependencies)
+						},
+						stats,
+						errors: result.errors,
+						warnings: result.warnings,
+						processingTime: result.processingTime
+					},
+					null,
+					2
+				)
+			);
 			break;
 		case OutputFormat.TABLE:
 		default:
@@ -216,13 +230,11 @@ function displaySummary(analysis: any, logger: Logger, stats: DepsStats): void {
 		logger.warn(`📋 Unused Packages: ${stats.unusedPackages}`);
 	}
 
-
 	if (analysis.bundle?.totalSize) {
 		logger.info(
 			`📊 Total Bundle Size: ${analysis.bundle.totalSize.formatted.raw} (${analysis.bundle.totalSize.formatted.gzip} gzipped)`
 		);
 	}
-
 
 	if (
 		stats.vulnerabilitiesFound === 0 &&
@@ -233,31 +245,40 @@ function displaySummary(analysis: any, logger: Logger, stats: DepsStats): void {
 	}
 }
 
-function displayTree(analysis: any, logger: Logger): void {
+function displayTree(analysis: any): void {
 	const { production, development } = analysis.dependencies;
 
+	console.log('\n📦 DEPENDENCY TREE\n');
+
 	if (production.length > 0) {
+		console.log('📁 Production Dependencies:');
 		production.slice(0, 20).forEach((dep: any, index: number) => {
 			const isLast = index === Math.min(production.length - 1, 19);
 			const prefix = isLast ? '└── ' : '├── ';
 			const version = dep.currentVersion;
 			const outdated = dep.isOutdated ? ' (outdated)' : '';
 			const size = dep.size ? ` [${dep.size.formatted.gzip}]` : '';
+			console.log(`${prefix}${dep.name}@${version}${outdated}${size}`);
 		});
 
 		if (production.length > 20) {
+			console.log(`    ... and ${production.length - 20} more`);
 		}
+		console.log('');
 	}
 
 	if (development.length > 0) {
+		console.log('🔧 Development Dependencies:');
 		development.slice(0, 10).forEach((dep: any, index: number) => {
 			const isLast = index === Math.min(development.length - 1, 9);
 			const prefix = isLast ? '└── ' : '├── ';
 			const version = dep.currentVersion;
 			const outdated = dep.isOutdated ? ' (outdated)' : '';
+			console.log(`${prefix}${dep.name}@${version}${outdated}`);
 		});
 
 		if (development.length > 10) {
+			console.log(`    ... and ${development.length - 10} more`);
 		}
 	}
 }

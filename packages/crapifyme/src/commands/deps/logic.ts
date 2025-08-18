@@ -120,7 +120,6 @@ export class DepsProcessor {
 				await this.analyzeBundleSize(projectAnalysis, errors);
 			}
 
-
 			if (shouldAnalyze(AnalysisType.DUPLICATES)) {
 				if (this.options.verbose) {
 					process.stdout.write('🔍 Checking for duplicate dependencies...\n');
@@ -241,7 +240,6 @@ export class DepsProcessor {
 			});
 		}
 	}
-
 
 	private async analyzeDuplicates(
 		analysis: ProjectAnalysis,
@@ -383,10 +381,11 @@ export class DepsProcessor {
 			}
 			lines.push('└─────────────────────┴─────────┴─────────┴─────────┘');
 			lines.push('');
-			lines.push(`Total Bundle Size: ${analysis.bundle.totalSize.formatted.raw} (${analysis.bundle.totalSize.formatted.gzip} gzipped)`);
+			lines.push(
+				`Total Bundle Size: ${analysis.bundle.totalSize.formatted.raw} (${analysis.bundle.totalSize.formatted.gzip} gzipped)`
+			);
 			lines.push('');
 		}
-
 
 		const statusLines = [];
 		if (analysis.summary.outdated > 0) {
