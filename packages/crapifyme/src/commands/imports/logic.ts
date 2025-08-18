@@ -231,33 +231,33 @@ export class ImportsProcessor {
 	private reorderImportsInContent(content: string, processedImports: any[], originalImports: any[]): string {
 		if (originalImports.length === 0) return content;
 
-		// Create mapping of import source to original string
+		
 		const sourceToString = new Map<string, string>();
 		originalImports.forEach(imp => {
 			const importString = content.substring(imp.startPos, imp.endPos);
 			sourceToString.set(imp.source, importString);
 		});
 
-		// Apply sorting/grouping to get new order using original imports  
+		
 		let orderedImports = [...originalImports];
 		
 		if (this.options.group && this.options.sort) {
-			// Group and sort within each group
+			
 			orderedImports = this.groupImportsForReorder(orderedImports, true);
 		} else if (this.options.group) {
-			// Group only
+			
 			orderedImports = this.groupImportsForReorder(orderedImports, false);
 		} else if (this.options.sort) {
-			// Sort only
+			
 			orderedImports = this.sortImportsForReorder(orderedImports);
 		}
 
-		// Map the reordered imports back to original strings
+		
 		const reorderedStrings = orderedImports.map(imp => 
 			sourceToString.get(imp.source) || ''
 		).filter(Boolean);
 
-		// Replace all import blocks with reordered strings
+		
 		return this.replaceImportBlock(content, originalImports, reorderedStrings.join('\n'));
 	}
 
@@ -309,14 +309,14 @@ export class ImportsProcessor {
 			}
 		}
 
-		// Sort within each group if requested
+		
 		if (shouldSort) {
 			groups.external.sort((a, b) => a.source.localeCompare(b.source));
 			groups.internal.sort((a, b) => a.source.localeCompare(b.source));
 			groups.relative.sort((a, b) => a.source.localeCompare(b.source));
 		}
 
-		// Return flattened array in correct order: external -> internal -> relative
+		
 		return [...groups.external, ...groups.internal, ...groups.relative];
 	}
 

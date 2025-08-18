@@ -10,7 +10,7 @@ import {
 
 export class ImportTransformer {
 	private options: Required<ImportTransformOptions>;
-	private indentation: string = '  '; // default to 2 spaces
+	private indentation: string = '  '; 
 
 	constructor(options: ImportTransformOptions = {}) {
 		this.options = {
@@ -26,7 +26,7 @@ export class ImportTransformer {
 	}
 
 	transformImports(imports: ImportStatement[], filePath: string, originalContent?: string): string {
-		// Detect original indentation pattern
+		
 		if (originalContent) {
 			this.detectIndentation(originalContent);
 		}
@@ -57,14 +57,14 @@ export class ImportTransformer {
 	}
 
 	private detectIndentation(content: string): void {
-		// Look for existing multiline imports to detect indentation
+		
 		const multilineMatch = content.match(/import\s*{[^}]*\n(\s+)[^}]/);
 		if (multilineMatch && multilineMatch[1]) {
 			this.indentation = multilineMatch[1];
 			return;
 		}
 
-		// Look for any indented lines to detect general indentation
+		
 		const lines = content.split('\n');
 		for (const line of lines) {
 			const match = line.match(/^(\s+)\S/);
