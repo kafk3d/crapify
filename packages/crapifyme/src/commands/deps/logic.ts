@@ -396,26 +396,19 @@ export class DepsProcessor {
 
 			const displayVulns = analysis.security.vulnerabilities.slice(0, 5);
 			for (const vuln of displayVulns) {
-				// Try to extract package name from title, description, or use id
+				// Extract package name from title (format: "packagename: vulnerability")
 				let pkgName = 'unknown';
 				
-				// Try title first word
-				if (vuln.title) {
+				if (vuln.title && vuln.title.includes(':')) {
+					pkgName = vuln.title.split(':')[0].trim();
+				} else if (vuln.title) {
+					// Fallback to original extraction method
 					const titleParts = vuln.title.toLowerCase().split(' ');
-					// Look for common package name patterns
 					for (const part of titleParts) {
-						if (part.match(/^[a-z][a-z0-9-_.]*[a-z0-9]$/)) {
+						if (part.match(/^[a-z@][a-z0-9-_./@]*[a-z0-9]$/)) {
 							pkgName = part;
 							break;
 						}
-					}
-				}
-				
-				// If still unknown, try to extract from description
-				if (pkgName === 'unknown' && vuln.description) {
-					const match = vuln.description.match(/package[\s:]+([a-z][a-z0-9-_.]*)/i);
-					if (match) {
-						pkgName = match[1];
 					}
 				}
 

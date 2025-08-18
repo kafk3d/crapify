@@ -87,27 +87,63 @@ export class SecurityScanner {
 		try {
 			const auditData = JSON.parse(output);
 
-			if (auditData.metadata?.vulnerabilities) {
-				summary = {
-					critical: auditData.metadata.vulnerabilities.critical || 0,
-					high: auditData.metadata.vulnerabilities.high || 0,
-					moderate: auditData.metadata.vulnerabilities.moderate || 0,
-					low: auditData.metadata.vulnerabilities.low || 0
-				};
+			// Handle new npm audit format (npm v7+)
+			if (auditData.auditReportVersion === 2 && auditData.vulnerabilities) {
+				for (const [packageName, vulnData] of Object.entries(auditData.vulnerabilities as any)) {
+					const vuln = vulnData as any;
+					
+					if (vuln.via && Array.isArray(vuln.via)) {
+						for (const advisory of vuln.via) {
+							if (typeof advisory === 'object' && advisory.source) {
+								const vulnerability: SecurityVulnerability = {
+									id: advisory.source?.toString() || packageName,
+									title: `${packageName}: ${advisory.title || 'Security vulnerability'}`,
+									description: advisory.overview || advisory.description || '',
+									severity: this.normalizeSeverity(advisory.severity),
+									references: advisory.references || [],
+									vulnerable_versions: advisory.range || vuln.range || '',
+									patched_versions: advisory.patched_versions,
+									recommendation: `Update ${packageName} to version ${vuln.fixAvailable ? vuln.fixAvailable.version || 'latest' : 'latest'}`
+								};
+								
+								vulnerabilities.push(vulnerability);
+								
+								// Count severity
+								switch (vulnerability.severity) {
+									case 'critical': summary.critical++; break;
+									case 'high': summary.high++; break;
+									case 'moderate': summary.moderate++; break;
+									case 'low': summary.low++; break;
+								}
+							}
+						}
+					}
+				}
 			}
+			// Handle old npm audit format (npm v6)
+			else if (auditData.advisories) {
+				if (auditData.metadata?.vulnerabilities) {
+					summary = {
+						critical: auditData.metadata.vulnerabilities.critical || 0,
+						high: auditData.metadata.vulnerabilities.high || 0,
+						moderate: auditData.metadata.vulnerabilities.moderate || 0,
+						low: auditData.metadata.vulnerabilities.low || 0
+					};
+				}
 
-			if (auditData.vulnerabilities) {
-				for (const [id, vuln] of Object.entries(auditData.vulnerabilities as any)) {
-					const vulnData = vuln as any;
+				for (const [id, advisory] of Object.entries(auditData.advisories as any)) {
+					const adv = advisory as any;
+					const packageName = adv.module_name || adv.package_name || 'unknown';
+					
 					const vulnerability: SecurityVulnerability = {
 						id: id,
-						title: vulnData.title || 'Unknown vulnerability',
-						description: vulnData.description || vulnData.overview || '',
-						severity: this.normalizeSeverity(vulnData.severity),
-						references: vulnData.references || [],
-						vulnerable_versions: vulnData.range || vulnData.vulnerable_versions || '',
-						patched_versions: vulnData.patched_versions,
-						recommendation: vulnData.recommendation || this.generateRecommendation(vulnData)
+						title: `${packageName}: ${adv.title || 'Security vulnerability'}`,
+						description: adv.overview || adv.description || '',
+						severity: this.normalizeSeverity(adv.severity),
+						references: adv.references || [],
+						vulnerable_versions: adv.vulnerable_versions || adv.range || '',
+						patched_versions: adv.patched_versions,
+						recommendation: adv.recommendation || `Update ${packageName}`
 					};
 
 					vulnerabilities.push(vulnerability);

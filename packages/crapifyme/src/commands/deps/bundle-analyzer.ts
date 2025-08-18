@@ -35,8 +35,11 @@ export class BundleAnalyzer {
 	private cache = new Map<string, BundlephobiaResponse>();
 	private cacheTimeout: number;
 	private requestTimeout: number;
+	private failureCount = 0;
+	private maxFailures = 5;
+	private circuitOpen = false;
 
-	constructor(cacheTimeout: number = 3600000, requestTimeout: number = 30000) {
+	constructor(cacheTimeout: number = 3600000, requestTimeout: number = 20000) {
 		this.cacheTimeout = cacheTimeout;
 		this.requestTimeout = requestTimeout;
 	}
@@ -57,6 +60,12 @@ export class BundleAnalyzer {
 
 			for (let i = 0; i < packages.length; i++) {
 				const pkg = packages[i];
+				
+				// Skip if circuit breaker is open
+				if (this.circuitOpen) {
+					break;
+				}
+				
 				try {
 					const sizeInfo = await this.getPackageSize(pkg.name, pkg.version);
 					packageSizes.set(pkg.name, sizeInfo);
@@ -64,7 +73,12 @@ export class BundleAnalyzer {
 					await this.delay(200);
 					
 				} catch (error) {
-					console.warn(`\nWarning: Failed to get size for ${pkg.name}: ${(error as Error).message}`);
+					const errorMsg = (error as Error).message;
+					
+					// Only warn for the first few failures, then stay quiet
+					if (this.failureCount <= 3 && !errorMsg.includes('Circuit breaker')) {
+						console.warn(`\nWarning: Failed to get size for ${pkg.name}: ${errorMsg}`);
+					}
 				}
 			}
 
@@ -128,7 +142,35 @@ export class BundleAnalyzer {
 			}
 		}
 
-		const data = await this.fetchFromBundlephobia(packageName, version);
+		// Circuit breaker - skip API calls if too many failures
+		if (this.circuitOpen) {
+			throw new Error('Circuit breaker open - too many API failures');
+		}
+
+		let data: BundlephobiaResponse;
+		
+		try {
+			// Try bundlephobia first
+			data = await this.fetchFromBundlephobia(packageName, version);
+			this.failureCount = 0; // Reset on success
+		} catch (error) {
+			this.failureCount++;
+			
+			// Open circuit breaker after max failures
+			if (this.failureCount >= this.maxFailures) {
+				this.circuitOpen = true;
+				console.warn(`\nBundle size API unavailable (${this.failureCount} failures) - skipping size analysis`);
+			}
+			
+			// Try packagephobia as fallback
+			try {
+				data = await this.fetchFromPackagephobia(packageName, version);
+				this.failureCount = Math.max(0, this.failureCount - 1); // Partial recovery
+			} catch (fallbackError) {
+				throw error; // Throw original error
+			}
+		}
+
 		(data as any).cachedAt = Date.now();
 		this.cache.set(cacheKey, data);
 		
@@ -141,8 +183,13 @@ export class BundleAnalyzer {
 		
 		return new Promise((resolve, reject) => {
 			const req = https.get(url, { timeout: this.requestTimeout }, (res) => {
+				if (res.statusCode === 522 || res.statusCode === 503 || res.statusCode === 504) {
+					reject(new Error('Service unavailable'));
+					return;
+				}
+				
 				if (res.statusCode !== 200) {
-					reject(new Error(`HTTP ${res.statusCode}: ${res.statusMessage}`));
+					reject(new Error(`HTTP ${res.statusCode}`));
 					return;
 				}
 
@@ -152,23 +199,69 @@ export class BundleAnalyzer {
 					try {
 						const parsed = JSON.parse(data);
 						if (parsed.error) {
-							reject(new Error(parsed.error.message || 'Unknown bundlephobia error'));
+							reject(new Error(parsed.error.message || 'Package not found'));
 						} else {
 							resolve(parsed);
 						}
 					} catch (error) {
-						reject(new Error(`Failed to parse bundlephobia response: ${(error as Error).message}`));
+						reject(new Error('Invalid response'));
 					}
 				});
 			});
 
 			req.on('timeout', () => {
 				req.destroy();
-				reject(new Error('Request timeout'));
+				reject(new Error('Service unavailable'));
 			});
 
-			req.on('error', (error) => {
-				reject(new Error(`Request failed: ${error.message}`));
+			req.on('error', () => {
+				reject(new Error('Network error'));
+			});
+		});
+	}
+
+	private async fetchFromPackagephobia(packageName: string, version: string): Promise<BundlephobiaResponse> {
+		const cleanVersion = version.replace(/^[\^~]/, '');
+		const url = `https://packagephobia.com/api.json?p=${encodeURIComponent(packageName)}@${encodeURIComponent(cleanVersion)}`;
+		
+		return new Promise((resolve, reject) => {
+			const req = https.get(url, { timeout: this.requestTimeout }, (res) => {
+				if (res.statusCode !== 200) {
+					reject(new Error(`Packagephobia HTTP ${res.statusCode}`));
+					return;
+				}
+
+				let data = '';
+				res.on('data', chunk => data += chunk);
+				res.on('end', () => {
+					try {
+						const parsed = JSON.parse(data);
+						// Convert packagephobia format to bundlephobia format
+						resolve({
+							name: packageName,
+							version: parsed.version || cleanVersion,
+							size: parsed.install || 0,
+							gzip: Math.floor((parsed.install || 0) * 0.3), // Estimate gzip as 30%
+							description: parsed.description,
+							dependencyCount: 0,
+							hasJSNext: false,
+							hasJSModule: false,
+							hasSideEffects: false,
+							isModuleType: false
+						});
+					} catch (error) {
+						reject(new Error('Invalid packagephobia response'));
+					}
+				});
+			});
+
+			req.on('timeout', () => {
+				req.destroy();
+				reject(new Error('Packagephobia timeout'));
+			});
+
+			req.on('error', () => {
+				reject(new Error('Packagephobia network error'));
 			});
 		});
 	}
