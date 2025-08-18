@@ -1,7 +1,7 @@
-import { EnhancedToken, TokenContext, LexerState } from './types';
 import { ErrorHandler, ErrorCategory, ErrorSeverity } from './error-handler';
 import { Logger } from './logger';
 import { PerformanceMonitor } from './performance-monitor';
+import { EnhancedToken, TokenContext, LexerState } from './types';
 
 export class EnhancedTokenizer {
 	private static readonly WHITESPACE = /\s/;

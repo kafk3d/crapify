@@ -1,10 +1,10 @@
 import path from 'path';
-import { ProcessResult, CommentCategory } from '../../shared/types';
 import { EnhancedTokenizer } from '../../shared/enhanced-tokenizer';
-import { PreservationRuleManager } from '../../shared/rule-manager';
 import { ErrorHandler, ErrorCategory, ErrorSeverity } from '../../shared/error-handler';
 import { Logger } from '../../shared/logger';
 import { PerformanceMonitor, OptimizedStringBuilder } from '../../shared/performance-monitor';
+import { PreservationRuleManager } from '../../shared/rule-manager';
+import { ProcessResult, CommentCategory } from '../../shared/types';
 
 interface Token {
 	type: 'string' | 'comment' | 'code';

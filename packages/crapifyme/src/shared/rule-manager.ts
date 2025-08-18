@@ -1,4 +1,3 @@
-import { CommentCategory } from './types';
 import {
 	BasePreservationRule,
 	FrameworkPreservationRule,
@@ -7,6 +6,7 @@ import {
 	DocumentationPreservationRule,
 	CustomPreservationRule
 } from './preservation-rules';
+import { CommentCategory } from './types';
 
 export interface CommentClassification {
 	category: CommentCategory;

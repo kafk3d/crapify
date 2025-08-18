@@ -1,6 +1,6 @@
-import { glob } from 'glob';
-import fs from 'fs/promises';
 import fssync from 'fs';
+import fs from 'fs/promises';
+import { glob } from 'glob';
 import path from 'path';
 
 export async function findFiles(patterns: string[], exclude: string[] = []): Promise<string[]> {

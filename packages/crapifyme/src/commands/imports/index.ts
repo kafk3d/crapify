@@ -1,5 +1,4 @@
 import { Command } from 'commander';
-import { ImportsProcessor } from './logic';
 import {
 	Logger,
 	findFiles,
@@ -9,6 +8,7 @@ import {
 	detectVersionControl,
 	ExitCode
 } from '../../shared';
+import { ImportsProcessor } from './logic';
 import { ImportsStats, PathAlias } from './types';
 
 export const importsCommand = new Command('imports')

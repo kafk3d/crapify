@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { showBanner } from './shared';
 import { commentsCommand } from './commands/comments';
-import { logsCommand } from './commands/logs';
 import { importsCommand } from './commands/imports';
+import { logsCommand } from './commands/logs';
+import { showBanner } from './shared';
 
 const pkg = require('../package.json');
 

@@ -1,13 +1,13 @@
+import { ASTAnalyzer } from './ast-analyzer';
+import { FrameworkDetector } from './framework-detector';
+import { ImportTransformer } from './import-transformer';
+import { PathResolver } from './path-resolver';
 import { 
 	ImportsProcessorOptions, 
 	ImportTransformResult, 
 	ImportTransformOptions,
 	PathAlias
 } from './types';
-import { ASTAnalyzer } from './ast-analyzer';
-import { ImportTransformer } from './import-transformer';
-import { PathResolver } from './path-resolver';
-import { FrameworkDetector } from './framework-detector';
 
 export class ImportsProcessor {
 	private astAnalyzer: ASTAnalyzer;

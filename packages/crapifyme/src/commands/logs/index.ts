@@ -1,5 +1,4 @@
 import { Command } from 'commander';
-import { LogsProcessor } from './logic';
 import {
 	Logger,
 	findFiles,
@@ -10,6 +9,7 @@ import {
 	FileStats,
 	ExitCode
 } from '../../shared';
+import { LogsProcessor } from './logic';
 
 export const logsCommand = new Command('logs')
 	.description('Remove console.log statements while preserving important ones')

@@ -1,5 +1,4 @@
 import { Command } from 'commander';
-import { AdvancedCommentRemover } from './advanced-logic';
 import {
 	Logger,
 	findFiles,
@@ -10,6 +9,7 @@ import {
 	CommentStats,
 	ExitCode
 } from '../../shared';
+import { AdvancedCommentRemover } from './advanced-logic';
 
 export const commentsCommand = new Command('comments')
 	.description('Remove code comments while preserving important ones')
