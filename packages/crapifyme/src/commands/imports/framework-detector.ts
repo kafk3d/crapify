@@ -156,7 +156,7 @@ export class FrameworkDetector {
 			}
 		];
 
-		// Try to read Next.js config for custom aliases
+		
 		const nextConfigPath = this.findNextConfig();
 		if (nextConfigPath) {
 			const customAliases = this.parseNextConfig(nextConfigPath);

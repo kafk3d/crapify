@@ -213,44 +213,32 @@ export class ImportsProcessor {
 			return content;
 		}
 
-		const lines = content.split('\n');
-		const importLines = new Set<number>();
 		
-		for (const importStmt of originalImports) {
-			if (importStmt.startPos !== undefined && importStmt.endPos !== undefined) {
-				const startLine = this.getLineFromPosition(content, importStmt.startPos);
-				const endLine = this.getLineFromPosition(content, importStmt.endPos);
-				
-				for (let i = startLine; i <= endLine; i++) {
-					importLines.add(i);
-				}
-			}
+		const sortedImports = [...originalImports]
+			.filter(imp => imp.startPos !== undefined && imp.endPos !== undefined)
+			.sort((a, b) => b.startPos - a.startPos);
+
+		if (sortedImports.length === 0) {
+			return content;
 		}
 
-		const nonImportLines = lines.filter((_, index) => !importLines.has(index));
 		
-		const firstNonImportIndex = lines.findIndex((_, index) => !importLines.has(index));
+		let result = content;
 		
-		if (firstNonImportIndex === -1) {
-			return transformedImports;
+		for (const importStmt of sortedImports) {
+			const before = result.substring(0, importStmt.startPos);
+			const after = result.substring(importStmt.endPos);
+			result = before + after;
 		}
 
-		const beforeImports = lines.slice(0, Math.min(...Array.from(importLines)));
-		const afterImports = lines.slice(Math.max(...Array.from(importLines)) + 1);
-
-		const result = [
-			...beforeImports,
-			transformedImports,
-			...afterImports
-		].join('\n');
-
-		return result;
+		
+		const firstImportPos = Math.min(...originalImports.map(i => i.startPos));
+		const beforeFirst = result.substring(0, firstImportPos);
+		const afterFirst = result.substring(firstImportPos);
+		
+		return beforeFirst + transformedImports + '\n' + afterFirst;
 	}
 
-	private getLineFromPosition(content: string, position: number): number {
-		const beforePosition = content.substring(0, position);
-		return beforePosition.split('\n').length - 1;
-	}
 
 	static parseAliasesFromString(aliasString: string): PathAlias[] {
 		return PathResolver.parseCliAliases(aliasString);

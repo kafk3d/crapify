@@ -271,40 +271,45 @@ export class ImportTransformer {
 
 	private renderImportLine(importStmt: ImportStatement): string {
 		const typePrefix = importStmt.importKind === 'type' ? 'type ' : '';
-		const specifiers = this.renderSpecifiers(importStmt.specifiers);
 		
-		if (specifiers.length === 0) {
+		if (importStmt.specifiers.length === 0) {
 			return `import${typePrefix ? ` ${typePrefix}` : ''} '${importStmt.source}';`;
 		}
 
-		const shouldUseMultiline = specifiers.length > this.options.multilineThreshold;
-		
-		if (shouldUseMultiline) {
-			const formattedSpecifiers = specifiers.join(',\n  ');
-			return `import ${typePrefix}{\n  ${formattedSpecifiers}\n} from '${importStmt.source}';`;
-		} else {
-			const formattedSpecifiers = specifiers.join(', ');
-			return `import ${typePrefix}{ ${formattedSpecifiers} } from '${importStmt.source}';`;
-		}
-	}
+		const defaultSpecs = importStmt.specifiers.filter(s => s.type === 'default');
+		const namespaceSpecs = importStmt.specifiers.filter(s => s.type === 'namespace');  
+		const namedSpecs = importStmt.specifiers.filter(s => s.type === 'named');
 
-	private renderSpecifiers(specifiers: ImportSpecifier[]): string[] {
-		const result: string[] = [];
-		
-		for (const spec of specifiers) {
-			if (spec.type === 'default') {
-				result.unshift(spec.local);
-			} else if (spec.type === 'namespace') {
-				result.unshift(`* as ${spec.local}`);
-			} else if (spec.type === 'named') {
+		const parts: string[] = [];
+
+		if (defaultSpecs.length > 0) {
+			parts.push(defaultSpecs[0].local);
+		}
+
+		if (namespaceSpecs.length > 0) {
+			parts.push(`* as ${namespaceSpecs[0].local}`);
+		}
+
+		if (namedSpecs.length > 0) {
+			const namedItems = namedSpecs.map(spec => {
 				const typePrefix = spec.importKind === 'type' ? 'type ' : '';
 				const name = spec.imported === spec.local 
 					? spec.local 
 					: `${spec.imported} as ${spec.local}`;
-				result.push(`${typePrefix}${name}`);
+				return `${typePrefix}${name}`;
+			});
+
+			const shouldUseMultiline = namedItems.length > this.options.multilineThreshold;
+			
+			if (shouldUseMultiline) {
+				parts.push(`{\n  ${namedItems.join(',\n  ')}\n}`);
+			} else {
+				parts.push(`{ ${namedItems.join(', ')} }`);
 			}
 		}
-		
-		return result;
+
+		const importList = parts.join(', ');
+		return `import ${typePrefix}${importList} from '${importStmt.source}';`;
 	}
+
 }
