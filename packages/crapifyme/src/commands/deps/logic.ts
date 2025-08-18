@@ -369,7 +369,7 @@ export class DepsProcessor {
 			lines.push('│ Package             │ Raw     │ Gzipped │ % Total │');
 			lines.push('├─────────────────────┼─────────┼─────────┼─────────┤');
 
-			const displayPackages = analysis.bundle.largestPackages.slice(0, 10);
+			const displayPackages = analysis.bundle.largestPackages.slice(0, 50);
 			for (const pkg of displayPackages) {
 				const rawSize = this.formatSize(pkg.size.raw);
 				const gzipSize = this.formatSize(pkg.size.gzip);
