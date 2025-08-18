@@ -379,7 +379,7 @@ export class AdvancedCommentRemover {
     }
 
     private isHashCommentFile(extension: string): boolean {
-        const hashCommentExtensions = ['py', 'sh', 'bash', 'zsh', 'fish', 'rb', 'pl', 'yaml', 'yml'];
+        const hashCommentExtensions = ['py', 'sh', 'bash', 'zsh', 'fish', 'rb', 'pl', 'yaml', 'yml', 'toml', 'conf', 'env'];
         return hashCommentExtensions.includes(extension);
     }
 

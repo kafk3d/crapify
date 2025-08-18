@@ -16,8 +16,8 @@ program
     .version(pkg.version)
     .addHelpText('after', `
 Examples:
-  $ crapifyme comments src/                  # Remove comments from src/
-  $ crapifyme logs src/                      # Remove console.log from src/
+  $ crapifyme comments                  # Remove comments from current directory
+  $ crapifyme logs                      # Remove console.log from current directory
   $ crapifyme comments --dry-run .          # Preview comment changes
   $ crapifyme logs --force                  # Remove logs without VCS check
   $ crapifyme comments --no-preserve-framework # Disable framework preservation

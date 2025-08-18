@@ -1,20 +1,34 @@
-# CrapifyMe
+# crapify.me
 
-Professional code cleanup tools with intelligent preservation.
+A toolkit of oddly specific CLI utilities for developers and vibecoders
 
 ## Quick Start
 
 ```bash
+npx crapifyme comments
+# Remove noisy comments, keep critical ones
+
+npx crapifyme logs  
+# Clean up console logs with preservation
+
+npx crapifyme comments --dry-run
+# Preview changes without modifying files
+```
+
+**ℹ Run with --help for all options**  
+**⚡ Use --dry-run to preview changes**
+
+## Global Install
+
+```bash
 npm install -g crapifyme
+# Install globally for frequent use
 
-# Remove comments with preservation rules
 crapifyme comments src/
+# Process specific directory with comments tool
 
-# Remove console logs
-crapifyme logs src/
-
-# Preview changes
-crapifyme comments --dry-run src/
+crapifyme logs --help
+# View all available options for logs tool
 ```
 
 ## Tools
@@ -25,7 +39,7 @@ Removes comments while preserving critical ones using rule-based analysis.
 
 ```bash
 # Basic usage
-crapifyme comments src/
+crapifyme comments
 
 # Disable preservation categories  
 crapifyme comments --no-preserve-framework src/
@@ -69,10 +83,11 @@ crapifyme logs --keep "performance,benchmark,trace" src/
 | Language | Extensions | Comment Syntax |
 |----------|------------|----------------|
 | JavaScript/TypeScript | `.js`, `.ts`, `.jsx`, `.tsx`, `.mjs` | `//`, `/* */` |
-| Vue/Svelte | `.vue`, `.svelte` | Mixed syntax |
-| Web | `.html`, `.css`, `.scss`, `.less` | `<!-- -->`, `/* */` |
+| Modern Frameworks | `.vue`, `.svelte`, `.astro` | Mixed syntax |
+| Web | `.html`, `.css`, `.scss`, `.less`, `.sass` | `<!-- -->`, `/* */` |
+| Markdown | `.md`, `.mdx` | `<!-- -->` |
 | Python/Shell | `.py`, `.sh`, `.bash` | `#` |
-| Config | `.yaml`, `.yml` | `#` |
+| Config | `.yaml`, `.yml`, `.toml`, `.conf`, `.env` | `#` |
 
 ## Options
 
@@ -89,7 +104,7 @@ crapifyme logs --keep "performance,benchmark,trace" src/
 | Option | Description |
 |--------|-------------|
 | `-k, --keep <patterns>` | Custom preservation patterns (comma-separated) |
-| `-e, --extensions <ext>` | Target file extensions |
+| `-e, --extensions <ext>` | Target file extensions (default: js,ts,jsx,tsx,vue,svelte,astro,html,css,scss,less,sass,md,mdx) |
 | `-x, --exclude <patterns>` | Glob exclusion patterns |
 | `--no-preserve-framework` | Disable framework directive preservation |
 | `--no-preserve-development` | Disable development keyword preservation |
