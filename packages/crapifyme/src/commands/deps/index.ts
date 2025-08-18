@@ -196,7 +196,7 @@ async function displayResults(
 		default:
 			const processor = new DepsProcessor();
 			const report = await processor.generateReport(result.analysis);
-
+			console.log(report);
 			break;
 	}
 }
