@@ -36,7 +36,7 @@ export class BundleAnalyzer {
 	private cacheTimeout: number;
 	private requestTimeout: number;
 
-	constructor(cacheTimeout: number = 3600000, requestTimeout: number = 15000) {
+	constructor(cacheTimeout: number = 3600000, requestTimeout: number = 30000) {
 		this.cacheTimeout = cacheTimeout;
 		this.requestTimeout = requestTimeout;
 	}
@@ -49,23 +49,27 @@ export class BundleAnalyzer {
 			.filter(([, dep]) => !dep.isDev) 
 			.map(([name, dep]) => ({ name, version: this.parseVersion(dep.currentVersion) }));
 
-		console.log(`Analyzing bundle sizes for ${packages.length} packages...`);
-		
-		for (let i = 0; i < packages.length; i++) {
-			const pkg = packages[i];
-			try {
-				const sizeInfo = await this.getPackageSize(pkg.name, pkg.version);
-				packageSizes.set(pkg.name, sizeInfo);
-				
-				if (i > 0 && i % 10 === 0) {
-					console.log(`Analyzed ${i}/${packages.length} packages...`);
+		if (packages.length > 0) {
+			process.stdout.write(`Analyzing bundle sizes for ${packages.length} packages`);
+			const animateTimer = setInterval(() => {
+				process.stdout.write('.');
+			}, 1000);
+
+			for (let i = 0; i < packages.length; i++) {
+				const pkg = packages[i];
+				try {
+					const sizeInfo = await this.getPackageSize(pkg.name, pkg.version);
+					packageSizes.set(pkg.name, sizeInfo);
+					
+					await this.delay(200);
+					
+				} catch (error) {
+					console.warn(`\nWarning: Failed to get size for ${pkg.name}: ${(error as Error).message}`);
 				}
-				
-				await this.delay(200);
-				
-			} catch (error) {
-				console.warn(`Warning: Failed to get size for ${pkg.name}: ${(error as Error).message}`);
 			}
+
+			clearInterval(animateTimer);
+			process.stdout.write('\n');
 		}
 
 		const totalRawSize = Array.from(packageSizes.values())

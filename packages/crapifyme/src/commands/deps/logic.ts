@@ -115,7 +115,11 @@ export class DepsProcessor {
 			this.categorizeDependencies(dependencies, projectAnalysis);
 
 			if (shouldAnalyze(AnalysisType.SECURITY) && this.options.checkSecurity) {
-				if (this.options.verbose) console.log('🔒 Checking security vulnerabilities...');
+				if (this.options.verbose) {
+					process.stdout.write('🔒 Checking security vulnerabilities');
+					const timer = setInterval(() => process.stdout.write('.'), 800);
+					setTimeout(() => { clearInterval(timer); process.stdout.write('\n'); }, 2000);
+				}
 				await this.analyzeSecurity(projectAnalysis, errors);
 			}
 
@@ -125,7 +129,11 @@ export class DepsProcessor {
 			}
 
 			if (shouldAnalyze(AnalysisType.ALTERNATIVES) && this.options.suggestAlternatives) {
-				if (this.options.verbose) console.log('⚡ Finding lighter alternatives...');
+				if (this.options.verbose) {
+					process.stdout.write('⚡ Finding lighter alternatives');
+					const timer = setInterval(() => process.stdout.write('.'), 600);
+					setTimeout(() => { clearInterval(timer); process.stdout.write('\n'); }, 1500);
+				}
 				await this.analyzeAlternatives(projectAnalysis, warnings);
 			}
 
@@ -372,10 +380,10 @@ export class DepsProcessor {
 			'',
 			'📦 DEPENDENCY ANALYSIS',
 			'┌─────────────────────────────────────────────┐',
-			`│ Project: ${analysis.projectInfo.name.padEnd(31)} │`,
-			`│ Dependencies: ${analysis.summary.total.production.toString().padStart(2)} production, ${analysis.summary.total.development.toString().padStart(2)} dev        │`,
-			`│ Total Bundle Size: ${analysis.bundle.totalSize.formatted.raw.padEnd(6)} (${analysis.bundle.totalSize.formatted.gzip.padEnd(6)} gzipped)   │`,
-			`│ Package Manager: ${analysis.projectInfo.packageManager.type} v${analysis.projectInfo.packageManager.version.padEnd(12)} │`,
+			`│ Project: ${analysis.projectInfo.name.padEnd(33)} │`,
+			`│ Dependencies: ${analysis.summary.total.production.toString().padStart(2)} production, ${analysis.summary.total.development.toString().padStart(2)} dev         │`,
+			`│ Total Bundle Size: ${analysis.bundle.totalSize.formatted.raw.padEnd(6)} (${analysis.bundle.totalSize.formatted.gzip.padEnd(6)} gzipped)    │`,
+			`│ Package Manager: ${analysis.projectInfo.packageManager.type} v${analysis.projectInfo.packageManager.version.padEnd(14)} │`,
 			'└─────────────────────────────────────────────┘',
 			''
 		];
@@ -388,12 +396,34 @@ export class DepsProcessor {
 
 			const displayVulns = analysis.security.vulnerabilities.slice(0, 5);
 			for (const vuln of displayVulns) {
-				const pkgName = vuln.title.split(' ')[0] || 'unknown';
+				// Try to extract package name from title, description, or use id
+				let pkgName = 'unknown';
+				
+				// Try title first word
+				if (vuln.title) {
+					const titleParts = vuln.title.toLowerCase().split(' ');
+					// Look for common package name patterns
+					for (const part of titleParts) {
+						if (part.match(/^[a-z][a-z0-9-_.]*[a-z0-9]$/)) {
+							pkgName = part;
+							break;
+						}
+					}
+				}
+				
+				// If still unknown, try to extract from description
+				if (pkgName === 'unknown' && vuln.description) {
+					const match = vuln.description.match(/package[\s:]+([a-z][a-z0-9-_.]*)/i);
+					if (match) {
+						pkgName = match[1];
+					}
+				}
+
 				const severity = vuln.severity.toUpperCase();
-				const recommendation = vuln.recommendation || 'Review package';
+				const recommendation = (vuln.recommendation || 'Review package').substring(0, 14);
 
 				lines.push(
-					`│ ${pkgName.padEnd(19)} │ ${severity.padEnd(8)} │ ${recommendation.substring(0, 14).padEnd(14)} │`
+					`│ ${pkgName.substring(0, 19).padEnd(19)} │ ${severity.padEnd(8)} │ ${recommendation.padEnd(14)} │`
 				);
 			}
 			lines.push('└─────────────────────┴──────────┴────────────────┘');

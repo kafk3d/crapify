@@ -20,8 +20,62 @@ export class PackageAnalyzer {
 		this.cwd = cwd;
 	}
 
+	private async findProjectRoot(): Promise<string | null> {
+		let currentDir = path.resolve(this.cwd);
+		const root = path.parse(currentDir).root;
+		
+		const lockFiles = ['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml', 'pnpm-lock.yml'];
+
+		while (currentDir !== root) {
+			try {
+				// Check if package.json exists
+				await fs.access(path.join(currentDir, 'package.json'));
+				
+				// Check if at least one lock file exists
+				for (const lockFile of lockFiles) {
+					try {
+						await fs.access(path.join(currentDir, lockFile));
+						return currentDir; // Found both package.json and a lock file
+					} catch {
+						continue;
+					}
+				}
+				
+				// package.json exists but no lock files, continue searching up
+			} catch {
+				// No package.json, continue searching up
+			}
+			currentDir = path.dirname(currentDir);
+		}
+
+		// Check root directory too
+		try {
+			await fs.access(path.join(root, 'package.json'));
+			for (const lockFile of lockFiles) {
+				try {
+					await fs.access(path.join(root, lockFile));
+					return root;
+				} catch {
+					continue;
+				}
+			}
+		} catch {
+			// No package.json in root
+		}
+		
+		return null;
+	}
+
 	async detectPackageManager(): Promise<PackageManagerInfo> {
 		if (this.packageManager) return this.packageManager;
+
+		const projectRoot = await this.findProjectRoot();
+		if (!projectRoot) {
+			throw new Error('No package.json found in current directory or any parent directory');
+		}
+
+		// Update cwd to the actual project root
+		this.cwd = projectRoot;
 
 		const lockFiles = [
 			{ file: 'package-lock.json', type: 'npm' as const, auditCmd: 'npm audit' },

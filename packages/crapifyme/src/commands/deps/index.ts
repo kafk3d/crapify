@@ -50,7 +50,19 @@ export const depsCommand = new Command('deps')
 		try {
 			const analysisTypes = determineAnalysisTypes(options);
 
-			logger.info(`Starting dependency analysis in: ${projectPath}`);
+			if (!globalOptions.quiet) {
+				process.stdout.write('Starting deps analysis');
+				const animateTimer = setInterval(() => {
+					process.stdout.write('.');
+				}, 500);
+				
+				// Stop animation after processor starts
+				setTimeout(() => {
+					clearInterval(animateTimer);
+					process.stdout.write('\n');
+				}, 1000);
+			}
+			
 			if (globalOptions.verbose) {
 				logger.info(`Analysis types: ${analysisTypes.join(', ')}`);
 			}
@@ -141,7 +153,18 @@ export const depsCommand = new Command('deps')
 
 			process.exit(exitCode);
 		} catch (error) {
-			logger.error('Fatal error during dependency analysis', error as Error);
+			const errorMessage = (error as Error).message;
+			
+			if (errorMessage.includes('No package.json found')) {
+				logger.error('No package.json found in current directory or any parent directory');
+				logger.info('Make sure you\'re running this command from within a Node.js project');
+			} else if (errorMessage.includes('No supported package manager detected')) {
+				logger.error('No package manager lock file found (package-lock.json, yarn.lock, pnpm-lock.yaml)');
+				logger.info('Run `npm install`, `yarn install`, or `pnpm install` to generate lock files first');
+			} else {
+				logger.error('Fatal error during dependency analysis', error as Error);
+			}
+			
 			process.exit(ExitCode.Error);
 		}
 	});
