@@ -42,6 +42,7 @@ export class SecurityScanner {
 			const { stdout, stderr } = await execAsync(command, {
 				cwd: this.cwd,
 				timeout: this.timeout,
+				maxBuffer: 10 * 1024 * 1024, // 10MB buffer
 				env: { ...process.env, NO_UPDATE_NOTIFIER: 'true' }
 			});
 
@@ -97,6 +98,7 @@ export class SecurityScanner {
 							if (typeof advisory === 'object' && advisory.source) {
 								const vulnerability: SecurityVulnerability = {
 									id: advisory.source?.toString() || packageName,
+									packageName: packageName,
 									title: `${packageName}: ${advisory.title || 'Security vulnerability'}`,
 									description: advisory.overview || advisory.description || '',
 									severity: this.normalizeSeverity(advisory.severity),
@@ -137,6 +139,7 @@ export class SecurityScanner {
 					
 					const vulnerability: SecurityVulnerability = {
 						id: id,
+						packageName: packageName,
 						title: `${packageName}: ${adv.title || 'Security vulnerability'}`,
 						description: adv.overview || adv.description || '',
 						severity: this.normalizeSeverity(adv.severity),
@@ -181,8 +184,10 @@ export class SecurityScanner {
 				
 				if (data.type === 'auditAdvisory' && data.data) {
 					const advisory = data.data.advisory as any;
+					const packageName = advisory.module_name || advisory.package_name || 'unknown';
 					const vulnerability: SecurityVulnerability = {
 						id: advisory.id?.toString() || '',
+						packageName: packageName,
 						title: advisory.title || 'Unknown vulnerability',
 						description: advisory.overview || advisory.description || '',
 						severity: this.normalizeSeverity(advisory.severity),
@@ -225,8 +230,10 @@ export class SecurityScanner {
 			if (auditData.advisories) {
 				for (const [id, advisory] of Object.entries(auditData.advisories as any)) {
 					const advisoryData = advisory as any;
+					const packageName = advisoryData.module_name || advisoryData.package_name || 'unknown';
 					const vulnerability: SecurityVulnerability = {
 						id: id,
+						packageName: packageName,
 						title: advisoryData.title || 'Unknown vulnerability',
 						description: advisoryData.overview || advisoryData.description || '',
 						severity: this.normalizeSeverity(advisoryData.severity),
@@ -306,21 +313,27 @@ export class SecurityScanner {
 	async checkPackageVulnerabilities(packageName: string, version: string): Promise<SecurityVulnerability[]> {
 		try {
 			const { stdout } = await execAsync(
-				`npm view "${packageName}@${version}" --json`,
+				`npm view "${packageName}@${version}" deprecated --json`,
 				{ 
 					cwd: this.cwd, 
 					timeout: 15000,
+					maxBuffer: 10 * 1024 * 1024, // 10MB buffer for large packages
 					env: { ...process.env, NO_UPDATE_NOTIFIER: 'true' }
 				}
 			);
 
-			const packageInfo = JSON.parse(stdout);
+			// npm view returns the deprecated message directly when using 'deprecated' field
+			const deprecatedMessage = stdout.trim();
 			
-			if (packageInfo.deprecated) {
+			if (deprecatedMessage && deprecatedMessage !== 'undefined' && deprecatedMessage !== 'null') {
+				// Remove quotes if present
+				const cleanMessage = deprecatedMessage.replace(/^"|"$/g, '');
+				
 				return [{
 					id: `deprecated-${packageName}`,
+					packageName: packageName,
 					title: `Package ${packageName} is deprecated`,
-					description: packageInfo.deprecated,
+					description: cleanMessage,
 					severity: 'moderate' as const,
 					references: [],
 					vulnerable_versions: version,

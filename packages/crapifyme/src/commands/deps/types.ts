@@ -32,6 +32,7 @@ export interface DependencyInfo {
 
 export interface SecurityVulnerability {
 	id: string;
+	packageName: string;
 	title: string;
 	description: string;
 	severity: 'low' | 'moderate' | 'high' | 'critical';

@@ -111,7 +111,10 @@ export class PackageAnalyzer {
 
 	private async getPackageManagerVersion(pm: 'npm' | 'yarn' | 'pnpm'): Promise<string> {
 		try {
-			const { stdout } = await execAsync(`${pm} --version`, { cwd: this.cwd });
+			const { stdout } = await execAsync(`${pm} --version`, { 
+				cwd: this.cwd,
+				maxBuffer: 1024 * 1024 // 1MB buffer (small command)
+			});
 			return stdout.trim();
 		} catch {
 			return 'unknown';
@@ -227,7 +230,8 @@ export class PackageAnalyzer {
 
 			const { stdout } = await execAsync(command, { 
 				cwd: this.cwd,
-				timeout: 30000 
+				timeout: 30000,
+				maxBuffer: 10 * 1024 * 1024 // 10MB buffer
 			});
 
 			if (stdout.trim()) {
@@ -357,7 +361,8 @@ export class PackageAnalyzer {
 
 			const { stdout } = await execAsync(command, {
 				cwd: this.cwd,
-				timeout: 60000
+				timeout: 60000,
+				maxBuffer: 10 * 1024 * 1024 // 10MB buffer
 			});
 
 			return parser(stdout);

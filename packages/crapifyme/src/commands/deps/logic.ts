@@ -343,7 +343,8 @@ export class DepsProcessor {
 		try {
 			const { stdout } = await execAsync('npx depcheck --json', {
 				cwd: this.cwd,
-				timeout: this.options.timeout
+				timeout: this.options.timeout,
+				maxBuffer: 10 * 1024 * 1024 // 10MB buffer
 			});
 
 			const depcheckResult = JSON.parse(stdout);
@@ -396,21 +397,8 @@ export class DepsProcessor {
 
 			const displayVulns = analysis.security.vulnerabilities.slice(0, 5);
 			for (const vuln of displayVulns) {
-				// Extract package name from title (format: "packagename: vulnerability")
-				let pkgName = 'unknown';
-				
-				if (vuln.title && vuln.title.includes(':')) {
-					pkgName = vuln.title.split(':')[0].trim();
-				} else if (vuln.title) {
-					// Fallback to original extraction method
-					const titleParts = vuln.title.toLowerCase().split(' ');
-					for (const part of titleParts) {
-						if (part.match(/^[a-z@][a-z0-9-_./@]*[a-z0-9]$/)) {
-							pkgName = part;
-							break;
-						}
-					}
-				}
+				// Use the packageName field directly
+				const pkgName = vuln.packageName || 'unknown';
 
 				const severity = vuln.severity.toUpperCase();
 				const recommendation = (vuln.recommendation || 'Review package').substring(0, 14);
@@ -420,6 +408,27 @@ export class DepsProcessor {
 				);
 			}
 			lines.push('└─────────────────────┴──────────┴────────────────┘');
+			lines.push('');
+		}
+
+		// Add detailed package size breakdown
+		if (analysis.bundle.largestPackages.length > 0) {
+			lines.push('📊 PACKAGE SIZES');
+			lines.push('┌─────────────────────┬─────────┬─────────┬─────────┐');
+			lines.push('│ Package             │ Raw     │ Gzipped │ % Total │');
+			lines.push('├─────────────────────┼─────────┼─────────┼─────────┤');
+
+			const displayPackages = analysis.bundle.largestPackages.slice(0, 10);
+			for (const pkg of displayPackages) {
+				const rawSize = this.formatSize(pkg.size.raw);
+				const gzipSize = this.formatSize(pkg.size.gzip);
+				const percentage = pkg.size.percentage.toFixed(1) + '%';
+
+				lines.push(
+					`│ ${pkg.name.substring(0, 19).padEnd(19)} │ ${rawSize.padEnd(7)} │ ${gzipSize.padEnd(7)} │ ${percentage.padEnd(7)} │`
+				);
+			}
+			lines.push('└─────────────────────┴─────────┴─────────┴─────────┘');
 			lines.push('');
 		}
 

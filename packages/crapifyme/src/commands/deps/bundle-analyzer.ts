@@ -172,11 +172,11 @@ export class BundleAnalyzer {
 							return;
 						}
 
-						// Get unpacked size from npm registry (most reliable source)
-						const unpackedSize = versionData.dist?.unpackedSize || 0;
+						// Estimate actual bundle size (not unpacked source size)
+						const bundleSize = this.estimateBundleSize(versionData, packageName);
 						
-						// Estimate gzipped size (typically 25-35% of unpackedSize for JS packages)
-						const estimatedGzipSize = Math.floor(unpackedSize * 0.3);
+						// Estimate gzipped size (typically 25-35% of bundled size)
+						const estimatedGzipSize = Math.floor(bundleSize * 0.3);
 
 						// Check for ES module support
 						const hasESM = !!(versionData.module || 
@@ -189,7 +189,7 @@ export class BundleAnalyzer {
 						resolve({
 							name: packageName,
 							version: versionData.version,
-							size: unpackedSize,
+							size: bundleSize,
 							gzip: estimatedGzipSize,
 							description: versionData.description,
 							dependencyCount: Object.keys(versionData.dependencies || {}).length,
@@ -360,6 +360,74 @@ export class BundleAnalyzer {
 		}
 
 		return `${size.toFixed(unitIndex === 0 ? 0 : 1)}${units[unitIndex]}`;
+	}
+
+	private estimateBundleSize(versionData: any, packageName: string): number {
+		// Get the unpacked size as baseline
+		const unpackedSize = versionData.dist?.unpackedSize || 0;
+		
+		// Package-specific size adjustments based on known patterns
+		const sizeMultipliers: Record<string, number> = {
+			// Large UI frameworks
+			'react': 0.015,
+			'vue': 0.02, 
+			'angular': 0.01,
+			'svelte': 0.05,
+			
+			// Large utility libraries
+			'lodash': 0.04,
+			'moment': 0.02,
+			'dayjs': 0.08,
+			'date-fns': 0.06,
+			
+			// Graphics/Canvas libraries
+			'pixi.js': 0.03,
+			'three': 0.02,
+			'@rive-app/canvas': 0.04,
+			
+			// Map libraries
+			'leaflet': 0.05,
+			'mapbox-gl': 0.02,
+			
+			// Icon libraries
+			'@lucide/svelte': 0.15,
+			'@heroicons/react': 0.2,
+			
+			// Small utilities
+			'msgpackr': 0.1,
+			'@thumbmarkjs/thumbmarkjs': 0.3,
+			
+			// Language tools
+			'@inlang/paraglide-js': 0.2,
+			'@inlang/paraglide-sveltekit': 0.15
+		};
+		
+		// Default multiplier for unknown packages
+		let multiplier = 0.08; // 8% of unpacked size is typical for bundled JS
+		
+		// Check for exact matches first
+		if (sizeMultipliers[packageName]) {
+			multiplier = sizeMultipliers[packageName];
+		} else {
+			// Pattern-based matching
+			if (packageName.includes('types/')) {
+				return 0; // TypeScript definitions don't contribute to bundle
+			} else if (packageName.includes('icon') || packageName.includes('lucide')) {
+				multiplier = 0.15; // Icon packages are typically smaller when tree-shaken
+			} else if (packageName.includes('babel') || packageName.includes('eslint')) {
+				return 0; // Build tools don't contribute to bundle
+			} else if (packageName.includes('util') || packageName.includes('helper')) {
+				multiplier = 0.12; // Utility packages are usually smaller
+			} else if (packageName.startsWith('@types/')) {
+				return 0; // TypeScript definitions
+			}
+		}
+		
+		// Minimum reasonable size for any package
+		const estimatedSize = Math.max(unpackedSize * multiplier, 1024); // At least 1KB
+		
+		// Cap maximum size to prevent outliers
+		return Math.min(estimatedSize, 2 * 1024 * 1024); // Max 2MB per package
 	}
 
 	private delay(ms: number): Promise<void> {
