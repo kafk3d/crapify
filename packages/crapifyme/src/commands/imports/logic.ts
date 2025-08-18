@@ -79,8 +79,28 @@ export class ImportsProcessor {
 				pathsConverted = this.convertImportPaths(processedImports, filePath);
 			}
 
-			const transformedImports = this.transformer.transformImports(processedImports, filePath);
-			const newContent = this.replaceImportsInContent(content, transformedImports, analysisResult.imports);
+			const hasContentChanges = unusedRemoved > 0 || duplicatesMerged > 0 || pathsConverted > 0;
+			const hasStructureChanges = this.options.sort || this.options.group;
+
+			if (!hasContentChanges && !hasStructureChanges) {
+				return {
+					content,
+					modified: false,
+					optimized: 0,
+					unusedRemoved: 0,
+					duplicatesMerged: 0,
+					pathsConverted: 0
+				};
+			}
+
+			let newContent = content;
+			
+			if (hasContentChanges) {
+				const transformedImports = this.transformer.transformImports(processedImports, filePath, content);
+				newContent = this.replaceImportsInContent(content, transformedImports, analysisResult.imports);
+			} else if (hasStructureChanges) {
+				newContent = this.reorderImportsInContent(content, processedImports, analysisResult.imports);
+			}
 
 			return {
 				content: newContent,
@@ -208,6 +228,39 @@ export class ImportsProcessor {
 		return converted;
 	}
 
+	private reorderImportsInContent(content: string, processedImports: any[], originalImports: any[]): string {
+		if (originalImports.length === 0) return content;
+
+		// Create mapping of import source to original string
+		const sourceToString = new Map<string, string>();
+		originalImports.forEach(imp => {
+			const importString = content.substring(imp.startPos, imp.endPos);
+			sourceToString.set(imp.source, importString);
+		});
+
+		// Apply sorting/grouping to get new order using original imports  
+		let orderedImports = [...originalImports];
+		
+		if (this.options.group && this.options.sort) {
+			// Group and sort within each group
+			orderedImports = this.groupImportsForReorder(orderedImports, true);
+		} else if (this.options.group) {
+			// Group only
+			orderedImports = this.groupImportsForReorder(orderedImports, false);
+		} else if (this.options.sort) {
+			// Sort only
+			orderedImports = this.sortImportsForReorder(orderedImports);
+		}
+
+		// Map the reordered imports back to original strings
+		const reorderedStrings = orderedImports.map(imp => 
+			sourceToString.get(imp.source) || ''
+		).filter(Boolean);
+
+		// Replace all import blocks with reordered strings
+		return this.replaceImportBlock(content, originalImports, reorderedStrings.join('\n'));
+	}
+
 	private replaceImportsInContent(content: string, transformedImports: string, originalImports: any[]): string {
 		if (originalImports.length === 0) {
 			return content;
@@ -236,9 +289,56 @@ export class ImportsProcessor {
 		const beforeFirst = result.substring(0, firstImportPos);
 		const afterFirst = result.substring(firstImportPos);
 		
-		return beforeFirst + transformedImports + '\n' + afterFirst;
+		return beforeFirst + transformedImports + afterFirst;
 	}
 
+	private groupImportsForReorder(imports: any[], shouldSort: boolean = false): any[] {
+		const groups: { external: any[]; internal: any[]; relative: any[] } = {
+			external: [],
+			internal: [],
+			relative: []
+		};
+
+		for (const imp of imports) {
+			if (imp.source.startsWith('.')) {
+				groups.relative.push(imp);
+			} else if (imp.source.startsWith('@/') || imp.source.startsWith('~/')) {
+				groups.internal.push(imp);
+			} else {
+				groups.external.push(imp);
+			}
+		}
+
+		// Sort within each group if requested
+		if (shouldSort) {
+			groups.external.sort((a, b) => a.source.localeCompare(b.source));
+			groups.internal.sort((a, b) => a.source.localeCompare(b.source));
+			groups.relative.sort((a, b) => a.source.localeCompare(b.source));
+		}
+
+		// Return flattened array in correct order: external -> internal -> relative
+		return [...groups.external, ...groups.internal, ...groups.relative];
+	}
+
+	private sortImportsForReorder(imports: any[]): any[] {
+		return [...imports].sort((a, b) => a.source.localeCompare(b.source));
+	}
+
+	private replaceImportBlock(content: string, originalImports: any[], newImportsBlock: string): string {
+		if (originalImports.length === 0) return content;
+
+		const firstImport = originalImports.reduce((min, imp) => 
+			imp.startPos < min.startPos ? imp : min
+		);
+		const lastImport = originalImports.reduce((max, imp) => 
+			imp.endPos > max.endPos ? imp : max
+		);
+
+		const before = content.substring(0, firstImport.startPos);
+		const after = content.substring(lastImport.endPos);
+		
+		return before + newImportsBlock + after;
+	}
 
 	static parseAliasesFromString(aliasString: string): PathAlias[] {
 		return PathResolver.parseCliAliases(aliasString);

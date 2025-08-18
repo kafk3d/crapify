@@ -10,6 +10,7 @@ import {
 
 export class ImportTransformer {
 	private options: Required<ImportTransformOptions>;
+	private indentation: string = '  '; // default to 2 spaces
 
 	constructor(options: ImportTransformOptions = {}) {
 		this.options = {
@@ -24,7 +25,11 @@ export class ImportTransformer {
 		};
 	}
 
-	transformImports(imports: ImportStatement[], filePath: string): string {
+	transformImports(imports: ImportStatement[], filePath: string, originalContent?: string): string {
+		// Detect original indentation pattern
+		if (originalContent) {
+			this.detectIndentation(originalContent);
+		}
 		let processedImports = [...imports];
 
 		if (this.options.mergeDuplicates) {
@@ -49,6 +54,25 @@ export class ImportTransformer {
 		}
 
 		return this.renderImports(processedImports);
+	}
+
+	private detectIndentation(content: string): void {
+		// Look for existing multiline imports to detect indentation
+		const multilineMatch = content.match(/import\s*{[^}]*\n(\s+)[^}]/);
+		if (multilineMatch && multilineMatch[1]) {
+			this.indentation = multilineMatch[1];
+			return;
+		}
+
+		// Look for any indented lines to detect general indentation
+		const lines = content.split('\n');
+		for (const line of lines) {
+			const match = line.match(/^(\s+)\S/);
+			if (match && match[1]) {
+				this.indentation = match[1];
+				return;
+			}
+		}
 	}
 
 	private mergeDuplicateImports(imports: ImportStatement[]): ImportStatement[] {
@@ -302,7 +326,7 @@ export class ImportTransformer {
 			const shouldUseMultiline = namedItems.length > this.options.multilineThreshold;
 			
 			if (shouldUseMultiline) {
-				parts.push(`{\n  ${namedItems.join(',\n  ')}\n}`);
+				parts.push(`{\n${this.indentation}${namedItems.join(',\n' + this.indentation)}\n}`);
 			} else {
 				parts.push(`{ ${namedItems.join(', ')} }`);
 			}
