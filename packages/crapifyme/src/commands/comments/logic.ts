@@ -39,7 +39,7 @@ export class CommentsProcessor {
                     preserved++;
                 } else {
                     removed++;
-                    // Skip comment - don't add to result
+                    
                 }
             } else {
                 result.push(token.value);
@@ -59,14 +59,14 @@ export class CommentsProcessor {
     private shouldPreserveComment(comment: string): boolean {
         const lowerComment = comment.toLowerCase();
 
-        // Check legacy keep patterns
+        
         for (const pattern of this.keepPatterns) {
             if (lowerComment.includes(pattern.toLowerCase())) {
                 return true;
             }
         }
 
-        // Framework-specific comments
+        
         if (this.preserveFramework) {
             const frameworkPatterns = [
                 '@vue', '@svelte', '@react', '@angular',
@@ -80,7 +80,7 @@ export class CommentsProcessor {
             }
         }
 
-        // Development keywords
+        
         if (this.preserveDevelopment) {
             const devPatterns = [
                 'todo', 'fixme', 'hack', 'note', 'xxx', 'bug', 'warn'
@@ -93,7 +93,7 @@ export class CommentsProcessor {
             }
         }
 
-        // Tooling directives
+        
         if (this.preserveTooling) {
             const toolingPatterns = [
                 'eslint', 'prettier', 'ts-ignore', 'ts-nocheck', 
@@ -107,9 +107,9 @@ export class CommentsProcessor {
             }
         }
 
-        // Documentation comments
+        
         if (this.preserveDocumentation) {
-            // JSDoc comments (contain @ annotations)
+            
             if (comment.includes('/**') || comment.includes('@param') || 
                 comment.includes('@return') || comment.includes('@throws') ||
                 comment.includes('@author') || comment.includes('@since') ||

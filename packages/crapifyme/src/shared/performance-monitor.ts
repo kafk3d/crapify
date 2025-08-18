@@ -61,7 +61,7 @@ export class PerformanceMonitor {
             throughput
         };
 
-        this.logMetrics(metrics);
+        
         return metrics;
     }
 

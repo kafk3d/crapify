@@ -24,7 +24,7 @@ export const logsCommand = new Command('logs')
         const globalOptions = command.parent?.opts() || {};
         const logger = new Logger(globalOptions.verbose, globalOptions.quiet, globalOptions.json);
 
-        // Version control check
+        
         if (!globalOptions.force) {
             const vcsResult = detectVersionControl();
             if (!vcsResult.detected) {
@@ -105,7 +105,7 @@ export const logsCommand = new Command('logs')
                 }
             }
 
-            // Output results
+            
             if (globalOptions.json) {
                 logger.json(stats);
             } else {

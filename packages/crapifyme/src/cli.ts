@@ -32,7 +32,7 @@ Global Options:
 Visit https://crapify.me for more information and documentation.
 `);
 
-// Global options that apply to all subcommands
+
 program
     .option('--dry-run', 'Preview changes without modifying files')
     .option('--force', 'Proceed without version control detection')
@@ -40,11 +40,11 @@ program
     .option('-q, --quiet', 'Suppress output')
     .option('--json', 'Output as JSON');
 
-// Add subcommands
+
 program.addCommand(commentsCommand);
 program.addCommand(logsCommand);
 
-// Show help if no command provided
+
 if (process.argv.length <= 2) {
     program.help();
 }

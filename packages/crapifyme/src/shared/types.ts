@@ -25,7 +25,7 @@ export interface FileStats {
     errors: Array<{ file: string; error: string }>;
 }
 
-// Sophisticated types from original package
+
 export interface CommentStats {
     filesProcessed: number;
     commentsRemoved: number;

@@ -36,7 +36,7 @@ export class LogsProcessor {
                     preserved++;
                 } else {
                     removed++;
-                    // Skip console.log - don't add to result
+                    
                 }
             } else {
                 result.push(token.value);
@@ -56,14 +56,14 @@ export class LogsProcessor {
     private shouldPreserveLog(logStatement: string): boolean {
         const lowerLog = logStatement.toLowerCase();
 
-        // Check custom keep patterns
+        
         for (const pattern of this.keepPatterns) {
             if (lowerLog.includes(pattern.toLowerCase())) {
                 return true;
             }
         }
 
-        // Preserve console.error by default
+        
         if (this.preserveError && lowerLog.includes('console.error')) {
             return true;
         }
@@ -73,12 +73,12 @@ export class LogsProcessor {
             return true;
         }
 
-        // Preserve console.debug by default
+        
         if (this.preserveDebug && lowerLog.includes('console.debug')) {
             return true;
         }
 
-        // Also check for other console methods that might be important
+        
         const importantMethods = ['console.assert', 'console.trace', 'console.time', 'console.timeEnd'];
         for (const method of importantMethods) {
             if (lowerLog.includes(method)) {

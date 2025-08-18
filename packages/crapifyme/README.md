@@ -1,139 +1,202 @@
-# CrapifyMe - Ultra-Fast Developer Productivity Tools
+# CrapifyMe
 
-```
-█▀▀ █▀█ ▄▀█ █▀█ █ █▀▀ █▄█   ▀█▀ █▀█ █▀█ █   █▀
-█▄▄ █▀▄ █▀█ █▀▀ █ █▀░ ░█░   ░█░ █▄█ █▄█ █▄▄ ▄█
-```
-
-> **Ultra-fast, intelligent developer productivity CLI tools**
+Professional code cleanup tools with intelligent preservation.
 
 ## Quick Start
 
 ```bash
-# Install globally
 npm install -g crapifyme
 
-# Remove comments from your code
+# Remove comments with preservation rules
 crapifyme comments src/
 
-# Remove console.log statements
+# Remove console logs
 crapifyme logs src/
 
-# Preview changes before applying
+# Preview changes
 crapifyme comments --dry-run src/
 ```
 
-## Available Tools
+## Preservation System
 
-### 🧹 Comments Removal
-Remove code comments while preserving important ones (TODO, FIXME, JSDoc, etc.)
+Rule-based engine that preserves critical comments while removing noise.
+
+### Framework Directives
+```typescript
+// @ts-ignore: Type assertion needed for compatibility
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+/// <reference path="./types.d.ts" />
+/* webpackChunkName: "async-component" */
+```
+
+### Development Keywords
+```javascript
+// TODO: Refactor this method for better performance
+// FIXME: Handle edge case when data is null
+// HACK: Temporary workaround until API is fixed
+// NOTE: This assumes the array is already sorted
+```
+
+### Tooling Directives
+```javascript
+/* eslint-disable no-console */
+// prettier-ignore
+/* @ts-expect-error - Third-party library types */
+/* istanbul ignore next */
+```
+
+### Documentation Comments
+```typescript
+/**
+ * Calculates the optimal route between two points
+ * @param start - Starting coordinates
+ * @param end - Destination coordinates  
+ * @returns Promise resolving to optimized route
+ */
+```
+
+## Architecture
+
+### Enhanced Tokenizer
+- Multi-pass parsing with context awareness
+- Error recovery for malformed syntax  
+- Template literal and regex literal support
+- Performance monitoring with throughput metrics
+
+### Rule-Based Preservation
+- Priority-based rule evaluation (900 → 50 priority scale)
+- Category-based rule management (Framework, Development, Tooling, Documentation)
+- Custom regex patterns with user-defined priorities
+
+### Safety & Recovery
+- Version control detection (Git, SVN, Mercurial, Bazaar)
+- Three-tier fallback system (Enhanced → Legacy → Failsafe)
+- Validation to prevent excessive content removal
+
+## Commands
+
+### Comments Tool
 
 ```bash
+# Basic usage
 crapifyme comments src/
-crapifyme comments --dry-run .
+
+# Disable preservation categories  
 crapifyme comments --no-preserve-framework src/
+crapifyme comments --no-preserve-development src/
+
+# Custom patterns
+crapifyme comments --keep "copyright,license,@author" src/
+
+# File filtering
+crapifyme comments --extensions "ts,tsx,vue" --exclude "**/node_modules/**" src/
 ```
 
-### 📝 Console Logs Removal  
-Remove console.log statements while preserving error/warn messages
+### Logs Tool
 
 ```bash
+# Remove console.log, preserve error/warn/debug
 crapifyme logs src/
-crapifyme logs --no-preserve-error src/
-crapifyme logs --keep "debug,trace" src/
+
+# Remove all console methods
+crapifyme logs --no-preserve-error --no-preserve-warn --no-preserve-debug src/
+
+# Selective preservation  
+crapifyme logs --keep "performance,benchmark,trace" src/
 ```
 
-## Features
+**Console Methods:**
+- Removed: `console.log()`, `console.info()`
+- Preserved: `console.error()`, `console.warn()`, `console.debug()`
+- Always Preserved: `console.assert()`, `console.trace()`, `console.time()`, `console.timeEnd()`
 
-- **🚀 Ultra Fast** - Processes thousands of files in seconds
-- **🧠 Smart Preservation** - Keeps important comments and logs
-- **🔍 Multi-Language** - Supports 20+ programming languages  
-- **💾 Version Control Safety** - Requires VCS or `--force` flag
-- **👀 Preview Mode** - `--dry-run` to see changes before applying
-- **📊 Detailed Reports** - Shows exactly what was processed
+## Options
 
-## Global Options
-
+### Global
 | Option | Description |
 |--------|-------------|
-| `--dry-run` | Preview changes without modifying files |
-| `--force` | Proceed without version control detection |
-| `--verbose` | Detailed output |
-| `--quiet` | Suppress output |
-| `--json` | Output as JSON |
+| `--dry-run` | Preview changes without file modification |
+| `--force` | Bypass version control requirement |
+| `--verbose` | Detailed processing information |
+| `--quiet` | Suppress all output except errors |
+| `--json` | Machine-readable JSON output |
 
-## Examples
+### Comments Tool
+| Option | Description |
+|--------|-------------|
+| `-k, --keep <patterns>` | Custom preservation patterns (comma-separated) |
+| `-e, --extensions <ext>` | Target file extensions |
+| `-x, --exclude <patterns>` | Glob exclusion patterns |
+| `--no-preserve-framework` | Disable framework directive preservation |
+| `--no-preserve-development` | Disable development keyword preservation |
+| `--no-preserve-tooling` | Disable tooling directive preservation |
+| `--no-preserve-documentation` | Disable JSDoc preservation |
 
-### Comments Removal
-```bash
-# Remove comments from specific directory
-crapifyme comments src/
+### Logs Tool
+| Option | Description |
+|--------|-------------|
+| `-k, --keep <patterns>` | Custom preservation patterns |
+| `-e, --extensions <ext>` | Target file extensions |
+| `-x, --exclude <patterns>` | Glob exclusion patterns |
+| `--no-preserve-debug` | Remove console.debug statements |
+| `--no-preserve-error` | Remove console.error statements |
+| `--no-preserve-warn` | Remove console.warn statements |
 
-# Preview changes
-crapifyme comments --dry-run .
+## Language Support
 
-# Keep custom patterns
-crapifyme comments --keep "copyright,license,author" src/
+| Language | Extensions | Comment Syntax |
+|----------|------------|----------------|
+| JavaScript/TypeScript | `.js`, `.ts`, `.jsx`, `.tsx`, `.mjs` | `//`, `/* */` |
+| Vue/Svelte | `.vue`, `.svelte` | Mixed syntax |
+| Web | `.html`, `.css`, `.scss`, `.less` | `<!-- -->`, `/* */` |
+| Python/Shell | `.py`, `.sh`, `.bash` | `#` |
+| Config | `.yaml`, `.yml` | `#` |
 
-# Process specific file types
-crapifyme comments --extensions "js,ts" src/
-
-# Disable framework comment preservation
-crapifyme comments --no-preserve-framework src/
-```
-
-### Console Logs Removal
-```bash
-# Remove console.log but keep error/warn
-crapifyme logs src/
-
-# Remove all console statements
-crapifyme logs --no-preserve-error --no-preserve-warn src/
-
-# Keep specific patterns
-crapifyme logs --keep "performance,benchmark" src/
-
-# Process TypeScript files only
-crapifyme logs --extensions "ts,tsx" src/
-```
-
-## Supported Languages
-
-| Language | Extensions | Comment Types |
-|----------|------------|---------------|
-| **JavaScript/TypeScript** | `.js`, `.ts`, `.jsx`, `.tsx`, `.mjs`, `.cjs` | `//` and `/* */` |
-| **Vue/Svelte** | `.vue`, `.svelte` | Mixed syntax support |
-| **HTML/XML** | `.html`, `.xml`, `.svg` | `<!-- -->` |
-| **CSS/SCSS** | `.css`, `.scss`, `.sass`, `.less` | `/* */` and `//` |
-| **Python** | `.py` | `#` |
-| **Shell Scripts** | `.sh`, `.bash`, `.zsh`, `.fish` | `#` |
-
-## Programmatic Usage
+## API
 
 ```typescript
-import { CommentsProcessor, LogsProcessor } from 'crapifyme';
+import { AdvancedCommentRemover, LogsProcessor } from 'crapifyme';
 
-// Remove comments
-const commentsProcessor = new CommentsProcessor({
-  keep: ['todo', 'fixme'],
-  preserveFramework: true
+// Comment processing
+const processor = new AdvancedCommentRemover(['todo', 'fixme'], {
+  useEnhancedTokenizer: true,
+  preserveFramework: true,
+  preserveDevelopment: true,
+  customRules: ['@copyright', '@license']
 });
 
-const result = commentsProcessor.processFile(sourceCode);
+const result = processor.removeComments(sourceCode, filePath);
 
-// Remove console logs
+// Console log processing
 const logsProcessor = new LogsProcessor({
   preserveError: true,
-  preserveWarn: true
+  preserveWarn: true,
+  preserveDebug: false
 });
 
-const result2 = logsProcessor.processFile(sourceCode);
+const logsResult = logsProcessor.processFile(sourceCode);
 ```
 
-## Homepage
+## Use Cases
 
-Visit [crapify.me](https://crapify.me) for more information and documentation.
+```bash
+# Production preparation
+crapifyme comments --no-preserve-development src/
+crapifyme logs src/
+
+# Legacy cleanup
+crapifyme comments --keep "@author,@copyright" legacy/
+
+# Performance optimization
+crapifyme logs --no-preserve-error --no-preserve-warn dist/
+```
+
+## Installation
+
+```bash
+npm install -g crapifyme
+```
 
 ## License
 
-MIT License - see [LICENSE](../../LICENSE) file for details.
+MIT

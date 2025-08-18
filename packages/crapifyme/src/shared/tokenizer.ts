@@ -33,12 +33,12 @@ export class SimpleTokenizer {
         const char = this.content[this.position];
         const next = this.position + 1 < this.content.length ? this.content[this.position + 1] : '';
 
-        // String literals
+        
         if (char === '"' || char === "'" || char === '`') {
             return this.parseString(startPos, char);
         }
 
-        // Comments
+        
         if (char === '/' && next === '/') {
             return this.parseLineComment(startPos);
         }
@@ -51,19 +51,19 @@ export class SimpleTokenizer {
             return this.parseHtmlComment(startPos);
         }
 
-        // Console.log detection
+        
         if (this.isConsoleLogStart()) {
             return this.parseConsoleLog(startPos);
         }
 
-        // Regular code
+        
         return this.parseCode(startPos);
     }
 
     private parseString(startPos: number, quote: string): Token {
         let value = '';
         
-        // Include opening quote
+        
         value += this.content[this.position];
         this.position++;
 
@@ -71,7 +71,7 @@ export class SimpleTokenizer {
             const char = this.content[this.position];
             
             if (char === '\\') {
-                // Escape sequence
+                
                 value += char;
                 this.position++;
                 if (this.position < this.content.length) {
@@ -79,12 +79,12 @@ export class SimpleTokenizer {
                     this.position++;
                 }
             } else if (char === quote) {
-                // Closing quote
+                
                 value += char;
                 this.position++;
                 break;
             } else if (char === '\n' && quote !== '`') {
-                // Unterminated string (not template literal)
+                
                 break;
             } else {
                 value += char;
@@ -119,7 +119,7 @@ export class SimpleTokenizer {
     private parseBlockComment(startPos: number): Token {
         let value = '';
 
-        // Include opening /*
+        
         value += this.content[this.position] + this.content[this.position + 1];
         this.position += 2;
 
@@ -144,7 +144,7 @@ export class SimpleTokenizer {
     private parseHtmlComment(startPos: number): Token {
         let value = '';
 
-        // Include opening <!--
+        
         value += this.content.substring(this.position, this.position + 4);
         this.position += 4;
 
@@ -172,7 +172,7 @@ export class SimpleTokenizer {
     }
 
     private parseConsoleLog(startPos: number): Token {
-        // Find the complete console.log statement
+        
         let value = '';
         let parenCount = 0;
         let foundOpenParen = false;
@@ -188,7 +188,7 @@ export class SimpleTokenizer {
                 parenCount--;
                 if (foundOpenParen && parenCount === 0) {
                     this.position++;
-                    // Include semicolon if present
+                    
                     if (this.position < this.content.length && this.content[this.position] === ';') {
                         value += ';';
                         this.position++;
@@ -196,7 +196,7 @@ export class SimpleTokenizer {
                     break;
                 }
             } else if (char === '"' || char === "'" || char === '`') {
-                // Skip string literals within console.log
+                
                 const quote = char;
                 this.position++;
                 while (this.position < this.content.length) {
@@ -230,11 +230,11 @@ export class SimpleTokenizer {
     private parseCode(startPos: number): Token {
         let value = '';
 
-        // Read until we hit a special character or whitespace
+        
         while (this.position < this.content.length) {
             const char = this.content[this.position];
             
-            // Stop at string literals, comments, or console.log
+            
             if (char === '"' || char === "'" || char === '`' ||
                 (char === '/' && this.position + 1 < this.content.length && 
                  (this.content[this.position + 1] === '/' || this.content[this.position + 1] === '*')) ||
@@ -246,13 +246,13 @@ export class SimpleTokenizer {
             value += char;
             this.position++;
 
-            // Stop at whitespace for cleaner tokenization
+            
             if (/\s/.test(char)) {
                 break;
             }
         }
 
-        // Ensure we advance at least one character
+        
         if (value === '' && this.position < this.content.length) {
             value = this.content[this.position];
             this.position++;

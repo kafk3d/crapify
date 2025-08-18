@@ -1,190 +1,163 @@
-# Crapify Tools
+# CrapifyMe
 
-```
-█▀▀ █▀█ ▄▀█ █▀█ █ █▀▀ █▄█   ▀█▀ █▀█ █▀█ █   █▀
-█▄▄ █▀▄ █▀█ █▀▀ █ █▀░ ░█░   ░█░ █▄█ █▄█ █▄▄ ▄█
-```
-
-> **Ultra-fast, intelligent developer productivity CLI tools of questionable usefulness**
+Professional code cleanup tools with intelligent preservation.
 
 ## Quick Start
 
 ```bash
-# Run from any directory (processes current directory by default)
-npx crapify-comments
+npm install -g crapifyme
 
-# Preview changes before applying
-npx crapify-comments --dry-run
+# Remove comments with preservation rules
+crapifyme comments src/
 
-# Process specific directory
-npx crapify-comments src/
+# Remove console logs
+crapifyme logs src/
+
+# Preview changes
+crapifyme comments --dry-run src/
 ```
 
 ## Tools
 
-### `crapify-comments` - Smart Comment Removal
+### Comment Processing
 
-Intelligently removes code comments while preserving the important ones (TODO, FIXME, HACK, etc.).
+Removes comments while preserving critical ones using rule-based analysis.
 
 ```bash
-# Process current directory (default behavior)
-npx crapify-comments
+# Basic usage
+crapifyme comments src/
 
-# Preview changes without modifying files
-npx crapify-comments --dry-run
+# Disable preservation categories  
+crapifyme comments --no-preserve-framework src/
+crapifyme comments --no-preserve-development src/
 
-# Process specific directory
-npx crapify-comments src/
+# Custom patterns
+crapifyme comments --keep "copyright,license,@author" src/
 
-# Keep specific patterns
-npx crapify-comments --keep "todo,fixme,hack,copyright"
-
-# Process single file
-npx crapify-comments file.js
+# File filtering
+crapifyme comments --extensions "ts,tsx,vue" --exclude "**/node_modules/**" src/
 ```
 
-#### Features
+**Preserved by default:**
+- Framework directives (@ts-ignore, eslint-disable, webpack comments)
+- Development keywords (TODO, FIXME, HACK, NOTE, XXX, BUG)
+- Tooling directives (Prettier, TypeScript, coverage)
+- Documentation (JSDoc with @annotations)
 
-- **Smart Preservation** - Keeps TODO, FIXME, HACK, eslint-disable, ts-ignore
-- **Multi-Language** - Supports 20+ programming languages
-- **Dry Run Mode** - Preview changes before applying
-- **Version Control Safety** - Requires VCS detection or `--force` flag
-- **Detailed Reports** - See exactly what was processed
-- **Ultra Fast** - Processes thousands of files in seconds
-- **Beautiful Output** - Clean, informative CLI interface
+### Console Log Cleanup
 
-#### Supported Languages
-
-| Language | Extensions | Comment Types |
-|----------|------------|---------------|
-| **JavaScript/TypeScript** | `.js`, `.ts`, `.jsx`, `.tsx`, `.mjs`, `.cjs` | `//` and `/* */` |
-| **C/C++** | `.c`, `.cpp`, `.h`, `.hpp` | `//` and `/* */` |
-| **Java/C#** | `.java`, `.cs` | `//` and `/* */` |
-| **HTML/XML** | `.html`, `.xml`, `.svg` | `<!-- -->` |
-| **CSS/SCSS** | `.css`, `.scss`, `.sass`, `.less` | `/* */` and `//` |
-| **Vue/Svelte** | `.vue`, `.svelte` | Mixed syntax support |
-| **Python** | `.py` | `#` |
-| **Shell Scripts** | `.sh`, `.bash`, `.zsh`, `.fish` | `#` |
-| **Ruby/Perl** | `.rb`, `.pl` | `#` |
-| **YAML** | `.yaml`, `.yml` | `#` |
-
-## Usage
-
-### Basic Examples
+Removes console statements with selective preservation.
 
 ```bash
-# Process current directory (default)
-npx crapify-comments
+# Remove console.log, preserve error/warn/debug
+crapifyme logs src/
 
-# Process specific files
-npx crapify-comments src/app.js src/utils.ts
+# Remove all console methods
+crapifyme logs --no-preserve-error --no-preserve-warn --no-preserve-debug src/
 
-# Process with custom extensions
-npx crapify-comments --extensions "js,ts,vue"
-
-# Exclude certain patterns
-npx crapify-comments --exclude "node_modules,dist,*.min.js"
+# Custom preservation
+crapifyme logs --keep "performance,benchmark,trace" src/
 ```
 
-### Advanced Examples
+**Console Methods:**
+- Removed: `console.log()`, `console.info()`
+- Preserved: `console.error()`, `console.warn()`, `console.debug()`
+- Always preserved: `console.assert()`, `console.trace()`, `console.time()`, `console.timeEnd()`
+
+## Language Support
+
+| Language | Extensions | Comment Syntax |
+|----------|------------|----------------|
+| JavaScript/TypeScript | `.js`, `.ts`, `.jsx`, `.tsx`, `.mjs` | `//`, `/* */` |
+| Vue/Svelte | `.vue`, `.svelte` | Mixed syntax |
+| Web | `.html`, `.css`, `.scss`, `.less` | `<!-- -->`, `/* */` |
+| Python/Shell | `.py`, `.sh`, `.bash` | `#` |
+| Config | `.yaml`, `.yml` | `#` |
+
+## Options
+
+### Global
+| Option | Description |
+|--------|-------------|
+| `--dry-run` | Preview changes without file modification |
+| `--force` | Bypass version control requirement |
+| `--verbose` | Detailed processing information |
+| `--quiet` | Suppress all output except errors |
+| `--json` | Machine-readable JSON output |
+
+### Comments Tool
+| Option | Description |
+|--------|-------------|
+| `-k, --keep <patterns>` | Custom preservation patterns (comma-separated) |
+| `-e, --extensions <ext>` | Target file extensions |
+| `-x, --exclude <patterns>` | Glob exclusion patterns |
+| `--no-preserve-framework` | Disable framework directive preservation |
+| `--no-preserve-development` | Disable development keyword preservation |
+| `--no-preserve-tooling` | Disable tooling directive preservation |
+| `--no-preserve-documentation` | Disable JSDoc preservation |
+
+## Use Cases
 
 ```bash
-# Keep custom patterns
-npx crapify-comments --keep "todo,fixme,hack,copyright,license"
+# Production preparation
+crapifyme comments --no-preserve-development src/
+crapifyme logs src/
 
-# Verbose output with dry run
-npx crapify-comments --dry-run --verbose
+# Legacy cleanup
+crapifyme comments --keep "@author,@copyright" legacy/
 
-# JSON output for CI/CD
-npx crapify-comments --json
+# Performance optimization
+crapifyme logs --no-preserve-error --no-preserve-warn dist/
 
-# Quiet mode (errors only)
-npx crapify-comments --quiet
+# CI/CD integration
+crapifyme comments --json --force src/
 
-# Force operation without version control
-npx crapify-comments --force
+# Pre-commit hook
+crapifyme comments --dry-run $(git diff --cached --name-only)
 ```
 
-### Options
+## API
 
-| Option | Short | Description | Default |
-|--------|-------|-------------|---------|
-| `--keep` | `-k` | Comma-separated patterns to preserve | `todo,fixme,hack,ts-ignore,eslint-disable` |
-| `--extensions` | `-e` | File extensions to process | `js,ts,jsx,tsx,vue,svelte` |
-| `--exclude` | `-x` | Glob patterns to exclude | - |
-| `--dry-run` | - | Preview changes without modifying files | `false` |
-| `--force` | - | Proceed without version control detection | `false` |
-| `--verbose` | `-v` | Detailed output | `false` |
-| `--quiet` | `-q` | Suppress output | `false` |
-| `--json` | - | JSON output format | `false` |
-| `--help` | `-h` | Show help | - |
-| `--version` | `-V` | Show version | - |
+```typescript
+import { AdvancedCommentRemover, LogsProcessor } from 'crapifyme';
 
-## Real-World Examples
+// Comment processing
+const processor = new AdvancedCommentRemover(['todo', 'fixme'], {
+  useEnhancedTokenizer: true,
+  preserveFramework: true,
+  customRules: ['@copyright', '@license']
+});
 
-### Clean up legacy codebase
-```bash
-# Preview what would be removed from current directory
-npx crapify-comments --dry-run --verbose
+const result = processor.removeComments(sourceCode, filePath);
 
-# Apply changes to specific directory
-npx crapify-comments legacy-app/ --keep "todo,fixme,copyright"
-```
+// Console log processing
+const logsProcessor = new LogsProcessor({
+  preserveError: true,
+  preserveWarn: true,
+  preserveDebug: false
+});
 
-### CI/CD Integration
-```bash
-# Check if files need comment cleanup in current directory
-npx crapify-comments --json > comment-report.json
-
-# Check specific directory
-npx crapify-comments src/ --json > comment-report.json
-
-# Exit codes:
-# 0 = No changes needed
-# 1 = Comments found and processed
-# 2 = Errors occurred
-```
-
-### Pre-commit Hook
-```bash
-#!/bin/bash
-# .git/hooks/pre-commit
-npx crapify-comments $(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(js|ts|jsx|tsx)$') --dry-run
+const logsResult = logsProcessor.processFile(sourceCode);
 ```
 
 ## Development
 
 ```bash
-# Clone repository
 git clone https://github.com/kafk3d/crapify.git
 cd crapify-tools
-
-# Install dependencies
 npm install
-
-# Build all packages
 npm run build
-
-# Test locally
-node packages/crapify-comments/dist/cli.js --help
+node packages/crapifyme/dist/cli.js --help
 ```
 
-## Roadmap
+## Architecture
 
-- **crapify-logs** - Debug statement removal
+- Enhanced tokenizer with multi-pass parsing and error recovery
+- Rule-based preservation with priority evaluation (900 → 50 scale)
+- Three-tier fallback system (Enhanced → Legacy → Failsafe)
+- Version control detection with bypass option
+- Performance monitoring and memory optimization
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
-
----
-
-<p align="center">
-  <strong>Built for developers who value clean code</strong>
-</p>
-
-<p align="center">
-  <a href="https://github.com/kafk3d/crapify/issues">Report Bug</a> •
-  <a href="https://github.com/kafk3d/crapify/issues">Request Feature</a> •
-  <a href="https://github.com/kafk3d/crapify/discussions">Discussions</a>
-</p>
+MIT
