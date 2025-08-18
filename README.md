@@ -11,8 +11,8 @@ npx crapifyme comments
 npx crapifyme logs  
 # Clean up console logs with preservation
 
-npx crapifyme imports --style=absolute
-# Optimize and standardize import statements
+npx crapifyme imports
+# Optimize imports: sort, group, remove unused, merge duplicates
 
 npx crapifyme comments --dry-run
 # Preview changes without modifying files
@@ -83,35 +83,41 @@ crapifyme logs --keep "performance,benchmark,trace" src/
 
 ### Import Optimization
 
-Optimize and standardize import statements with intelligent analysis and transformation.
+Intelligent import optimization with AST analysis - **all features enabled by default**.
 
 ```bash
-# Convert to absolute imports with auto-detection
-crapifyme imports --style=absolute src/
+# Complete optimization (default behavior)
+crapifyme imports src/
 
-# Full import optimization
-crapifyme imports --sort --group --remove-unused --merge-duplicates src/
-
-# Framework-specific optimization
+# Framework-specific optimization with aliases  
 crapifyme imports --framework=nextjs --alias="@/*:./src/*" src/
 
-# Convert relative imports with custom aliases
-crapifyme imports --style=relative --alias="@components/*:./src/components/*" src/
+# Convert import path styles
+crapifyme imports --style=absolute src/
+crapifyme imports --style=relative src/
+
+# Disable specific features if needed
+crapifyme imports --no-remove-unused src/
+crapifyme imports --no-sort --no-group src/
 ```
 
-**Import Features:**
-- Convert relative ↔ absolute paths with intelligent resolution
-- Sort imports alphabetically and group by type (external → internal → relative)
-- Remove unused imports via AST analysis and scope detection
-- Merge duplicate imports from same source automatically
-- Apply consistent import styles (named vs default, multiline formatting)
-- Support for path aliases (@/, ~/, custom patterns)
-- Framework-specific optimizations (Next.js, Vite, Svelte, Vue, React, Angular, Nuxt)
+**Import Features (All Enabled by Default):**
+- **Sort imports alphabetically** within each group
+- **Group imports by type**: external → internal (@/, ~/) → relative (./,../) 
+- **Remove unused imports** via comprehensive AST analysis and scope detection
+- **Merge duplicate imports** from same source automatically
+- **Preserve original formatting** when only reordering (no unnecessary changes)
+- **Intelligent multiline formatting** with original indentation detection
+- **Framework auto-detection** (Next.js, Vite, Svelte, Vue, React, Angular, Nuxt)
+- **Path alias support** (@/, ~/, custom patterns with tsconfig.json integration)
+- **Mixed import handling** (default + named: `import React, { useState }`)
 
-**Import Groups:**
-- External packages (npm modules)
-- Internal modules (alias imports like @/, ~/)
-- Relative imports (./file, ../directory)
+**Import Processing:**
+- **AST-based parsing** using Babel for 100% accuracy
+- **Scope analysis** for precise unused import detection  
+- **Character-level replacement** preserves all formatting
+- **Three-tier optimization**: content changes → structure changes → untouched
+- **TypeScript support** with proper type import handling
 
 ## Language Support
 
@@ -146,19 +152,23 @@ crapifyme imports --style=relative --alias="@components/*:./src/components/*" sr
 | `--no-preserve-documentation` | Disable JSDoc preservation |
 
 ### Imports Tool
-| Option | Description |
-|--------|-------------|
-| `--style <type>` | Import path style (absolute/relative/mixed) |
-| `--sort` | Sort imports alphabetically |
-| `--group` | Group imports by type (external → internal → relative) |
-| `--remove-unused` | Remove unused imports via AST analysis |
-| `--merge-duplicates` | Merge duplicate imports from same source |
-| `--alias <mapping>` | Path alias configuration (e.g., "@/*:./src/*") |
-| `--framework <name>` | Framework optimizations (nextjs/vite/svelte/vue/react/angular/nuxt) |
-| `--multiline-threshold <n>` | Threshold for multiline imports (default: 3) |
-| `-e, --extensions <ext>` | File extensions to process (default: js,ts,jsx,tsx,vue,svelte) |
-| `-x, --exclude <patterns>` | Glob exclusion patterns |
-| `--no-preserve-comments` | Remove comments from import statements |
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--sort` | **true** | Sort imports alphabetically within groups |
+| `--group` | **true** | Group imports by type (external → internal → relative) |
+| `--remove-unused` | **true** | Remove unused imports via AST analysis |
+| `--merge-duplicates` | **true** | Merge duplicate imports from same source |
+| `--no-sort` | - | Disable sorting imports |
+| `--no-group` | - | Disable grouping imports |
+| `--no-remove-unused` | - | Disable removing unused imports |
+| `--no-merge-duplicates` | - | Disable merging duplicate imports |
+| `--style <type>` | mixed | Import path style (absolute/relative/mixed) |
+| `--alias <mapping>` | - | Path alias configuration (e.g., "@/*:./src/*") |
+| `--framework <name>` | auto | Framework optimizations (nextjs/vite/svelte/vue/react/angular/nuxt) |
+| `--multiline-threshold <n>` | 3 | Threshold for multiline imports |
+| `-e, --extensions <ext>` | js,ts,jsx,tsx,vue,svelte | File extensions to process |
+| `-x, --exclude <patterns>` | - | Glob exclusion patterns |
+| `--no-preserve-comments` | - | Remove comments from import statements |
 
 ## Use Cases
 
@@ -166,15 +176,15 @@ crapifyme imports --style=relative --alias="@components/*:./src/components/*" sr
 # Production preparation
 crapifyme comments --no-preserve-development src/
 crapifyme logs src/
-crapifyme imports --remove-unused --merge-duplicates src/
+crapifyme imports src/
 
 # Legacy cleanup
 crapifyme comments --keep "@author,@copyright" legacy/
-crapifyme imports --style=absolute --sort --group legacy/
+crapifyme imports --style=absolute legacy/
 
-# Performance optimization
+# Performance optimization  
 crapifyme logs --no-preserve-error --no-preserve-warn dist/
-crapifyme imports --remove-unused --framework=react src/
+crapifyme imports --framework=react src/
 
 # CI/CD integration
 crapifyme comments --json --force src/
@@ -182,11 +192,15 @@ crapifyme imports --dry-run --json src/
 
 # Pre-commit hook
 crapifyme comments --dry-run $(git diff --cached --name-only)
-crapifyme imports --dry-run --sort --remove-unused $(git diff --cached --name-only)
+crapifyme imports --dry-run $(git diff --cached --name-only)
 
 # Framework migration
 crapifyme imports --framework=nextjs --alias="@/*:./src/*" src/
-crapifyme imports --style=absolute --group --sort components/
+crapifyme imports --style=absolute components/
+
+# Selective optimization
+crapifyme imports --no-remove-unused src/  # Keep unused imports
+crapifyme imports --no-sort --framework=vue src/  # Group only, no sorting
 ```
 
 ## API

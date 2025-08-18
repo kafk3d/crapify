@@ -11,6 +11,9 @@ npx crapifyme comments
 npx crapifyme logs
 # Clean up console logs with preservation
 
+npx crapifyme imports
+# Optimize imports: sort, group, remove unused, merge duplicates
+
 npx crapifyme comments --dry-run
 # Preview changes without modifying files
 ```
@@ -29,6 +32,9 @@ crapifyme comments src/
 
 crapifyme logs --help
 # View all available options for logs tool
+
+crapifyme imports src/
+# Optimize all imports in src directory
 ```
 
 ## Preservation System
@@ -132,6 +138,44 @@ crapifyme logs --keep "performance,benchmark,trace" src/
 - Preserved: `console.error()`, `console.warn()`, `console.debug()`
 - Always Preserved: `console.assert()`, `console.trace()`, `console.time()`, `console.timeEnd()`
 
+### Imports Tool
+
+Intelligent import optimization with comprehensive AST analysis and formatting preservation.
+
+```bash
+# Complete optimization (all features enabled by default)
+crapifyme imports src/
+
+# Framework-specific optimization  
+crapifyme imports --framework=nextjs --alias="@/*:./src/*" src/
+
+# Convert import path styles
+crapifyme imports --style=absolute src/
+crapifyme imports --style=relative src/
+
+# Disable specific features
+crapifyme imports --no-remove-unused src/
+crapifyme imports --no-sort --no-group src/
+```
+
+**Import Features (All Enabled by Default):**
+
+- **Sort imports alphabetically** within each group
+- **Group imports by type**: external → internal (@/, ~/) → relative (./,..)
+- **Remove unused imports** via comprehensive AST analysis and scope detection  
+- **Merge duplicate imports** from same source automatically
+- **Preserve original formatting** when only reordering (no unnecessary changes)
+- **Framework auto-detection** (Next.js, Vite, Svelte, Vue, React, Angular, Nuxt)
+- **Path alias support** (@/, ~/, custom patterns with tsconfig.json integration)
+- **Mixed import handling** (default + named: `import React, { useState }`)
+
+**Import Processing:**
+
+- **AST-based parsing** using Babel for 100% accuracy  
+- **Scope analysis** for precise unused import detection
+- **Character-level replacement** preserves all formatting
+- **TypeScript support** with proper type import handling
+
 ## Options
 
 ### Global
@@ -167,6 +211,26 @@ crapifyme logs --keep "performance,benchmark,trace" src/
 | `--no-preserve-error`      | Remove console.error statements                                  |
 | `--no-preserve-warn`       | Remove console.warn statements                                   |
 
+### Imports Tool
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--sort` | **true** | Sort imports alphabetically within groups |
+| `--group` | **true** | Group imports by type (external → internal → relative) |
+| `--remove-unused` | **true** | Remove unused imports via AST analysis |
+| `--merge-duplicates` | **true** | Merge duplicate imports from same source |
+| `--no-sort` | - | Disable sorting imports |
+| `--no-group` | - | Disable grouping imports |
+| `--no-remove-unused` | - | Disable removing unused imports |
+| `--no-merge-duplicates` | - | Disable merging duplicate imports |
+| `--style <type>` | mixed | Import path style (absolute/relative/mixed) |
+| `--alias <mapping>` | - | Path alias configuration (e.g., "@/*:./src/*") |
+| `--framework <name>` | auto | Framework optimizations (nextjs/vite/svelte/vue/react/angular/nuxt) |
+| `--multiline-threshold <n>` | 3 | Threshold for multiline imports |
+| `-e, --extensions <ext>` | js,ts,jsx,tsx,vue,svelte | File extensions to process |
+| `-x, --exclude <patterns>` | - | Glob exclusion patterns |
+| `--no-preserve-comments` | - | Remove comments from import statements |
+
 ## Language Support
 
 | Language              | Extensions                                 | Comment Syntax      |
@@ -180,7 +244,7 @@ crapifyme logs --keep "performance,benchmark,trace" src/
 ## API
 
 ```typescript
-import { AdvancedCommentRemover, LogsProcessor } from 'crapifyme';
+import { AdvancedCommentRemover, LogsProcessor, ImportsProcessor } from 'crapifyme';
 
 // Comment processing
 const processor = new AdvancedCommentRemover(['todo', 'fixme'], {
@@ -200,6 +264,19 @@ const logsProcessor = new LogsProcessor({
 });
 
 const logsResult = logsProcessor.processFile(sourceCode);
+
+// Import optimization
+const importsProcessor = new ImportsProcessor({
+	sort: true,
+	group: true,
+	removeUnused: true,
+	mergeDuplicates: true,
+	style: 'mixed',
+	framework: 'nextjs',
+	aliases: [{ pattern: '@/*', replacement: './src/*', regex: /^@\/(.*)/ }]
+});
+
+const importsResult = importsProcessor.processFile(sourceCode, filePath);
 ```
 
 ## Use Cases
@@ -208,12 +285,22 @@ const logsResult = logsProcessor.processFile(sourceCode);
 # Production preparation
 crapifyme comments --no-preserve-development src/
 crapifyme logs src/
+crapifyme imports src/
 
 # Legacy cleanup
 crapifyme comments --keep "@author,@copyright" legacy/
+crapifyme imports --style=absolute legacy/
 
-# Performance optimization
+# Framework migration
+crapifyme imports --framework=nextjs --alias="@/*:./src/*" src/
+
+# Performance optimization  
 crapifyme logs --no-preserve-error --no-preserve-warn dist/
+crapifyme imports --framework=react src/
+
+# Selective optimization
+crapifyme imports --no-remove-unused src/  # Keep unused imports
+crapifyme imports --no-sort --framework=vue src/  # Group only
 ```
 
 ## Installation
