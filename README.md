@@ -240,24 +240,6 @@ const importsProcessor = new ImportsProcessor({
 const importsResult = importsProcessor.processFile(sourceCode, filePath);
 ```
 
-## Development
-
-```bash
-git clone https://github.com/kafk3d/crapify.git
-cd crapify-tools
-npm install
-npm run build
-node packages/crapifyme/dist/cli.js --help
-```
-
-## Architecture
-
-- Enhanced tokenizer with multi-pass parsing and error recovery
-- Rule-based preservation with priority evaluation (900 → 50 scale)
-- Three-tier fallback system (Enhanced → Legacy → Failsafe)
-- Version control detection with bypass option
-- Performance monitoring and memory optimization
-
 ## License
 
 MIT
