@@ -3,6 +3,7 @@ import { Command } from 'commander';
 import { showBanner } from './shared';
 import { commentsCommand } from './commands/comments';
 import { logsCommand } from './commands/logs';
+import { importsCommand } from './commands/imports';
 
 const pkg = require('../package.json');
 
@@ -20,9 +21,11 @@ program
 Examples:
   $ crapifyme comments                  # Remove comments from current directory
   $ crapifyme logs                      # Remove console.log from current directory
-  $ crapifyme comments --dry-run .          # Preview comment changes
-  $ crapifyme logs --force                  # Remove logs without VCS check
-  $ crapifyme comments --no-preserve-framework # Disable framework preservation
+  $ crapifyme imports                   # Optimize imports in current directory
+  $ crapifyme comments --dry-run .      # Preview comment changes
+  $ crapifyme logs --force              # Remove logs without VCS check
+  $ crapifyme imports --style=absolute  # Convert to absolute imports
+  $ crapifyme imports --sort --group --remove-unused # Full import optimization
 
 Global Options:
   --dry-run                Preview changes without modifying files
@@ -44,6 +47,7 @@ program
 
 program.addCommand(commentsCommand);
 program.addCommand(logsCommand);
+program.addCommand(importsCommand);
 
 if (process.argv.length <= 2) {
 	program.help();
