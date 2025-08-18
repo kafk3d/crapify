@@ -1,63 +1,63 @@
 {
-  "name": "crapifyme",
-  "version": "1.0.1",
-  "description": "Ultra-fast developer productivity CLI tools - remove comments, logs, and more",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "bin": {
-    "crapifyme": "dist/cli.js"
-  },
-  "files": [
-    "dist/**/*",
-    "README.md"
-  ],
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "test": "jest",
-    "clean": "rm -rf dist",
-    "prepublishOnly": "npm run clean && npm run build"
-  },
-  "keywords": [
-    "code-cleanup",
-    "comments",
-    "logs",
-    "console-log",
-    "cli",
-    "typescript",
-    "javascript",
-    "developer-tools",
-    "productivity",
-    "crapify"
-  ],
-  "author": "kafked",
-  "license": "MIT",
-  "homepage": "https://crapify.me",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kafk3d/crapify.git",
-    "directory": "packages/crapifyme"
-  },
-  "bugs": {
-    "url": "https://github.com/kafk3d/crapify/issues"
-  },
-  "engines": {
-    "node": ">=16.0.0"
-  },
-  "dependencies": {
-    "@babel/generator": "^7.28.3",
-    "@babel/parser": "^7.28.3",
-    "@babel/traverse": "^7.28.3",
-    "commander": "^11.0.0",
-    "glob": "^10.0.0"
-  },
-  "devDependencies": {
-    "@types/babel__generator": "^7.27.0",
-    "@types/babel__traverse": "^7.28.0",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^20.0.0",
-    "jest": "^30.0.5",
-    "ts-jest": "^29.4.1",
-    "typescript": "^5.0.0"
-  }
+	"name": "crapifyme",
+	"version": "1.0.1",
+	"description": "Ultra-fast developer productivity CLI tools - remove comments, logs, and more",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"bin": {
+		"crapifyme": "dist/cli.js"
+	},
+	"files": [
+		"dist/**/*",
+		"README.md"
+	],
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc --watch",
+		"test": "jest",
+		"clean": "rm -rf dist",
+		"prepublishOnly": "npm run clean && npm run build"
+	},
+	"keywords": [
+		"code-cleanup",
+		"comments",
+		"logs",
+		"console-log",
+		"cli",
+		"typescript",
+		"javascript",
+		"developer-tools",
+		"productivity",
+		"crapify"
+	],
+	"author": "kafked",
+	"license": "MIT",
+	"homepage": "https://crapify.me",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/kafk3d/crapify.git",
+		"directory": "packages/crapifyme"
+	},
+	"bugs": {
+		"url": "https://github.com/kafk3d/crapify/issues"
+	},
+	"engines": {
+		"node": ">=16.0.0"
+	},
+	"dependencies": {
+		"@babel/generator": "^7.28.3",
+		"@babel/parser": "^7.28.3",
+		"@babel/traverse": "^7.28.3",
+		"commander": "^11.0.0",
+		"glob": "^10.0.0"
+	},
+	"devDependencies": {
+		"@types/babel__generator": "^7.27.0",
+		"@types/babel__traverse": "^7.28.0",
+		"@types/jest": "^30.0.0",
+		"@types/node": "^20.0.0",
+		"jest": "^30.0.5",
+		"ts-jest": "^29.4.1",
+		"typescript": "^5.0.0"
+	}
 }

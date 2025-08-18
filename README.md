@@ -15,8 +15,8 @@ npx crapifyme comments --dry-run
 # Preview changes without modifying files
 ```
 
-**ℹ Run with --help for all options**  
-**⚡ Use --dry-run to preview changes**
+**Run with --help for all options**  
+**Use --dry-run to preview changes**
 
 ## Global Install
 
@@ -85,7 +85,6 @@ crapifyme logs --keep "performance,benchmark,trace" src/
 | JavaScript/TypeScript | `.js`, `.ts`, `.jsx`, `.tsx`, `.mjs` | `//`, `/* */` |
 | Modern Frameworks | `.vue`, `.svelte`, `.astro` | Mixed syntax |
 | Web | `.html`, `.css`, `.scss`, `.less`, `.sass` | `<!-- -->`, `/* */` |
-| Markdown | `.md`, `.mdx` | `<!-- -->` |
 | Python/Shell | `.py`, `.sh`, `.bash` | `#` |
 | Config | `.yaml`, `.yml`, `.toml`, `.conf`, `.env` | `#` |
 
@@ -104,7 +103,7 @@ crapifyme logs --keep "performance,benchmark,trace" src/
 | Option | Description |
 |--------|-------------|
 | `-k, --keep <patterns>` | Custom preservation patterns (comma-separated) |
-| `-e, --extensions <ext>` | Target file extensions (default: js,ts,jsx,tsx,vue,svelte,astro,html,css,scss,less,sass,md,mdx) |
+| `-e, --extensions <ext>` | Target file extensions (default: js,ts,jsx,tsx,vue,svelte,astro,html,css,scss,less,sass) |
 | `-x, --exclude <patterns>` | Glob exclusion patterns |
 | `--no-preserve-framework` | Disable framework directive preservation |
 | `--no-preserve-development` | Disable development keyword preservation |

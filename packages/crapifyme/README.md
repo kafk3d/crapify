@@ -8,15 +8,15 @@ A toolkit of oddly specific CLI utilities for developers and vibecoders
 npx crapifyme comments
 # Remove noisy comments, keep critical ones
 
-npx crapifyme logs  
+npx crapifyme logs
 # Clean up console logs with preservation
 
 npx crapifyme comments --dry-run
 # Preview changes without modifying files
 ```
 
-**ℹ Run with --help for all options**  
-**⚡ Use --dry-run to preview changes**
+**Run with --help for all options**  
+**Use --dry-run to preview changes**
 
 ## Global Install
 
@@ -36,6 +36,7 @@ crapifyme logs --help
 Rule-based engine that preserves critical comments while removing noise.
 
 ### Framework Directives
+
 ```typescript
 // @ts-ignore: Type assertion needed for compatibility
 /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -44,6 +45,7 @@ Rule-based engine that preserves critical comments while removing noise.
 ```
 
 ### Development Keywords
+
 ```javascript
 // TODO: Refactor this method for better performance
 // FIXME: Handle edge case when data is null
@@ -52,6 +54,7 @@ Rule-based engine that preserves critical comments while removing noise.
 ```
 
 ### Tooling Directives
+
 ```javascript
 /* eslint-disable no-console */
 // prettier-ignore
@@ -60,11 +63,12 @@ Rule-based engine that preserves critical comments while removing noise.
 ```
 
 ### Documentation Comments
+
 ```typescript
 /**
  * Calculates the optimal route between two points
  * @param start - Starting coordinates
- * @param end - Destination coordinates  
+ * @param end - Destination coordinates
  * @returns Promise resolving to optimized route
  */
 ```
@@ -72,17 +76,20 @@ Rule-based engine that preserves critical comments while removing noise.
 ## Architecture
 
 ### Enhanced Tokenizer
+
 - Multi-pass parsing with context awareness
-- Error recovery for malformed syntax  
+- Error recovery for malformed syntax
 - Template literal and regex literal support
 - Performance monitoring with throughput metrics
 
 ### Rule-Based Preservation
+
 - Priority-based rule evaluation (900 → 50 priority scale)
 - Category-based rule management (Framework, Development, Tooling, Documentation)
 - Custom regex patterns with user-defined priorities
 
 ### Safety & Recovery
+
 - Version control detection (Git, SVN, Mercurial, Bazaar)
 - Three-tier fallback system (Enhanced → Legacy → Failsafe)
 - Validation to prevent excessive content removal
@@ -95,7 +102,7 @@ Rule-based engine that preserves critical comments while removing noise.
 # Basic usage
 crapifyme comments
 
-# Disable preservation categories  
+# Disable preservation categories
 crapifyme comments --no-preserve-framework src/
 crapifyme comments --no-preserve-development src/
 
@@ -115,11 +122,12 @@ crapifyme logs src/
 # Remove all console methods
 crapifyme logs --no-preserve-error --no-preserve-warn --no-preserve-debug src/
 
-# Selective preservation  
+# Selective preservation
 crapifyme logs --keep "performance,benchmark,trace" src/
 ```
 
 **Console Methods:**
+
 - Removed: `console.log()`, `console.info()`
 - Preserved: `console.error()`, `console.warn()`, `console.debug()`
 - Always Preserved: `console.assert()`, `console.trace()`, `console.time()`, `console.timeEnd()`
@@ -127,45 +135,47 @@ crapifyme logs --keep "performance,benchmark,trace" src/
 ## Options
 
 ### Global
-| Option | Description |
-|--------|-------------|
+
+| Option      | Description                               |
+| ----------- | ----------------------------------------- |
 | `--dry-run` | Preview changes without file modification |
-| `--force` | Bypass version control requirement |
-| `--verbose` | Detailed processing information |
-| `--quiet` | Suppress all output except errors |
-| `--json` | Machine-readable JSON output |
+| `--force`   | Bypass version control requirement        |
+| `--verbose` | Detailed processing information           |
+| `--quiet`   | Suppress all output except errors         |
+| `--json`    | Machine-readable JSON output              |
 
 ### Comments Tool
-| Option | Description |
-|--------|-------------|
-| `-k, --keep <patterns>` | Custom preservation patterns (comma-separated) |
-| `-e, --extensions <ext>` | Target file extensions (default: js,ts,jsx,tsx,vue,svelte,astro,html,css,scss,less,sass,md,mdx) |
-| `-x, --exclude <patterns>` | Glob exclusion patterns |
-| `--no-preserve-framework` | Disable framework directive preservation |
-| `--no-preserve-development` | Disable development keyword preservation |
-| `--no-preserve-tooling` | Disable tooling directive preservation |
-| `--no-preserve-documentation` | Disable JSDoc preservation |
+
+| Option                        | Description                                                                              |
+| ----------------------------- | ---------------------------------------------------------------------------------------- |
+| `-k, --keep <patterns>`       | Custom preservation patterns (comma-separated)                                           |
+| `-e, --extensions <ext>`      | Target file extensions (default: js,ts,jsx,tsx,vue,svelte,astro,html,css,scss,less,sass) |
+| `-x, --exclude <patterns>`    | Glob exclusion patterns                                                                  |
+| `--no-preserve-framework`     | Disable framework directive preservation                                                 |
+| `--no-preserve-development`   | Disable development keyword preservation                                                 |
+| `--no-preserve-tooling`       | Disable tooling directive preservation                                                   |
+| `--no-preserve-documentation` | Disable JSDoc preservation                                                               |
 
 ### Logs Tool
-| Option | Description |
-|--------|-------------|
-| `-k, --keep <patterns>` | Custom preservation patterns |
-| `-e, --extensions <ext>` | Target file extensions (default: js,ts,jsx,tsx,vue,svelte,astro) |
-| `-x, --exclude <patterns>` | Glob exclusion patterns |
-| `--no-preserve-debug` | Remove console.debug statements |
-| `--no-preserve-error` | Remove console.error statements |
-| `--no-preserve-warn` | Remove console.warn statements |
+
+| Option                     | Description                                                      |
+| -------------------------- | ---------------------------------------------------------------- |
+| `-k, --keep <patterns>`    | Custom preservation patterns                                     |
+| `-e, --extensions <ext>`   | Target file extensions (default: js,ts,jsx,tsx,vue,svelte,astro) |
+| `-x, --exclude <patterns>` | Glob exclusion patterns                                          |
+| `--no-preserve-debug`      | Remove console.debug statements                                  |
+| `--no-preserve-error`      | Remove console.error statements                                  |
+| `--no-preserve-warn`       | Remove console.warn statements                                   |
 
 ## Language Support
 
-| Language | Extensions | Comment Syntax |
-|----------|------------|----------------|
-| JavaScript/TypeScript | `.js`, `.ts`, `.jsx`, `.tsx`, `.mjs` | `//`, `/* */` |
-| Modern Frameworks | `.vue`, `.svelte`, `.astro` | Mixed syntax |
-| Web | `.html`, `.css`, `.scss`, `.less`, `.sass` | `<!-- -->`, `/* */` |
-| Markdown | `.md`, `.mdx` | `<!-- -->` |
-| Python/Shell | `.py`, `.sh`, `.bash` | `#` |
-| Config | `.yaml`, `.yml`, `.toml`, `.conf`, `.env` | `#` |
+| Language              | Extensions                                 | Comment Syntax      |
+| --------------------- | ------------------------------------------ | ------------------- |
+| JavaScript/TypeScript | `.js`, `.ts`, `.jsx`, `.tsx`, `.mjs`       | `//`, `/* */`       |
+| Modern Frameworks     | `.vue`, `.svelte`, `.astro`                | Mixed syntax        |
+| Web                   | `.html`, `.css`, `.scss`, `.less`, `.sass` | `<!-- -->`, `/* */` |
+| Python/Shell          | `.py`, `.sh`, `.bash`                      | `#`                 |
+| Config                | `.yaml`, `.yml`, `.toml`, `.conf`, `.env`  | `#`                 |
 
 ## API
 
@@ -174,19 +184,19 @@ import { AdvancedCommentRemover, LogsProcessor } from 'crapifyme';
 
 // Comment processing
 const processor = new AdvancedCommentRemover(['todo', 'fixme'], {
-  useEnhancedTokenizer: true,
-  preserveFramework: true,
-  preserveDevelopment: true,
-  customRules: ['@copyright', '@license']
+	useEnhancedTokenizer: true,
+	preserveFramework: true,
+	preserveDevelopment: true,
+	customRules: ['@copyright', '@license']
 });
 
 const result = processor.removeComments(sourceCode, filePath);
 
 // Console log processing
 const logsProcessor = new LogsProcessor({
-  preserveError: true,
-  preserveWarn: true,
-  preserveDebug: false
+	preserveError: true,
+	preserveWarn: true,
+	preserveDebug: false
 });
 
 const logsResult = logsProcessor.processFile(sourceCode);
