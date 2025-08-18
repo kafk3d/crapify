@@ -21,11 +21,11 @@ program
 Examples:
   $ crapifyme comments                  # Remove comments from current directory
   $ crapifyme logs                      # Remove console.log from current directory
-  $ crapifyme imports                   # Optimize imports in current directory
+  $ crapifyme imports                   # Optimize imports (sort, group, remove unused, merge duplicates)
   $ crapifyme comments --dry-run .      # Preview comment changes
   $ crapifyme logs --force              # Remove logs without VCS check
-  $ crapifyme imports --style=absolute  # Convert to absolute imports
-  $ crapifyme imports --sort --group --remove-unused # Full import optimization
+  $ crapifyme imports --style=absolute  # Convert to absolute imports  
+  $ crapifyme imports --no-remove-unused # Disable unused import removal
 
 Global Options:
   --dry-run                Preview changes without modifying files
