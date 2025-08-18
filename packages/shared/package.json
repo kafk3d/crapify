@@ -1,6 +1,6 @@
 {
 	"name": "@kafked/shared",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"description": "Shared utilities and components for Crapify Tools",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
