@@ -149,7 +149,6 @@ export class ImportsProcessor {
 
 		if (frameworkConfig) {
 			if (this.options.verbose) {
-				
 			}
 
 			this.pathResolver.addAliases(frameworkConfig.aliases);

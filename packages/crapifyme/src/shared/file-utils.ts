@@ -2,12 +2,15 @@ import fssync from 'fs';
 import fs from 'fs/promises';
 import { glob } from 'glob';
 import path from 'path';
+import { getIgnorePatterns } from './ignore-patterns';
 
 export async function findFiles(patterns: string[], exclude: string[] = []): Promise<string[]> {
 	const allFiles: string[] = [];
+	const ignorePatterns = getIgnorePatterns(exclude);
+
 	for (const pattern of patterns) {
 		const files = await glob(pattern, {
-			ignore: ['**/node_modules/**', ...exclude]
+			ignore: ignorePatterns
 		});
 		allFiles.push(...files);
 	}

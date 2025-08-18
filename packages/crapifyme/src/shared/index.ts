@@ -1,6 +1,7 @@
 export * from './types';
 export * from './logger';
 export * from './file-utils';
+export * from './ignore-patterns';
 export * from './tokenizer';
 export * from './preservation-rules';
 export * from './rule-manager';

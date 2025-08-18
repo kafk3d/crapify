@@ -1,6 +1,5 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-
 import { AlternativesEngine } from './alternatives-db';
 import { BundleAnalyzer } from './bundle-analyzer';
 import { PackageAnalyzer } from './package-analyzer';
@@ -12,13 +11,6 @@ import {
 	DependencyInfo,
 	AnalysisType
 } from './types';
-
-
-
-
-
-
-
 
 const execAsync = promisify(exec);
 
@@ -63,15 +55,12 @@ export class DepsProcessor {
 
 		try {
 			if (this.options.verbose) {
-				
 			}
 
 			const packageManager = await this.packageAnalyzer.detectPackageManager();
 			const packageJson = await this.packageAnalyzer.readPackageJson();
 
 			if (this.options.verbose) {
-				
-				
 			}
 
 			const projectAnalysis: ProjectAnalysis = {
@@ -130,8 +119,7 @@ export class DepsProcessor {
 			}
 
 			if (shouldAnalyze(AnalysisType.SIZE) && this.options.analyzeBundleSize) {
-				if (this.options.verbose) 
-				await this.analyzeBundleSize(projectAnalysis, errors);
+				if (this.options.verbose) await this.analyzeBundleSize(projectAnalysis, errors);
 			}
 
 			if (shouldAnalyze(AnalysisType.ALTERNATIVES) && this.options.suggestAlternatives) {
@@ -147,13 +135,11 @@ export class DepsProcessor {
 			}
 
 			if (shouldAnalyze(AnalysisType.DUPLICATES)) {
-				if (this.options.verbose) 
-				await this.analyzeDuplicates(projectAnalysis, warnings);
+				if (this.options.verbose) await this.analyzeDuplicates(projectAnalysis, warnings);
 			}
 
 			if (shouldAnalyze(AnalysisType.UNUSED) && this.options.checkUnused) {
-				if (this.options.verbose) 
-				await this.analyzeUnused(projectAnalysis, warnings);
+				if (this.options.verbose) await this.analyzeUnused(projectAnalysis, warnings);
 			}
 
 			this.calculateSummary(projectAnalysis);
@@ -353,7 +339,7 @@ export class DepsProcessor {
 			const { stdout } = await execAsync('npx depcheck --json', {
 				cwd: this.cwd,
 				timeout: this.options.timeout,
-				maxBuffer: 10 * 1024 * 1024 
+				maxBuffer: 10 * 1024 * 1024
 			});
 
 			const depcheckResult = JSON.parse(stdout);
@@ -406,7 +392,6 @@ export class DepsProcessor {
 
 			const displayVulns = analysis.security.vulnerabilities.slice(0, 5);
 			for (const vuln of displayVulns) {
-				
 				const pkgName = vuln.packageName || 'unknown';
 
 				const severity = vuln.severity.toUpperCase();
@@ -420,7 +405,6 @@ export class DepsProcessor {
 			lines.push('');
 		}
 
-		
 		if (analysis.bundle.largestPackages.length > 0) {
 			lines.push('📊 PACKAGE SIZES');
 			lines.push('┌─────────────────────┬─────────┬─────────┬─────────┐');

@@ -1,8 +1,5 @@
 import https from 'https';
-
 import { BundleAnalysis, DependencyInfo } from './types';
-
-
 
 interface BundlephobiaResponse {
 	name: string;
@@ -64,10 +61,8 @@ export class BundleAnalyzer {
 					const sizeInfo = await this.getPackageSize(pkg.name, pkg.version);
 					packageSizes.set(pkg.name, sizeInfo);
 
-					
 					await this.delay(100);
 				} catch (error) {
-					
 					if (i < 3) {
 						// Only warn for first few failures
 						console.warn(
@@ -152,7 +147,7 @@ export class BundleAnalyzer {
 		packageName: string,
 		version: string
 	): Promise<BundlephobiaResponse> {
-		const cleanVersion = version.replace(/^[\^~]/, '').split(' ')[0]; 
+		const cleanVersion = version.replace(/^[\^~]/, '').split(' ')[0];
 		const url = `https://registry.npmjs.org/${encodeURIComponent(packageName)}`;
 
 		return new Promise((resolve, reject) => {
@@ -168,7 +163,6 @@ export class BundleAnalyzer {
 					try {
 						const packageData = JSON.parse(data);
 
-						
 						let versionData;
 						if (cleanVersion === 'latest' || !cleanVersion) {
 							const latestVersion = packageData['dist-tags']?.latest;
@@ -184,20 +178,16 @@ export class BundleAnalyzer {
 							return;
 						}
 
-						
 						const bundleSize = this.estimateBundleSize(versionData, packageName);
 
-						
 						const estimatedGzipSize = Math.floor(bundleSize * 0.3);
 
-						
 						const hasESM = !!(
 							versionData.module ||
 							versionData.exports ||
 							versionData.type === 'module'
 						);
 
-						
 						const hasSideEffects = versionData.sideEffects !== false;
 
 						resolve({
@@ -381,71 +371,57 @@ export class BundleAnalyzer {
 	}
 
 	private estimateBundleSize(versionData: any, packageName: string): number {
-		
 		const unpackedSize = versionData.dist?.unpackedSize || 0;
 
-		
 		const sizeMultipliers: Record<string, number> = {
-			
 			react: 0.015,
 			vue: 0.02,
 			angular: 0.01,
 			svelte: 0.05,
 
-			
 			lodash: 0.04,
 			moment: 0.02,
 			dayjs: 0.08,
 			'date-fns': 0.06,
 
-			
 			'pixi.js': 0.03,
 			three: 0.02,
 			'@rive-app/canvas': 0.04,
 
-			
 			leaflet: 0.05,
 			'mapbox-gl': 0.02,
 
-			
 			'@lucide/svelte': 0.15,
 			'@heroicons/react': 0.2,
 
-			
 			msgpackr: 0.1,
 			'@thumbmarkjs/thumbmarkjs': 0.3,
 
-			
 			'@inlang/paraglide-js': 0.2,
 			'@inlang/paraglide-sveltekit': 0.15
 		};
 
-		
-		let multiplier = 0.08; 
+		let multiplier = 0.08;
 
-		
 		if (sizeMultipliers[packageName]) {
 			multiplier = sizeMultipliers[packageName];
 		} else {
-			
 			if (packageName.includes('types/')) {
-				return 0; 
+				return 0;
 			} else if (packageName.includes('icon') || packageName.includes('lucide')) {
-				multiplier = 0.15; 
+				multiplier = 0.15;
 			} else if (packageName.includes('babel') || packageName.includes('eslint')) {
-				return 0; 
+				return 0;
 			} else if (packageName.includes('util') || packageName.includes('helper')) {
-				multiplier = 0.12; 
+				multiplier = 0.12;
 			} else if (packageName.startsWith('@types/')) {
-				return 0; 
+				return 0;
 			}
 		}
 
-		
-		const estimatedSize = Math.max(unpackedSize * multiplier, 1024); 
+		const estimatedSize = Math.max(unpackedSize * multiplier, 1024);
 
-		
-		return Math.min(estimatedSize, 2 * 1024 * 1024); 
+		return Math.min(estimatedSize, 2 * 1024 * 1024);
 	}
 
 	private delay(ms: number): Promise<void> {

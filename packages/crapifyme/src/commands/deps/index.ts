@@ -56,7 +56,6 @@ export const depsCommand = new Command('deps')
 					process.stdout.write('.');
 				}, 500);
 
-				
 				setTimeout(() => {
 					clearInterval(animateTimer);
 					process.stdout.write('\n');
@@ -205,7 +204,7 @@ async function displayResults(
 		default:
 			const processor = new DepsProcessor();
 			const report = await processor.generateReport(result.analysis);
-			
+
 			break;
 	}
 }
@@ -257,50 +256,33 @@ function displaySummary(analysis: any, logger: Logger, stats: DepsStats): void {
 	) {
 		logger.success('✅ No issues found! Your dependencies look good.');
 	}
-
-	
-	
-	
-	
 }
 
 function displayTree(analysis: any, logger: Logger): void {
-	
-	
-	
-
 	const { production, development } = analysis.dependencies;
 
 	if (production.length > 0) {
-		
 		production.slice(0, 20).forEach((dep: any, index: number) => {
 			const isLast = index === Math.min(production.length - 1, 19);
 			const prefix = isLast ? '└── ' : '├── ';
 			const version = dep.currentVersion;
 			const outdated = dep.isOutdated ? ' (outdated)' : '';
 			const size = dep.size ? ` [${dep.size.formatted.gzip}]` : '';
-
-			
 		});
 
 		if (production.length > 20) {
-			
 		}
 	}
 
 	if (development.length > 0) {
-		
 		development.slice(0, 10).forEach((dep: any, index: number) => {
 			const isLast = index === Math.min(development.length - 1, 9);
 			const prefix = isLast ? '└── ' : '├── ';
 			const version = dep.currentVersion;
 			const outdated = dep.isOutdated ? ' (outdated)' : '';
-
-			
 		});
 
 		if (development.length > 10) {
-			
 		}
 	}
 }

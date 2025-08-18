@@ -42,7 +42,7 @@ export class SecurityScanner {
 			const { stdout, stderr } = await execAsync(command, {
 				cwd: this.cwd,
 				timeout: this.timeout,
-				maxBuffer: 10 * 1024 * 1024, 
+				maxBuffer: 10 * 1024 * 1024,
 				env: { ...process.env, NO_UPDATE_NOTIFIER: 'true' }
 			});
 
@@ -89,7 +89,6 @@ export class SecurityScanner {
 		try {
 			const auditData = JSON.parse(output);
 
-			
 			if (auditData.auditReportVersion === 2 && auditData.vulnerabilities) {
 				for (const [packageName, vulnData] of Object.entries(auditData.vulnerabilities as any)) {
 					const vuln = vulnData as any;
@@ -111,7 +110,6 @@ export class SecurityScanner {
 
 								vulnerabilities.push(vulnerability);
 
-								
 								switch (vulnerability.severity) {
 									case 'critical':
 										summary.critical++;
@@ -130,9 +128,7 @@ export class SecurityScanner {
 						}
 					}
 				}
-			}
-			
-			else if (auditData.advisories) {
+			} else if (auditData.advisories) {
 				if (auditData.metadata?.vulnerabilities) {
 					summary = {
 						critical: auditData.metadata.vulnerabilities.critical || 0,
@@ -327,15 +323,13 @@ export class SecurityScanner {
 			const { stdout } = await execAsync(`npm view "${packageName}@${version}" deprecated --json`, {
 				cwd: this.cwd,
 				timeout: 15000,
-				maxBuffer: 10 * 1024 * 1024, 
+				maxBuffer: 10 * 1024 * 1024,
 				env: { ...process.env, NO_UPDATE_NOTIFIER: 'true' }
 			});
 
-			
 			const deprecatedMessage = stdout.trim();
 
 			if (deprecatedMessage && deprecatedMessage !== 'undefined' && deprecatedMessage !== 'null') {
-				
 				const cleanMessage = deprecatedMessage.replace(/^"|"$/g, '');
 
 				return [

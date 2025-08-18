@@ -28,27 +28,20 @@ export class PackageAnalyzer {
 
 		while (currentDir !== root) {
 			try {
-				
 				await fs.access(path.join(currentDir, 'package.json'));
 
-				
 				for (const lockFile of lockFiles) {
 					try {
 						await fs.access(path.join(currentDir, lockFile));
-						return currentDir; 
+						return currentDir;
 					} catch {
 						continue;
 					}
 				}
-
-				
-			} catch {
-				
-			}
+			} catch {}
 			currentDir = path.dirname(currentDir);
 		}
 
-		
 		try {
 			await fs.access(path.join(root, 'package.json'));
 			for (const lockFile of lockFiles) {
@@ -59,9 +52,7 @@ export class PackageAnalyzer {
 					continue;
 				}
 			}
-		} catch {
-			
-		}
+		} catch {}
 
 		return null;
 	}
@@ -74,7 +65,6 @@ export class PackageAnalyzer {
 			throw new Error('No package.json found in current directory or any parent directory');
 		}
 
-		
 		this.cwd = projectRoot;
 
 		const lockFiles = [
@@ -113,7 +103,7 @@ export class PackageAnalyzer {
 		try {
 			const { stdout } = await execAsync(`${pm} --version`, {
 				cwd: this.cwd,
-				maxBuffer: 1024 * 1024 
+				maxBuffer: 1024 * 1024
 			});
 			return stdout.trim();
 		} catch {
@@ -228,7 +218,7 @@ export class PackageAnalyzer {
 			const { stdout } = await execAsync(command, {
 				cwd: this.cwd,
 				timeout: 30000,
-				maxBuffer: 10 * 1024 * 1024 
+				maxBuffer: 10 * 1024 * 1024
 			});
 
 			if (stdout.trim()) {
@@ -358,7 +348,7 @@ export class PackageAnalyzer {
 			const { stdout } = await execAsync(command, {
 				cwd: this.cwd,
 				timeout: 60000,
-				maxBuffer: 10 * 1024 * 1024 
+				maxBuffer: 10 * 1024 * 1024
 			});
 
 			return parser(stdout);

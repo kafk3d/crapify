@@ -138,18 +138,13 @@ export const importsCommand = new Command('imports')
 					if (result.modified) {
 						logger.success(`${file}`);
 						if (result.unusedRemoved > 0) {
-							
 						}
 						if (result.duplicatesMerged > 0) {
-							
 						}
 						if (result.pathsConverted > 0) {
-							
 						}
 						if (result.optimized > 0) {
-							
 						}
-						
 					} else if (globalOptions.verbose) {
 						logger.info(`${file} - No import optimizations needed`);
 					}
@@ -174,11 +169,6 @@ export const importsCommand = new Command('imports')
 			if (globalOptions.json) {
 				logger.json(stats);
 			} else {
-				
-				
-				
-				
-
 				if (stats.errors.length > 0) {
 					logger.error(
 						`Processing completed with ${stats.errors.length} error${stats.errors.length === 1 ? '' : 's'}`
