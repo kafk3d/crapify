@@ -1,6 +1,5 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { AlternativesEngine } from './alternatives-db';
 import { BundleAnalyzer } from './bundle-analyzer';
 import { PackageAnalyzer } from './package-analyzer';
 import { SecurityScanner } from './security-scanner';
@@ -20,7 +19,6 @@ export class DepsProcessor {
 	private packageAnalyzer: PackageAnalyzer;
 	private securityScanner: SecurityScanner;
 	private bundleAnalyzer: BundleAnalyzer;
-	private alternativesEngine: AlternativesEngine;
 
 	constructor(options: DepsProcessorOptions = {}, cwd: string = process.cwd()) {
 		this.cwd = cwd;
@@ -31,7 +29,6 @@ export class DepsProcessor {
 			includeOptionalDependencies: false,
 			checkSecurity: true,
 			analyzeBundleSize: true,
-			suggestAlternatives: true,
 			checkUnused: true,
 			workspaces: false,
 			timeout: 120000,
@@ -43,7 +40,6 @@ export class DepsProcessor {
 		this.packageAnalyzer = new PackageAnalyzer(cwd);
 		this.securityScanner = new SecurityScanner(cwd, this.options.timeout);
 		this.bundleAnalyzer = new BundleAnalyzer(this.options.cacheTimeout);
-		this.alternativesEngine = new AlternativesEngine();
 	}
 
 	async analyzeProject(
@@ -95,7 +91,6 @@ export class DepsProcessor {
 					nonTreeshakeable: [],
 					sideEffects: []
 				},
-				alternatives: new Map(),
 				unusedDependencies: [],
 				duplicateDependencies: new Map()
 			};
@@ -119,27 +114,25 @@ export class DepsProcessor {
 			}
 
 			if (shouldAnalyze(AnalysisType.SIZE) && this.options.analyzeBundleSize) {
-				if (this.options.verbose) await this.analyzeBundleSize(projectAnalysis, errors);
+				if (this.options.verbose) {
+					process.stdout.write('📊 Analyzing bundle sizes...\n');
+				}
+				await this.analyzeBundleSize(projectAnalysis, errors);
 			}
 
-			if (shouldAnalyze(AnalysisType.ALTERNATIVES) && this.options.suggestAlternatives) {
-				if (this.options.verbose) {
-					process.stdout.write('⚡ Finding lighter alternatives');
-					const timer = setInterval(() => process.stdout.write('.'), 600);
-					setTimeout(() => {
-						clearInterval(timer);
-						process.stdout.write('\n');
-					}, 1500);
-				}
-				await this.analyzeAlternatives(projectAnalysis, warnings);
-			}
 
 			if (shouldAnalyze(AnalysisType.DUPLICATES)) {
-				if (this.options.verbose) await this.analyzeDuplicates(projectAnalysis, warnings);
+				if (this.options.verbose) {
+					process.stdout.write('🔍 Checking for duplicate dependencies...\n');
+				}
+				await this.analyzeDuplicates(projectAnalysis, warnings);
 			}
 
 			if (shouldAnalyze(AnalysisType.UNUSED) && this.options.checkUnused) {
-				if (this.options.verbose) await this.analyzeUnused(projectAnalysis, warnings);
+				if (this.options.verbose) {
+					process.stdout.write('📋 Checking for unused dependencies...\n');
+				}
+				await this.analyzeUnused(projectAnalysis, warnings);
 			}
 
 			this.calculateSummary(projectAnalysis);
@@ -249,36 +242,6 @@ export class DepsProcessor {
 		}
 	}
 
-	private async analyzeAlternatives(
-		analysis: ProjectAnalysis,
-		warnings: DepsAnalysisResult['warnings']
-	): Promise<void> {
-		try {
-			const allDependencies = [
-				...analysis.dependencies.production,
-				...(this.options.includeDevDependencies ? analysis.dependencies.development : [])
-			].map(dep => dep.name);
-
-			analysis.alternatives = await this.alternativesEngine.getAllSuggestions(allDependencies);
-
-			const deprecatedPackages = this.alternativesEngine.getDeprecatedPackages();
-			for (const depPackage of deprecatedPackages) {
-				const hasPackage = allDependencies.includes(depPackage);
-				if (hasPackage) {
-					warnings.push({
-						type: 'deprecation',
-						message: `Package ${depPackage} is deprecated`,
-						package: depPackage
-					});
-				}
-			}
-		} catch (error) {
-			warnings.push({
-				type: 'compatibility',
-				message: `Alternatives analysis failed: ${(error as Error).message}`
-			});
-		}
-	}
 
 	private async analyzeDuplicates(
 		analysis: ProjectAnalysis,
@@ -375,12 +338,9 @@ export class DepsProcessor {
 		const lines = [
 			'',
 			'📦 DEPENDENCY ANALYSIS',
-			'┌─────────────────────────────────────────────┐',
-			`│ Project: ${analysis.projectInfo.name.padEnd(33)} │`,
-			`│ Dependencies: ${analysis.summary.total.production.toString().padStart(2)} production, ${analysis.summary.total.development.toString().padStart(2)} dev         │`,
-			`│ Total Bundle Size: ${analysis.bundle.totalSize.formatted.raw.padEnd(6)} (${analysis.bundle.totalSize.formatted.gzip.padEnd(6)} gzipped)    │`,
-			`│ Package Manager: ${analysis.projectInfo.packageManager.type} v${analysis.projectInfo.packageManager.version.padEnd(14)} │`,
-			'└─────────────────────────────────────────────┘',
+			`Project: ${analysis.projectInfo.name}`,
+			`Dependencies: ${analysis.summary.total.production} production, ${analysis.summary.total.development} dev`,
+			`Package Manager: ${analysis.projectInfo.packageManager.type} v${analysis.projectInfo.packageManager.version}`,
 			''
 		];
 
@@ -423,31 +383,10 @@ export class DepsProcessor {
 			}
 			lines.push('└─────────────────────┴─────────┴─────────┴─────────┘');
 			lines.push('');
-		}
-
-		if (analysis.alternatives.size > 0) {
-			lines.push('⚡ SIZE OPTIMIZATION');
-			lines.push('┌──────────────┬─────────┬─────────────┬─────────────┐');
-			lines.push('│ Current      │ Size    │ Alternative │ Savings     │');
-			lines.push('├──────────────┼─────────┼─────────────┼─────────────┤');
-
-			let count = 0;
-			for (const [current, alternatives] of analysis.alternatives) {
-				if (count >= 5) break;
-				const alt = alternatives[0];
-				const currentDep = analysis.dependencies.production.find(d => d.name === current);
-				const currentSize = currentDep?.size?.formatted.gzip || 'Unknown';
-				const savings =
-					alt.sizeSavings.gzip > 0 ? `-${this.formatSize(alt.sizeSavings.gzip)}` : 'N/A';
-
-				lines.push(
-					`│ ${current.substring(0, 12).padEnd(12)} │ ${currentSize.padEnd(7)} │ ${alt.name.substring(0, 11).padEnd(11)} │ ${savings.padEnd(11)} │`
-				);
-				count++;
-			}
-			lines.push('└──────────────┴─────────┴─────────────┴─────────────┘');
+			lines.push(`Total Bundle Size: ${analysis.bundle.totalSize.formatted.raw} (${analysis.bundle.totalSize.formatted.gzip} gzipped)`);
 			lines.push('');
 		}
+
 
 		const statusLines = [];
 		if (analysis.summary.outdated > 0) {

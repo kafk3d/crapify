@@ -1,7 +1,7 @@
 import https from 'https';
 import { BundleAnalysis, DependencyInfo } from './types';
 
-interface BundlephobiaResponse {
+interface NpmPackageInfo {
 	name: string;
 	version: string;
 	size: number;
@@ -31,7 +31,7 @@ interface PackageSize {
 }
 
 export class BundleAnalyzer {
-	private cache = new Map<string, BundlephobiaResponse>();
+	private cache = new Map<string, NpmPackageInfo>();
 	private cacheTimeout: number;
 	private requestTimeout: number;
 
@@ -61,6 +61,7 @@ export class BundleAnalyzer {
 					const sizeInfo = await this.getPackageSize(pkg.name, pkg.version);
 					packageSizes.set(pkg.name, sizeInfo);
 
+					// Brief delay to be respectful to npm registry
 					await this.delay(100);
 				} catch (error) {
 					if (i < 3) {
@@ -146,7 +147,7 @@ export class BundleAnalyzer {
 	private async fetchFromNpmRegistry(
 		packageName: string,
 		version: string
-	): Promise<BundlephobiaResponse> {
+	): Promise<NpmPackageInfo> {
 		const cleanVersion = version.replace(/^[\^~]/, '').split(' ')[0];
 		const url = `https://registry.npmjs.org/${encodeURIComponent(packageName)}`;
 
@@ -219,7 +220,7 @@ export class BundleAnalyzer {
 		});
 	}
 
-	private formatPackageSize(data: BundlephobiaResponse): PackageSize {
+	private formatPackageSize(data: NpmPackageInfo): PackageSize {
 		return {
 			name: data.name,
 			size: {

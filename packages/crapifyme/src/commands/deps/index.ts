@@ -10,7 +10,6 @@ export const depsCommand = new Command('deps')
 	.option('--size-only', 'Only perform bundle size analysis', false)
 	.option('--outdated-only', 'Only check for outdated dependencies', false)
 	.option('--unused-only', 'Only check for unused dependencies', false)
-	.option('--alternatives-only', 'Only suggest lighter alternatives', false)
 	.option('--duplicates-only', 'Only check for duplicate dependencies', false)
 	.option('--include-gzip', 'Include gzipped size information', true)
 	.option('--no-include-gzip', 'Exclude gzipped size information')
@@ -22,7 +21,6 @@ export const depsCommand = new Command('deps')
 	.option('--workspaces', 'Analyze workspaces if available', false)
 	.option('--timeout <ms>', 'Request timeout in milliseconds', parseInt, 120000)
 	.option('--output <format>', 'Output format (table|json|tree|summary)', 'table')
-	.option('--no-alternatives', 'Skip alternative package suggestions')
 	.option('--no-security', 'Skip security vulnerability checks')
 	.option('--no-bundle-size', 'Skip bundle size analysis')
 	.action(async (projectPath: string, options: any, command: Command) => {
@@ -78,7 +76,6 @@ export const depsCommand = new Command('deps')
 					includeOptionalDependencies: options.includeOptional,
 					checkSecurity: options.security,
 					analyzeBundleSize: options.bundleSize,
-					suggestAlternatives: options.alternatives,
 					checkUnused: analysisTypes.includes(AnalysisType.UNUSED),
 					workspaces: options.workspaces,
 					timeout: options.timeout,
@@ -96,10 +93,7 @@ export const depsCommand = new Command('deps')
 				vulnerabilitiesFound: result.analysis.security.vulnerabilities.length,
 				outdatedPackages: result.analysis.summary.outdated,
 				unusedPackages: result.analysis.unusedDependencies.length,
-				sizeSavingsIdentified: Array.from(result.analysis.alternatives.values())
-					.flat()
-					.reduce((sum, alt) => sum + alt.sizeSavings.gzip, 0),
-				alternativesSuggested: result.analysis.alternatives.size,
+				sizeSavingsIdentified: 0,
 				errors: result.errors.map(e => ({ message: e.message, type: e.type }))
 			};
 
@@ -110,7 +104,6 @@ export const depsCommand = new Command('deps')
 					logger.json({
 						analysis: {
 							...result.analysis,
-							alternatives: Object.fromEntries(result.analysis.alternatives),
 							duplicateDependencies: Object.fromEntries(result.analysis.duplicateDependencies)
 						},
 						stats,
@@ -179,7 +172,6 @@ function determineAnalysisTypes(options: any): AnalysisType[] {
 	if (options.sizeOnly) return [AnalysisType.SIZE];
 	if (options.outdatedOnly) return [AnalysisType.OUTDATED];
 	if (options.unusedOnly) return [AnalysisType.UNUSED];
-	if (options.alternativesOnly) return [AnalysisType.ALTERNATIVES];
 	if (options.duplicatesOnly) return [AnalysisType.DUPLICATES];
 
 	return [AnalysisType.FULL];
@@ -224,9 +216,6 @@ function displaySummary(analysis: any, logger: Logger, stats: DepsStats): void {
 		logger.warn(`📋 Unused Packages: ${stats.unusedPackages}`);
 	}
 
-	if (stats.alternativesSuggested > 0) {
-		logger.info(`⚡ Alternatives Available: ${stats.alternativesSuggested}`);
-	}
 
 	if (analysis.bundle?.totalSize) {
 		logger.info(
@@ -234,20 +223,6 @@ function displaySummary(analysis: any, logger: Logger, stats: DepsStats): void {
 		);
 	}
 
-	if (stats.sizeSavingsIdentified > 0) {
-		const formatSize = (bytes: number) => {
-			const units = ['B', 'KB', 'MB', 'GB'];
-			let size = bytes;
-			let unitIndex = 0;
-			while (size >= 1024 && unitIndex < units.length - 1) {
-				size /= 1024;
-				unitIndex++;
-			}
-			return `${size.toFixed(unitIndex === 0 ? 0 : 1)}${units[unitIndex]}`;
-		};
-
-		logger.info(`💾 Potential Savings: ${formatSize(stats.sizeSavingsIdentified)} gzipped`);
-	}
 
 	if (
 		stats.vulnerabilitiesFound === 0 &&

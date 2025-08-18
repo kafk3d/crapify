@@ -218,7 +218,7 @@ crapifyme deps --pm=pnpm
 **Analysis Features:**
 
 - **Security Vulnerabilities**: Integration with npm/yarn/pnpm audit commands
-- **Bundle Size Analysis**: Real-time size estimation using bundlephobia API
+- **Bundle Size Analysis**: Real-time size estimation using npmjs.org API
 - **Lighter Alternatives**: Curated suggestions (moment→dayjs, lodash→lodash-es, axios→fetch)
 - **Outdated Dependencies**: Compare installed vs latest versions
 - **Unused Dependencies**: Integration with depcheck for detection

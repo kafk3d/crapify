@@ -42,21 +42,6 @@ export interface SecurityVulnerability {
 	recommendation?: string;
 }
 
-export interface PackageAlternative {
-	name: string;
-	description: string;
-	compatibility: 'drop-in' | 'minor-changes' | 'major-refactor';
-	sizeSavings: {
-		raw: number;
-		gzip: number;
-		percentage: number;
-	};
-	features: string[];
-	migrationComplexity: 1 | 2 | 3 | 4 | 5;
-	npmWeeklyDownloads?: number;
-	lastUpdated?: string;
-	reason?: string;
-}
 
 export interface DependencyTreeNode {
 	name: string;
@@ -135,7 +120,6 @@ export interface ProjectAnalysis {
 		};
 	};
 	bundle: BundleAnalysis;
-	alternatives: Map<string, PackageAlternative[]>;
 	unusedDependencies: string[];
 	duplicateDependencies: Map<string, string[]>;
 }
@@ -147,7 +131,6 @@ export interface DepsProcessorOptions {
 	includeOptionalDependencies?: boolean;
 	checkSecurity?: boolean;
 	analyzeBundleSize?: boolean;
-	suggestAlternatives?: boolean;
 	checkUnused?: boolean;
 	workspaces?: boolean;
 	timeout?: number;
@@ -179,18 +162,9 @@ export interface DepsStats {
 	outdatedPackages: number;
 	unusedPackages: number;
 	sizeSavingsIdentified: number;
-	alternativesSuggested: number;
 	errors: Array<{ message: string; type: string }>;
 }
 
-export interface AlternativeDatabase {
-	[packageName: string]: {
-		alternatives: PackageAlternative[];
-		deprecated?: boolean;
-		deprecationReason?: string;
-		migrationGuide?: string;
-	};
-}
 
 export enum DependencyType {
 	PRODUCTION = 'production',
@@ -205,7 +179,6 @@ export enum AnalysisType {
 	OUTDATED = 'outdated',
 	UNUSED = 'unused',
 	DUPLICATES = 'duplicates',
-	ALTERNATIVES = 'alternatives',
 	FULL = 'full'
 }
 
