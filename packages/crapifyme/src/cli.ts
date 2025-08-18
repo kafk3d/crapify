@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import { commentsCommand } from './commands/comments';
+import { depsCommand } from './commands/deps';
 import { importsCommand } from './commands/imports';
 import { logsCommand } from './commands/logs';
 import { showBanner } from './shared';
@@ -22,10 +23,11 @@ Examples:
   $ crapifyme comments                  # Remove comments from current directory
   $ crapifyme logs                      # Remove console.log from current directory
   $ crapifyme imports                   # Optimize imports (sort, group, remove unused, merge duplicates)
+  $ crapifyme deps                      # Analyze dependencies (security, size, alternatives)
   $ crapifyme comments --dry-run .      # Preview comment changes
   $ crapifyme logs --force              # Remove logs without VCS check
   $ crapifyme imports --style=absolute  # Convert to absolute imports  
-  $ crapifyme imports --no-remove-unused # Disable unused import removal
+  $ crapifyme deps --security-only      # Only check security vulnerabilities
 
 Global Options:
   --dry-run                Preview changes without modifying files
@@ -46,8 +48,9 @@ program
 	.option('--json', 'Output as JSON');
 
 program.addCommand(commentsCommand);
-program.addCommand(logsCommand);
+program.addCommand(depsCommand);
 program.addCommand(importsCommand);
+program.addCommand(logsCommand);
 
 if (process.argv.length <= 2) {
 	program.help();
