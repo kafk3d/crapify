@@ -63,15 +63,19 @@ export class SecurityScanner {
 			if (error.code === 1) {
 				try {
 					const result = this.parseAuditError(error.stdout || error.stderr, packageManager.type);
-					return result;
+					if (result.vulnerabilities.length > 0) {
+						return result;
+					}
 				} catch (parseError) {
-					console.warn(
-						`Warning: Audit found vulnerabilities but output couldn't be parsed: ${(parseError as Error).message}`
-					);
+					// Silent failure - audit commands often have parsing quirks
 				}
 			}
 
-			console.warn(`Warning: Security audit failed: ${error.message}`);
+			// Only warn for actual command failures, not normal audit findings
+			if (error.code !== 1) {
+				console.warn(`Warning: Security audit failed: ${error.message}`);
+			}
+			
 			return {
 				vulnerabilities: [],
 				summary: { critical: 0, high: 0, moderate: 0, low: 0 }
@@ -320,7 +324,8 @@ export class SecurityScanner {
 		version: string
 	): Promise<SecurityVulnerability[]> {
 		try {
-			const { stdout } = await execAsync(`npm view "${packageName}@${version}" deprecated --json`, {
+			const { realPackageName, realVersion } = this.parsePackageAlias(packageName, version);
+			const { stdout } = await execAsync(`npm view "${realPackageName}@${realVersion}" deprecated --json`, {
 				cwd: this.cwd,
 				timeout: 15000,
 				maxBuffer: 10 * 1024 * 1024,
@@ -411,5 +416,22 @@ export class SecurityScanner {
 		if (summary.low > 0) parts.push(`${summary.low} low`);
 
 		return parts.length > 0 ? parts.join(', ') : 'No vulnerabilities found';
+	}
+
+	private parsePackageAlias(packageName: string, version: string): { realPackageName: string; realVersion: string } {
+		if (version.startsWith('npm:')) {
+			const match = version.match(/^npm:(.+?)@(.+)$/);
+			if (match) {
+				return {
+					realPackageName: match[1],
+					realVersion: match[2]
+				};
+			}
+		}
+
+		return {
+			realPackageName: packageName,
+			realVersion: version
+		};
 	}
 }

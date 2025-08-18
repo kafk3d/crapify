@@ -127,7 +127,8 @@ export class BundleAnalyzer {
 	}
 
 	async getPackageSize(packageName: string, version: string = 'latest'): Promise<PackageSize> {
-		const cacheKey = `${packageName}@${version}`;
+		const { realPackageName, realVersion } = this.parsePackageAlias(packageName, version);
+		const cacheKey = `${realPackageName}@${realVersion}`;
 
 		if (this.cache.has(cacheKey)) {
 			const cached = this.cache.get(cacheKey)!;
@@ -136,7 +137,7 @@ export class BundleAnalyzer {
 			}
 		}
 
-		const data = await this.fetchFromNpmRegistry(packageName, version);
+		const data = await this.fetchFromNpmRegistry(realPackageName, realVersion);
 		(data as any).cachedAt = Date.now();
 		this.cache.set(cacheKey, data);
 
@@ -422,6 +423,23 @@ export class BundleAnalyzer {
 		const estimatedSize = Math.max(unpackedSize * multiplier, 1024);
 
 		return Math.min(estimatedSize, 2 * 1024 * 1024);
+	}
+
+	private parsePackageAlias(packageName: string, version: string): { realPackageName: string; realVersion: string } {
+		if (version.startsWith('npm:')) {
+			const match = version.match(/^npm:(.+?)@(.+)$/);
+			if (match) {
+				return {
+					realPackageName: match[1],
+					realVersion: match[2]
+				};
+			}
+		}
+
+		return {
+			realPackageName: packageName,
+			realVersion: version
+		};
 	}
 
 	private delay(ms: number): Promise<void> {

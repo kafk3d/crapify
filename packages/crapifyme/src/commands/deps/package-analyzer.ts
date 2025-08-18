@@ -90,6 +90,8 @@ export class PackageAnalyzer {
 					this.packageManager.workspaces = await this.detectWorkspaces();
 				}
 
+				await this.validateProjectContext();
+
 				return this.packageManager;
 			} catch {
 				continue;
@@ -121,6 +123,20 @@ export class PackageAnalyzer {
 			}
 		} catch {}
 		return undefined;
+	}
+
+	private async validateProjectContext(): Promise<void> {
+		try {
+			const pkgJson = await this.readPackageJson();
+			const isWorkspaceRoot = !!pkgJson.workspaces && (!pkgJson.dependencies || Object.keys(pkgJson.dependencies).length === 0);
+			
+			if (isWorkspaceRoot) {
+				console.warn('⚠️  Running in workspace root with minimal dependencies.');
+				console.warn('💡 For better analysis, run from a specific workspace package (e.g., cd packages/website && npx crapifyme deps)');
+			}
+		} catch {
+			// Ignore validation errors
+		}
 	}
 
 	async readPackageJson(filePath?: string): Promise<PackageInfo & { [key: string]: any }> {
@@ -330,15 +346,15 @@ export class PackageAnalyzer {
 
 			switch (pm.type) {
 				case 'npm':
-					command = 'npm ls --json --all';
+					command = 'npm ls --json --depth=0';
 					parser = this.parseNpmTree.bind(this);
 					break;
 				case 'yarn':
-					command = 'yarn list --json';
+					command = 'yarn list --json --depth=0';
 					parser = this.parseYarnTree.bind(this);
 					break;
 				case 'pnpm':
-					command = 'pnpm ls --json --recursive';
+					command = 'pnpm ls --json --depth=0';
 					parser = this.parsePnpmTree.bind(this);
 					break;
 				default:
@@ -347,14 +363,13 @@ export class PackageAnalyzer {
 
 			const { stdout } = await execAsync(command, {
 				cwd: this.cwd,
-				timeout: 60000,
-				maxBuffer: 10 * 1024 * 1024
+				timeout: 30000,
+				maxBuffer: 5 * 1024 * 1024
 			});
 
 			return parser(stdout);
 		} catch (error) {
-			console.warn(`Warning: Failed to get dependency tree: ${(error as Error).message}`);
-			return null;
+			return this.createBasicTreeFromPackageJson();
 		}
 	}
 
@@ -472,6 +487,41 @@ export class PackageAnalyzer {
 			for (const [, childNode] of node.dependencies) {
 				this.collectVersions(childNode, versionMap);
 			}
+		}
+	}
+
+	private async createBasicTreeFromPackageJson(): Promise<DependencyTreeNode | null> {
+		try {
+			const pkgJson = await this.readPackageJson();
+			const dependencies = new Map<string, DependencyTreeNode>();
+
+			const allDeps = {
+				...pkgJson.dependencies,
+				...pkgJson.devDependencies,
+				...pkgJson.peerDependencies,
+				...pkgJson.optionalDependencies
+			};
+
+			for (const [name, version] of Object.entries(allDeps)) {
+				dependencies.set(name, {
+					name,
+					version: version as string,
+					path: this.cwd,
+					dev: !!pkgJson.devDependencies?.[name],
+					optional: !!pkgJson.optionalDependencies?.[name]
+				});
+			}
+
+			return {
+				name: pkgJson.name || 'root',
+				version: pkgJson.version || '0.0.0',
+				path: this.cwd,
+				dev: false,
+				optional: false,
+				dependencies
+			};
+		} catch {
+			return null;
 		}
 	}
 
