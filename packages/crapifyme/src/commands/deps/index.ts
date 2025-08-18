@@ -55,14 +55,14 @@ export const depsCommand = new Command('deps')
 				const animateTimer = setInterval(() => {
 					process.stdout.write('.');
 				}, 500);
+
 				
-				// Stop animation after processor starts
 				setTimeout(() => {
 					clearInterval(animateTimer);
 					process.stdout.write('\n');
 				}, 1000);
 			}
-			
+
 			if (globalOptions.verbose) {
 				logger.info(`Analysis types: ${analysisTypes.join(', ')}`);
 			}
@@ -91,7 +91,7 @@ export const depsCommand = new Command('deps')
 			const result = await processor.analyzeProject(analysisTypes);
 
 			const stats: DepsStats = {
-				filesAnalyzed: 1, 
+				filesAnalyzed: 1,
 				dependenciesScanned:
 					result.analysis.summary.total.production + result.analysis.summary.total.development,
 				vulnerabilitiesFound: result.analysis.security.vulnerabilities.length,
@@ -154,17 +154,21 @@ export const depsCommand = new Command('deps')
 			process.exit(exitCode);
 		} catch (error) {
 			const errorMessage = (error as Error).message;
-			
+
 			if (errorMessage.includes('No package.json found')) {
 				logger.error('No package.json found in current directory or any parent directory');
-				logger.info('Make sure you\'re running this command from within a Node.js project');
+				logger.info("Make sure you're running this command from within a Node.js project");
 			} else if (errorMessage.includes('No supported package manager detected')) {
-				logger.error('No package manager lock file found (package-lock.json, yarn.lock, pnpm-lock.yaml)');
-				logger.info('Run `npm install`, `yarn install`, or `pnpm install` to generate lock files first');
+				logger.error(
+					'No package manager lock file found (package-lock.json, yarn.lock, pnpm-lock.yaml)'
+				);
+				logger.info(
+					'Run `npm install`, `yarn install`, or `pnpm install` to generate lock files first'
+				);
 			} else {
 				logger.error('Fatal error during dependency analysis', error as Error);
 			}
-			
+
 			process.exit(ExitCode.Error);
 		}
 	});
@@ -179,7 +183,6 @@ function determineAnalysisTypes(options: any): AnalysisType[] {
 	if (options.alternativesOnly) return [AnalysisType.ALTERNATIVES];
 	if (options.duplicatesOnly) return [AnalysisType.DUPLICATES];
 
-	
 	return [AnalysisType.FULL];
 }
 
@@ -197,13 +200,12 @@ async function displayResults(
 			displayTree(result.analysis, logger);
 			break;
 		case OutputFormat.JSON:
-			
 			break;
 		case OutputFormat.TABLE:
 		default:
 			const processor = new DepsProcessor();
 			const report = await processor.generateReport(result.analysis);
-			console.log(report);
+			
 			break;
 	}
 }
@@ -256,21 +258,21 @@ function displaySummary(analysis: any, logger: Logger, stats: DepsStats): void {
 		logger.success('✅ No issues found! Your dependencies look good.');
 	}
 
-	console.log('');
-	console.log('█▀▀ █▀█ █▀▄▀█ █▀█ █   █▀▀ ▀█▀ █▀▀');
-	console.log('█▄▄ █▄█ █░▀░█ █▀▀ █▄▄ ██▄ ░█░ ██▄');
-	console.log('');
+	
+	
+	
+	
 }
 
 function displayTree(analysis: any, logger: Logger): void {
-	console.log('');
-	console.log('🌳 DEPENDENCY TREE');
-	console.log('─'.repeat(40));
+	
+	
+	
 
 	const { production, development } = analysis.dependencies;
 
 	if (production.length > 0) {
-		console.log('\n📦 Production Dependencies:');
+		
 		production.slice(0, 20).forEach((dep: any, index: number) => {
 			const isLast = index === Math.min(production.length - 1, 19);
 			const prefix = isLast ? '└── ' : '├── ';
@@ -278,27 +280,27 @@ function displayTree(analysis: any, logger: Logger): void {
 			const outdated = dep.isOutdated ? ' (outdated)' : '';
 			const size = dep.size ? ` [${dep.size.formatted.gzip}]` : '';
 
-			console.log(`${prefix}${dep.name}@${version}${outdated}${size}`);
+			
 		});
 
 		if (production.length > 20) {
-			console.log(`└── ... and ${production.length - 20} more`);
+			
 		}
 	}
 
 	if (development.length > 0) {
-		console.log('\n🛠️  Development Dependencies:');
+		
 		development.slice(0, 10).forEach((dep: any, index: number) => {
 			const isLast = index === Math.min(development.length - 1, 9);
 			const prefix = isLast ? '└── ' : '├── ';
 			const version = dep.currentVersion;
 			const outdated = dep.isOutdated ? ' (outdated)' : '';
 
-			console.log(`${prefix}${dep.name}@${version}${outdated}`);
+			
 		});
 
 		if (development.length > 10) {
-			console.log(`└── ... and ${development.length - 10} more`);
+			
 		}
 	}
 }

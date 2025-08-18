@@ -2,9 +2,9 @@ import { ASTAnalyzer } from './ast-analyzer';
 import { FrameworkDetector } from './framework-detector';
 import { ImportTransformer } from './import-transformer';
 import { PathResolver } from './path-resolver';
-import { 
-	ImportsProcessorOptions, 
-	ImportTransformResult, 
+import {
+	ImportsProcessorOptions,
+	ImportTransformResult,
 	ImportTransformOptions,
 	PathAlias
 } from './types';
@@ -44,7 +44,7 @@ export class ImportsProcessor {
 	processFile(content: string, filePath: string): ImportTransformResult {
 		try {
 			const originalImportCount = this.countImports(content);
-			
+
 			if (originalImportCount === 0) {
 				return {
 					content,
@@ -57,7 +57,7 @@ export class ImportsProcessor {
 			}
 
 			const analysisResult = this.astAnalyzer.analyzeFile(content, filePath);
-			
+
 			let processedImports = [...analysisResult.imports];
 			let unusedRemoved = 0;
 			let duplicatesMerged = 0;
@@ -65,7 +65,10 @@ export class ImportsProcessor {
 
 			if (this.options.removeUnused) {
 				const beforeCount = processedImports.length;
-				processedImports = this.removeUnusedImports(processedImports, analysisResult.usedIdentifiers);
+				processedImports = this.removeUnusedImports(
+					processedImports,
+					analysisResult.usedIdentifiers
+				);
 				unusedRemoved = beforeCount - processedImports.length;
 			}
 
@@ -94,12 +97,24 @@ export class ImportsProcessor {
 			}
 
 			let newContent = content;
-			
+
 			if (hasContentChanges) {
-				const transformedImports = this.transformer.transformImports(processedImports, filePath, content);
-				newContent = this.replaceImportsInContent(content, transformedImports, analysisResult.imports);
+				const transformedImports = this.transformer.transformImports(
+					processedImports,
+					filePath,
+					content
+				);
+				newContent = this.replaceImportsInContent(
+					content,
+					transformedImports,
+					analysisResult.imports
+				);
 			} else if (hasStructureChanges) {
-				newContent = this.reorderImportsInContent(content, processedImports, analysisResult.imports);
+				newContent = this.reorderImportsInContent(
+					content,
+					processedImports,
+					analysisResult.imports
+				);
 			}
 
 			return {
@@ -110,7 +125,6 @@ export class ImportsProcessor {
 				duplicatesMerged,
 				pathsConverted
 			};
-
 		} catch (error) {
 			return {
 				content,
@@ -135,9 +149,9 @@ export class ImportsProcessor {
 
 		if (frameworkConfig) {
 			if (this.options.verbose) {
-				console.log(`Detected framework: ${frameworkConfig.name}`);
+				
 			}
-			
+
 			this.pathResolver.addAliases(frameworkConfig.aliases);
 		}
 	}
@@ -168,25 +182,27 @@ export class ImportsProcessor {
 	}
 
 	private removeUnusedImports(imports: any[], usedIdentifiers: Set<string>): any[] {
-		return imports.filter(importStmt => {
-			return importStmt.specifiers.some((spec: any) => {
-				return usedIdentifiers.has(spec.local);
+		return imports
+			.filter(importStmt => {
+				return importStmt.specifiers.some((spec: any) => {
+					return usedIdentifiers.has(spec.local);
+				});
+			})
+			.map(importStmt => {
+				const usedSpecifiers = importStmt.specifiers.filter((spec: any) => {
+					return usedIdentifiers.has(spec.local);
+				});
+
+				return {
+					...importStmt,
+					specifiers: usedSpecifiers
+				};
 			});
-		}).map(importStmt => {
-			const usedSpecifiers = importStmt.specifiers.filter((spec: any) => {
-				return usedIdentifiers.has(spec.local);
-			});
-			
-			return {
-				...importStmt,
-				specifiers: usedSpecifiers
-			};
-		});
 	}
 
 	private mergeDuplicateImports(imports: any[]): any[] {
 		const sourceMap = new Map<string, any[]>();
-		
+
 		for (const importStmt of imports) {
 			const key = `${importStmt.source}:${importStmt.importKind}`;
 			if (!sourceMap.has(key)) {
@@ -196,7 +212,7 @@ export class ImportsProcessor {
 		}
 
 		const mergedImports: any[] = [];
-		
+
 		for (const [, group] of sourceMap) {
 			if (group.length === 1) {
 				mergedImports.push(group[0]);
@@ -210,63 +226,63 @@ export class ImportsProcessor {
 
 	private convertImportPaths(imports: any[], filePath: string): number {
 		let converted = 0;
-		
+
 		for (const importStmt of imports) {
 			const originalSource = importStmt.source;
-			
+
 			if (this.options.style === 'absolute') {
 				importStmt.source = this.pathResolver.convertToAbsolute(originalSource, filePath);
 			} else if (this.options.style === 'relative') {
 				importStmt.source = this.pathResolver.convertToRelative(originalSource, filePath);
 			}
-			
+
 			if (originalSource !== importStmt.source) {
 				converted++;
 			}
 		}
-		
+
 		return converted;
 	}
 
-	private reorderImportsInContent(content: string, processedImports: any[], originalImports: any[]): string {
+	private reorderImportsInContent(
+		content: string,
+		processedImports: any[],
+		originalImports: any[]
+	): string {
 		if (originalImports.length === 0) return content;
 
-		
 		const sourceToString = new Map<string, string>();
 		originalImports.forEach(imp => {
 			const importString = content.substring(imp.startPos, imp.endPos);
 			sourceToString.set(imp.source, importString);
 		});
 
-		
 		let orderedImports = [...originalImports];
-		
+
 		if (this.options.group && this.options.sort) {
-			
 			orderedImports = this.groupImportsForReorder(orderedImports, true);
 		} else if (this.options.group) {
-			
 			orderedImports = this.groupImportsForReorder(orderedImports, false);
 		} else if (this.options.sort) {
-			
 			orderedImports = this.sortImportsForReorder(orderedImports);
 		}
 
-		
-		const reorderedStrings = orderedImports.map(imp => 
-			sourceToString.get(imp.source) || ''
-		).filter(Boolean);
+		const reorderedStrings = orderedImports
+			.map(imp => sourceToString.get(imp.source) || '')
+			.filter(Boolean);
 
-		
 		return this.replaceImportBlock(content, originalImports, reorderedStrings.join('\n'));
 	}
 
-	private replaceImportsInContent(content: string, transformedImports: string, originalImports: any[]): string {
+	private replaceImportsInContent(
+		content: string,
+		transformedImports: string,
+		originalImports: any[]
+	): string {
 		if (originalImports.length === 0) {
 			return content;
 		}
 
-		
 		const sortedImports = [...originalImports]
 			.filter(imp => imp.startPos !== undefined && imp.endPos !== undefined)
 			.sort((a, b) => b.startPos - a.startPos);
@@ -275,20 +291,18 @@ export class ImportsProcessor {
 			return content;
 		}
 
-		
 		let result = content;
-		
+
 		for (const importStmt of sortedImports) {
 			const before = result.substring(0, importStmt.startPos);
 			const after = result.substring(importStmt.endPos);
 			result = before + after;
 		}
 
-		
 		const firstImportPos = Math.min(...originalImports.map(i => i.startPos));
 		const beforeFirst = result.substring(0, firstImportPos);
 		const afterFirst = result.substring(firstImportPos);
-		
+
 		return beforeFirst + transformedImports + afterFirst;
 	}
 
@@ -309,14 +323,12 @@ export class ImportsProcessor {
 			}
 		}
 
-		
 		if (shouldSort) {
 			groups.external.sort((a, b) => a.source.localeCompare(b.source));
 			groups.internal.sort((a, b) => a.source.localeCompare(b.source));
 			groups.relative.sort((a, b) => a.source.localeCompare(b.source));
 		}
 
-		
 		return [...groups.external, ...groups.internal, ...groups.relative];
 	}
 
@@ -324,19 +336,21 @@ export class ImportsProcessor {
 		return [...imports].sort((a, b) => a.source.localeCompare(b.source));
 	}
 
-	private replaceImportBlock(content: string, originalImports: any[], newImportsBlock: string): string {
+	private replaceImportBlock(
+		content: string,
+		originalImports: any[],
+		newImportsBlock: string
+	): string {
 		if (originalImports.length === 0) return content;
 
-		const firstImport = originalImports.reduce((min, imp) => 
+		const firstImport = originalImports.reduce((min, imp) =>
 			imp.startPos < min.startPos ? imp : min
 		);
-		const lastImport = originalImports.reduce((max, imp) => 
-			imp.endPos > max.endPos ? imp : max
-		);
+		const lastImport = originalImports.reduce((max, imp) => (imp.endPos > max.endPos ? imp : max));
 
 		const before = content.substring(0, firstImport.startPos);
 		const after = content.substring(lastImport.endPos);
-		
+
 		return before + newImportsBlock + after;
 	}
 

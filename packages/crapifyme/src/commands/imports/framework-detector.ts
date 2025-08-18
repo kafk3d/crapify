@@ -26,7 +26,7 @@ export class FrameworkDetector {
 
 	getFrameworkByName(name: string): FrameworkConfig | null {
 		const normalizedName = name.toLowerCase();
-		
+
 		switch (normalizedName) {
 			case 'nextjs':
 			case 'next':
@@ -51,11 +51,7 @@ export class FrameworkDetector {
 	}
 
 	private detectNextJs(): FrameworkConfig | null {
-		const indicators = [
-			'next.config.js',
-			'next.config.ts',
-			'next.config.mjs'
-		];
+		const indicators = ['next.config.js', 'next.config.ts', 'next.config.mjs'];
 
 		if (this.hasAnyFile(indicators) || this.hasDependency('next')) {
 			return this.createNextJsConfig();
@@ -65,11 +61,7 @@ export class FrameworkDetector {
 	}
 
 	private detectVite(): FrameworkConfig | null {
-		const indicators = [
-			'vite.config.js',
-			'vite.config.ts',
-			'vite.config.mjs'
-		];
+		const indicators = ['vite.config.js', 'vite.config.ts', 'vite.config.mjs'];
 
 		if (this.hasAnyFile(indicators) || this.hasDependency('vite')) {
 			return this.createViteConfig();
@@ -79,14 +71,13 @@ export class FrameworkDetector {
 	}
 
 	private detectSvelte(): FrameworkConfig | null {
-		const indicators = [
-			'svelte.config.js',
-			'svelte.config.ts'
-		];
+		const indicators = ['svelte.config.js', 'svelte.config.ts'];
 
-		if (this.hasAnyFile(indicators) || 
-			this.hasDependency('svelte') || 
-			this.hasDependency('@sveltejs/kit')) {
+		if (
+			this.hasAnyFile(indicators) ||
+			this.hasDependency('svelte') ||
+			this.hasDependency('@sveltejs/kit')
+		) {
 			return this.createSvelteConfig();
 		}
 
@@ -94,14 +85,13 @@ export class FrameworkDetector {
 	}
 
 	private detectVue(): FrameworkConfig | null {
-		const indicators = [
-			'vue.config.js',
-			'vue.config.ts'
-		];
+		const indicators = ['vue.config.js', 'vue.config.ts'];
 
-		if (this.hasAnyFile(indicators) || 
-			this.hasDependency('vue') || 
-			this.hasDependency('@vue/cli-service')) {
+		if (
+			this.hasAnyFile(indicators) ||
+			this.hasDependency('vue') ||
+			this.hasDependency('@vue/cli-service')
+		) {
 			return this.createVueConfig();
 		}
 
@@ -117,10 +107,7 @@ export class FrameworkDetector {
 	}
 
 	private detectAngular(): FrameworkConfig | null {
-		const indicators = [
-			'angular.json',
-			'angular-cli.json'
-		];
+		const indicators = ['angular.json', 'angular-cli.json'];
 
 		if (this.hasAnyFile(indicators) || this.hasDependency('@angular/core')) {
 			return this.createAngularConfig();
@@ -130,10 +117,7 @@ export class FrameworkDetector {
 	}
 
 	private detectNuxt(): FrameworkConfig | null {
-		const indicators = [
-			'nuxt.config.js',
-			'nuxt.config.ts'
-		];
+		const indicators = ['nuxt.config.js', 'nuxt.config.ts'];
 
 		if (this.hasAnyFile(indicators) || this.hasDependency('nuxt')) {
 			return this.createNuxtConfig();
@@ -156,7 +140,6 @@ export class FrameworkDetector {
 			}
 		];
 
-		
 		const nextConfigPath = this.findNextConfig();
 		if (nextConfigPath) {
 			const customAliases = this.parseNextConfig(nextConfigPath);
@@ -167,11 +150,7 @@ export class FrameworkDetector {
 			name: 'Next.js',
 			aliases,
 			importExtensions: ['.js', '.jsx', '.ts', '.tsx'],
-			specialPatterns: [
-				/^next\//,
-				/^react/,
-				/^@next\//
-			]
+			specialPatterns: [/^next\//, /^react/, /^@next\//]
 		};
 	}
 
@@ -193,11 +172,7 @@ export class FrameworkDetector {
 			name: 'Vite',
 			aliases,
 			importExtensions: ['.js', '.jsx', '.ts', '.tsx', '.vue'],
-			specialPatterns: [
-				/^vite/,
-				/^\?/,
-				/^virtual:/
-			]
+			specialPatterns: [/^vite/, /^\?/, /^virtual:/]
 		};
 	}
 
@@ -217,12 +192,7 @@ export class FrameworkDetector {
 				}
 			],
 			importExtensions: ['.js', '.ts', '.svelte'],
-			specialPatterns: [
-				/^svelte/,
-				/^\$lib/,
-				/^\$app/,
-				/^\$env/
-			]
+			specialPatterns: [/^svelte/, /^\$lib/, /^\$app/, /^\$env/]
 		};
 	}
 
@@ -237,10 +207,7 @@ export class FrameworkDetector {
 				}
 			],
 			importExtensions: ['.js', '.ts', '.vue'],
-			specialPatterns: [
-				/^vue/,
-				/^@vue\//
-			]
+			specialPatterns: [/^vue/, /^@vue\//]
 		};
 	}
 
@@ -255,10 +222,7 @@ export class FrameworkDetector {
 				}
 			],
 			importExtensions: ['.js', '.jsx', '.ts', '.tsx'],
-			specialPatterns: [
-				/^react/,
-				/^@react\//
-			]
+			specialPatterns: [/^react/, /^@react\//]
 		};
 	}
 
@@ -278,10 +242,7 @@ export class FrameworkDetector {
 				}
 			],
 			importExtensions: ['.js', '.ts'],
-			specialPatterns: [
-				/^@angular\//,
-				/^rxjs/
-			]
+			specialPatterns: [/^@angular\//, /^rxjs/]
 		};
 	}
 
@@ -311,18 +272,12 @@ export class FrameworkDetector {
 				}
 			],
 			importExtensions: ['.js', '.ts', '.vue'],
-			specialPatterns: [
-				/^nuxt/,
-				/^@nuxt\//,
-				/^vue/
-			]
+			specialPatterns: [/^nuxt/, /^@nuxt\//, /^vue/]
 		};
 	}
 
 	private hasAnyFile(filenames: string[]): boolean {
-		return filenames.some(filename => 
-			fs.existsSync(path.join(this.projectRoot, filename))
-		);
+		return filenames.some(filename => fs.existsSync(path.join(this.projectRoot, filename)));
 	}
 
 	private hasDependency(packageName: string): boolean {
@@ -342,7 +297,7 @@ export class FrameworkDetector {
 		}
 
 		const packageJsonPath = path.join(this.projectRoot, 'package.json');
-		
+
 		if (fs.existsSync(packageJsonPath)) {
 			try {
 				this.packageJsonCache = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
@@ -356,11 +311,7 @@ export class FrameworkDetector {
 	}
 
 	private findNextConfig(): string | null {
-		const possibleConfigs = [
-			'next.config.js',
-			'next.config.ts',
-			'next.config.mjs'
-		];
+		const possibleConfigs = ['next.config.js', 'next.config.ts', 'next.config.mjs'];
 
 		for (const config of possibleConfigs) {
 			const configPath = path.join(this.projectRoot, config);
@@ -374,22 +325,24 @@ export class FrameworkDetector {
 
 	private parseNextConfig(configPath: string): PathAlias[] {
 		const aliases: PathAlias[] = [];
-		
+
 		try {
 			const configContent = fs.readFileSync(configPath, 'utf-8');
-			
+
 			const aliasMatches = configContent.match(/resolve:\s*{[\s\S]*?alias:\s*{([\s\S]*?)}/);
 			if (aliasMatches && aliasMatches[1]) {
 				const aliasContent = aliasMatches[1];
 				const aliasLines = aliasContent.split(',');
-				
+
 				for (const line of aliasLines) {
 					const match = line.match(/['"`]([^'"`]+)['"`]\s*:\s*['"`]([^'"`]+)['"`]/);
 					if (match) {
 						aliases.push({
 							pattern: match[1],
 							replacement: match[2],
-							regex: new RegExp(`^${match[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, '(.*)')}`)
+							regex: new RegExp(
+								`^${match[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, '(.*)')}`
+							)
 						});
 					}
 				}

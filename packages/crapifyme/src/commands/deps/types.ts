@@ -123,7 +123,7 @@ export interface ProjectAnalysis {
 		vulnerable: number;
 		unused: number;
 		duplicates: number;
-		heavyPackages: number; 
+		heavyPackages: number;
 	};
 	security: {
 		vulnerabilities: SecurityVulnerability[];

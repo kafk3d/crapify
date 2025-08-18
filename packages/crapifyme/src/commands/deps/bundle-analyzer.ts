@@ -1,6 +1,8 @@
 import https from 'https';
-import { promisify } from 'util';
+
 import { BundleAnalysis, DependencyInfo } from './types';
+
+
 
 interface BundlephobiaResponse {
 	name: string;
@@ -43,10 +45,10 @@ export class BundleAnalyzer {
 
 	async analyzeBundleSize(dependencies: Map<string, DependencyInfo>): Promise<BundleAnalysis> {
 		const packageSizes = new Map<string, PackageSize>();
-		const heavyPackageThreshold = 100 * 1024; 
-		
+		const heavyPackageThreshold = 100 * 1024;
+
 		const packages = Array.from(dependencies.entries())
-			.filter(([, dep]) => !dep.isDev) 
+			.filter(([, dep]) => !dep.isDev)
 			.map(([name, dep]) => ({ name, version: this.parseVersion(dep.currentVersion) }));
 
 		if (packages.length > 0) {
@@ -57,18 +59,20 @@ export class BundleAnalyzer {
 
 			for (let i = 0; i < packages.length; i++) {
 				const pkg = packages[i];
-				
+
 				try {
 					const sizeInfo = await this.getPackageSize(pkg.name, pkg.version);
 					packageSizes.set(pkg.name, sizeInfo);
+
 					
-					// Minimal delay to be nice to npm registry
 					await this.delay(100);
-					
 				} catch (error) {
-					// Npm registry failures are rare, but handle gracefully
-					if (i < 3) { // Only warn for first few failures
-						console.warn(`\nWarning: Could not get size for ${pkg.name}: ${(error as Error).message}`);
+					
+					if (i < 3) {
+						// Only warn for first few failures
+						console.warn(
+							`\nWarning: Could not get size for ${pkg.name}: ${(error as Error).message}`
+						);
 					}
 				}
 			}
@@ -77,11 +81,15 @@ export class BundleAnalyzer {
 			process.stdout.write('\n');
 		}
 
-		const totalRawSize = Array.from(packageSizes.values())
-			.reduce((sum, pkg) => sum + pkg.size.raw, 0);
-		
-		const totalGzipSize = Array.from(packageSizes.values())
-			.reduce((sum, pkg) => sum + pkg.size.gzip, 0);
+		const totalRawSize = Array.from(packageSizes.values()).reduce(
+			(sum, pkg) => sum + pkg.size.raw,
+			0
+		);
+
+		const totalGzipSize = Array.from(packageSizes.values()).reduce(
+			(sum, pkg) => sum + pkg.size.gzip,
+			0
+		);
 
 		const largestPackages = Array.from(packageSizes.values())
 			.sort((a, b) => b.size.raw - a.size.raw)
@@ -125,7 +133,7 @@ export class BundleAnalyzer {
 
 	async getPackageSize(packageName: string, version: string = 'latest'): Promise<PackageSize> {
 		const cacheKey = `${packageName}@${version}`;
-		
+
 		if (this.cache.has(cacheKey)) {
 			const cached = this.cache.get(cacheKey)!;
 			if (Date.now() - (cached as any).cachedAt < this.cacheTimeout) {
@@ -136,54 +144,60 @@ export class BundleAnalyzer {
 		const data = await this.fetchFromNpmRegistry(packageName, version);
 		(data as any).cachedAt = Date.now();
 		this.cache.set(cacheKey, data);
-		
+
 		return this.formatPackageSize(data);
 	}
 
-	private async fetchFromNpmRegistry(packageName: string, version: string): Promise<BundlephobiaResponse> {
-		const cleanVersion = version.replace(/^[\^~]/, '').split(' ')[0]; // Handle complex version ranges
+	private async fetchFromNpmRegistry(
+		packageName: string,
+		version: string
+	): Promise<BundlephobiaResponse> {
+		const cleanVersion = version.replace(/^[\^~]/, '').split(' ')[0]; 
 		const url = `https://registry.npmjs.org/${encodeURIComponent(packageName)}`;
-		
+
 		return new Promise((resolve, reject) => {
-			const req = https.get(url, { timeout: this.requestTimeout }, (res) => {
+			const req = https.get(url, { timeout: this.requestTimeout }, res => {
 				if (res.statusCode !== 200) {
 					reject(new Error(`Package not found: ${res.statusCode}`));
 					return;
 				}
 
 				let data = '';
-				res.on('data', chunk => data += chunk);
+				res.on('data', chunk => (data += chunk));
 				res.on('end', () => {
 					try {
 						const packageData = JSON.parse(data);
+
 						
-						// Get the specific version or latest
 						let versionData;
 						if (cleanVersion === 'latest' || !cleanVersion) {
 							const latestVersion = packageData['dist-tags']?.latest;
 							versionData = packageData.versions?.[latestVersion];
 						} else {
-							versionData = packageData.versions?.[cleanVersion] || 
-										 packageData.versions?.[packageData['dist-tags']?.latest];
+							versionData =
+								packageData.versions?.[cleanVersion] ||
+								packageData.versions?.[packageData['dist-tags']?.latest];
 						}
-						
+
 						if (!versionData) {
 							reject(new Error('Version not found'));
 							return;
 						}
 
-						// Estimate actual bundle size (not unpacked source size)
-						const bundleSize = this.estimateBundleSize(versionData, packageName);
 						
-						// Estimate gzipped size (typically 25-35% of bundled size)
+						const bundleSize = this.estimateBundleSize(versionData, packageName);
+
+						
 						const estimatedGzipSize = Math.floor(bundleSize * 0.3);
 
-						// Check for ES module support
-						const hasESM = !!(versionData.module || 
-										versionData.exports || 
-										versionData.type === 'module');
 						
-						// Check for side effects
+						const hasESM = !!(
+							versionData.module ||
+							versionData.exports ||
+							versionData.type === 'module'
+						);
+
+						
 						const hasSideEffects = versionData.sideEffects !== false;
 
 						resolve({
@@ -198,7 +212,6 @@ export class BundleAnalyzer {
 							hasSideEffects,
 							isModuleType: versionData.type === 'module'
 						});
-
 					} catch (error) {
 						reject(new Error('Failed to parse npm registry response'));
 					}
@@ -210,7 +223,7 @@ export class BundleAnalyzer {
 				reject(new Error('Request timeout'));
 			});
 
-			req.on('error', (error) => {
+			req.on('error', error => {
 				reject(new Error(`Network error: ${error.message}`));
 			});
 		});
@@ -237,7 +250,7 @@ export class BundleAnalyzer {
 		breakdown: Array<{ name: string; size: { raw: number; gzip: number }; percentage: number }>;
 	}> {
 		const analysis = await this.analyzeBundleSize(dependencies);
-		
+
 		const breakdown = analysis.largestPackages.map(pkg => ({
 			name: pkg.name,
 			size: {
@@ -256,15 +269,17 @@ export class BundleAnalyzer {
 		};
 	}
 
-	async comparePackageSizes(packages: string[]): Promise<Array<{
-		name: string;
-		size: { raw: number; gzip: number };
-		formatted: { raw: string; gzip: string };
-		treeshakeable: boolean;
-		sideEffects: boolean;
-	}>> {
+	async comparePackageSizes(packages: string[]): Promise<
+		Array<{
+			name: string;
+			size: { raw: number; gzip: number };
+			formatted: { raw: string; gzip: string };
+			treeshakeable: boolean;
+			sideEffects: boolean;
+		}>
+	> {
 		const results = [];
-		
+
 		for (const pkg of packages) {
 			try {
 				const sizeInfo = await this.getPackageSize(pkg);
@@ -275,29 +290,31 @@ export class BundleAnalyzer {
 					treeshakeable: sizeInfo.treeshakeable,
 					sideEffects: sizeInfo.sideEffects
 				});
-				
+
 				await this.delay(300);
-				
 			} catch (error) {
 				console.warn(`Warning: Failed to get size for ${pkg}: ${(error as Error).message}`);
 			}
 		}
-		
+
 		return results.sort((a, b) => b.size.raw - a.size.raw);
 	}
 
-	getSizeDifference(currentSize: number, newSize: number): {
+	getSizeDifference(
+		currentSize: number,
+		newSize: number
+	): {
 		absolute: number;
 		percentage: number;
 		formatted: string;
 	} {
 		const absolute = newSize - currentSize;
 		const percentage = currentSize > 0 ? (absolute / currentSize) * 100 : 0;
-		
+
 		const sign = absolute > 0 ? '+' : '';
 		const formattedAbsolute = this.formatSize(Math.abs(absolute));
 		const formattedPercentage = percentage.toFixed(1);
-		
+
 		return {
 			absolute,
 			percentage,
@@ -305,11 +322,12 @@ export class BundleAnalyzer {
 		};
 	}
 
-	identifyHeavyPackages(dependencies: Map<string, DependencyInfo>, threshold: number = 100 * 1024): Promise<string[]> {
-		return this.analyzeBundleSize(dependencies).then(analysis => 
-			analysis.largestPackages
-				.filter(pkg => pkg.size.raw > threshold)
-				.map(pkg => pkg.name)
+	identifyHeavyPackages(
+		dependencies: Map<string, DependencyInfo>,
+		threshold: number = 100 * 1024
+	): Promise<string[]> {
+		return this.analyzeBundleSize(dependencies).then(analysis =>
+			analysis.largestPackages.filter(pkg => pkg.size.raw > threshold).map(pkg => pkg.name)
 		);
 	}
 
@@ -319,7 +337,7 @@ export class BundleAnalyzer {
 			'─'.repeat(50),
 			`Total Bundle Size: ${analysis.totalSize.formatted.raw} (${analysis.totalSize.formatted.gzip} gzipped)`,
 			'',
-			'🔝 LARGEST PACKAGES:',
+			'🔝 LARGEST PACKAGES:'
 		];
 
 		analysis.largestPackages.slice(0, 10).forEach((pkg, index) => {
@@ -349,7 +367,7 @@ export class BundleAnalyzer {
 
 	private formatSize(bytes: number): string {
 		if (bytes === 0) return '0B';
-		
+
 		const units = ['B', 'KB', 'MB', 'GB'];
 		let size = bytes;
 		let unitIndex = 0;
@@ -363,71 +381,71 @@ export class BundleAnalyzer {
 	}
 
 	private estimateBundleSize(versionData: any, packageName: string): number {
-		// Get the unpacked size as baseline
-		const unpackedSize = versionData.dist?.unpackedSize || 0;
 		
-		// Package-specific size adjustments based on known patterns
+		const unpackedSize = versionData.dist?.unpackedSize || 0;
+
+		
 		const sizeMultipliers: Record<string, number> = {
-			// Large UI frameworks
-			'react': 0.015,
-			'vue': 0.02, 
-			'angular': 0.01,
-			'svelte': 0.05,
 			
-			// Large utility libraries
-			'lodash': 0.04,
-			'moment': 0.02,
-			'dayjs': 0.08,
+			react: 0.015,
+			vue: 0.02,
+			angular: 0.01,
+			svelte: 0.05,
+
+			
+			lodash: 0.04,
+			moment: 0.02,
+			dayjs: 0.08,
 			'date-fns': 0.06,
+
 			
-			// Graphics/Canvas libraries
 			'pixi.js': 0.03,
-			'three': 0.02,
+			three: 0.02,
 			'@rive-app/canvas': 0.04,
+
 			
-			// Map libraries
-			'leaflet': 0.05,
+			leaflet: 0.05,
 			'mapbox-gl': 0.02,
+
 			
-			// Icon libraries
 			'@lucide/svelte': 0.15,
 			'@heroicons/react': 0.2,
+
 			
-			// Small utilities
-			'msgpackr': 0.1,
+			msgpackr: 0.1,
 			'@thumbmarkjs/thumbmarkjs': 0.3,
+
 			
-			// Language tools
 			'@inlang/paraglide-js': 0.2,
 			'@inlang/paraglide-sveltekit': 0.15
 		};
+
 		
-		// Default multiplier for unknown packages
-		let multiplier = 0.08; // 8% of unpacked size is typical for bundled JS
+		let multiplier = 0.08; 
+
 		
-		// Check for exact matches first
 		if (sizeMultipliers[packageName]) {
 			multiplier = sizeMultipliers[packageName];
 		} else {
-			// Pattern-based matching
+			
 			if (packageName.includes('types/')) {
-				return 0; // TypeScript definitions don't contribute to bundle
+				return 0; 
 			} else if (packageName.includes('icon') || packageName.includes('lucide')) {
-				multiplier = 0.15; // Icon packages are typically smaller when tree-shaken
+				multiplier = 0.15; 
 			} else if (packageName.includes('babel') || packageName.includes('eslint')) {
-				return 0; // Build tools don't contribute to bundle
+				return 0; 
 			} else if (packageName.includes('util') || packageName.includes('helper')) {
-				multiplier = 0.12; // Utility packages are usually smaller
+				multiplier = 0.12; 
 			} else if (packageName.startsWith('@types/')) {
-				return 0; // TypeScript definitions
+				return 0; 
 			}
 		}
+
 		
-		// Minimum reasonable size for any package
-		const estimatedSize = Math.max(unpackedSize * multiplier, 1024); // At least 1KB
+		const estimatedSize = Math.max(unpackedSize * multiplier, 1024); 
+
 		
-		// Cap maximum size to prevent outliers
-		return Math.min(estimatedSize, 2 * 1024 * 1024); // Max 2MB per package
+		return Math.min(estimatedSize, 2 * 1024 * 1024); 
 	}
 
 	private delay(ms: number): Promise<void> {

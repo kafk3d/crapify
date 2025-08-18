@@ -32,6 +32,13 @@ export function showBanner(): void {
 	console.log('');
 }
 
+export function showComplete(): void {
+	console.log('');
+	console.log('█▀▀ █▀█ ▄▀█ █▀█ █ █▀▀ █▄█');
+	console.log('█▄▄ █▀▄ █▀█ █▀▀ █ █▀░ ░█░');
+	console.log('');
+}
+
 export function resolvePath(inputPath: string): string {
 	if (path.isAbsolute(inputPath)) {
 		return inputPath;

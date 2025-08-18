@@ -20,11 +20,14 @@ export const importsCommand = new Command('imports')
 	.option('--remove-unused', 'Remove unused imports via AST analysis', true)
 	.option('--merge-duplicates', 'Merge duplicate imports from same source', true)
 	.option('--no-sort', 'Disable sorting imports')
-	.option('--no-group', 'Disable grouping imports') 
+	.option('--no-group', 'Disable grouping imports')
 	.option('--no-remove-unused', 'Disable removing unused imports')
 	.option('--no-merge-duplicates', 'Disable merging duplicate imports')
 	.option('--alias <mapping>', 'Path alias configuration (e.g., "@/*:./src/*")')
-	.option('--framework <name>', 'Framework-specific optimizations (nextjs|vite|svelte|vue|react|angular|nuxt)')
+	.option(
+		'--framework <name>',
+		'Framework-specific optimizations (nextjs|vite|svelte|vue|react|angular|nuxt)'
+	)
 	.option('--multiline-threshold <n>', 'Threshold for multiline imports', parseInt, 3)
 	.option('-e, --extensions <ext>', 'File extensions to process', 'js,ts,jsx,tsx,vue,svelte')
 	.option('-x, --exclude <patterns>', 'Glob patterns to exclude')
@@ -85,7 +88,9 @@ export const importsCommand = new Command('imports')
 				try {
 					aliases = ImportsProcessor.parseAliasesFromString(options.alias);
 					if (globalOptions.verbose) {
-						logger.info(`Configured ${aliases.length} path alias${aliases.length === 1 ? '' : 'es'}`);
+						logger.info(
+							`Configured ${aliases.length} path alias${aliases.length === 1 ? '' : 'es'}`
+						);
 					}
 				} catch (error) {
 					logger.error(`Invalid alias configuration: ${(error as Error).message}`);
@@ -133,20 +138,18 @@ export const importsCommand = new Command('imports')
 					if (result.modified) {
 						logger.success(`${file}`);
 						if (result.unusedRemoved > 0) {
-							console.log(`  ┣ Unused imports removed: ${result.unusedRemoved}`);
+							
 						}
 						if (result.duplicatesMerged > 0) {
-							console.log(`  ┣ Duplicate imports merged: ${result.duplicatesMerged}`);
+							
 						}
 						if (result.pathsConverted > 0) {
-							console.log(`  ┣ Import paths converted: ${result.pathsConverted}`);
+							
 						}
 						if (result.optimized > 0) {
-							console.log(`  ┣ Total optimizations: ${result.optimized}`);
+							
 						}
-						console.log(
-							`  ┗ Status: ${globalOptions.dryRun ? 'DRY RUN - would be modified' : 'Modified'}`
-						);
+						
 					} else if (globalOptions.verbose) {
 						logger.info(`${file} - No import optimizations needed`);
 					}
@@ -162,7 +165,6 @@ export const importsCommand = new Command('imports')
 							logger.warn(`${file}: ${warning}`);
 						}
 					}
-
 				} catch (error) {
 					stats.errors.push({ file, error: (error as Error).message });
 					logger.error(`Failed to process ${file}`, error as Error);
@@ -172,10 +174,10 @@ export const importsCommand = new Command('imports')
 			if (globalOptions.json) {
 				logger.json(stats);
 			} else {
-				console.log('');
-				console.log('█▀▀ █▀█ █▀▄▀█ █▀█ █   █▀▀ ▀█▀ █▀▀');
-				console.log('█▄▄ █▄█ █░▀░█ █▀▀ █▄▄ ██▄ ░█░ ██▄');
-				console.log('');
+				
+				
+				
+				
 
 				if (stats.errors.length > 0) {
 					logger.error(
@@ -185,9 +187,10 @@ export const importsCommand = new Command('imports')
 					logger.success('Import optimization completed successfully');
 				}
 
-				const filesModified = stats.importsOptimized > 0 ? 'with optimizations' : 'no optimizations needed';
+				const filesModified =
+					stats.importsOptimized > 0 ? 'with optimizations' : 'no optimizations needed';
 				logger.info(`Files processed: ${stats.filesProcessed} (${filesModified})`);
-				
+
 				if (stats.unusedRemoved > 0) {
 					logger.info(`Unused imports removed: ${stats.unusedRemoved}`);
 				}

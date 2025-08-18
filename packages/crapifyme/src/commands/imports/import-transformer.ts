@@ -1,7 +1,7 @@
-import { 
-	ImportStatement, 
-	ImportSpecifier, 
-	ImportGroup, 
+import {
+	ImportStatement,
+	ImportSpecifier,
+	ImportGroup,
 	ImportGroupType,
 	ImportStyle,
 	ImportTransformOptions,
@@ -10,7 +10,7 @@ import {
 
 export class ImportTransformer {
 	private options: Required<ImportTransformOptions>;
-	private indentation: string = '  '; 
+	private indentation: string = '  ';
 
 	constructor(options: ImportTransformOptions = {}) {
 		this.options = {
@@ -26,7 +26,6 @@ export class ImportTransformer {
 	}
 
 	transformImports(imports: ImportStatement[], filePath: string, originalContent?: string): string {
-		
 		if (originalContent) {
 			this.detectIndentation(originalContent);
 		}
@@ -57,14 +56,12 @@ export class ImportTransformer {
 	}
 
 	private detectIndentation(content: string): void {
-		
 		const multilineMatch = content.match(/import\s*{[^}]*\n(\s+)[^}]/);
 		if (multilineMatch && multilineMatch[1]) {
 			this.indentation = multilineMatch[1];
 			return;
 		}
 
-		
 		const lines = content.split('\n');
 		for (const line of lines) {
 			const match = line.match(/^(\s+)\S/);
@@ -77,7 +74,7 @@ export class ImportTransformer {
 
 	private mergeDuplicateImports(imports: ImportStatement[]): ImportStatement[] {
 		const sourceMap = new Map<string, ImportStatement[]>();
-		
+
 		for (const importStmt of imports) {
 			const key = `${importStmt.source}:${importStmt.importKind}`;
 			if (!sourceMap.has(key)) {
@@ -87,7 +84,7 @@ export class ImportTransformer {
 		}
 
 		const mergedImports: ImportStatement[] = [];
-		
+
 		for (const [, group] of sourceMap) {
 			if (group.length === 1) {
 				mergedImports.push(group[0]);
@@ -102,7 +99,7 @@ export class ImportTransformer {
 	private mergeImportGroup(imports: ImportStatement[]): ImportStatement {
 		const mergedSpecifiers: ImportSpecifier[] = [];
 		const seenLocals = new Set<string>();
-		
+
 		for (const importStmt of imports) {
 			for (const spec of importStmt.specifiers) {
 				const key = `${spec.type}:${spec.local}:${spec.imported || ''}`;
@@ -158,7 +155,12 @@ export class ImportTransformer {
 	}
 
 	private isExternalModule(path: string): boolean {
-		return !path.startsWith('.') && !path.startsWith('/') && !path.startsWith('@/') && !path.startsWith('~/');
+		return (
+			!path.startsWith('.') &&
+			!path.startsWith('/') &&
+			!path.startsWith('@/') &&
+			!path.startsWith('~/')
+		);
 	}
 
 	private toAbsolutePath(importPath: string, filePath: string): string {
@@ -187,19 +189,21 @@ export class ImportTransformer {
 		if (importPath.startsWith('@/')) {
 			const currentDir = filePath.split('/').slice(0, -1);
 			const targetPath = importPath.slice(2).split('/');
-			
+
 			let relativePath = '';
 			let commonIndex = 0;
-			
-			while (commonIndex < Math.min(currentDir.length, targetPath.length) && 
-				   currentDir[commonIndex] === targetPath[commonIndex]) {
+
+			while (
+				commonIndex < Math.min(currentDir.length, targetPath.length) &&
+				currentDir[commonIndex] === targetPath[commonIndex]
+			) {
 				commonIndex++;
 			}
-			
+
 			const upLevels = currentDir.length - commonIndex;
 			relativePath = '../'.repeat(upLevels);
 			relativePath += targetPath.slice(commonIndex).join('/');
-			
+
 			return relativePath || './';
 		}
 		return importPath;
@@ -218,7 +222,7 @@ export class ImportTransformer {
 		}
 
 		const result: ImportGroup[] = [];
-		
+
 		if (groups.get(ImportGroupType.EXTERNAL)!.length > 0) {
 			result.push({
 				type: ImportGroupType.EXTERNAL,
@@ -277,31 +281,31 @@ export class ImportTransformer {
 	private renderImport(importStmt: ImportStatement): string {
 		const comments = this.renderComments(importStmt);
 		const importLine = this.renderImportLine(importStmt);
-		
+
 		return comments ? `${comments}\n${importLine}` : importLine;
 	}
 
 	private renderComments(importStmt: ImportStatement): string {
 		if (!this.options.preserveComments) return '';
-		
+
 		const comments: string[] = [];
-		
+
 		if (importStmt.leadingComments) {
 			comments.push(...importStmt.leadingComments.map(c => `// ${c}`));
 		}
-		
+
 		return comments.join('\n');
 	}
 
 	private renderImportLine(importStmt: ImportStatement): string {
 		const typePrefix = importStmt.importKind === 'type' ? 'type ' : '';
-		
+
 		if (importStmt.specifiers.length === 0) {
 			return `import${typePrefix ? ` ${typePrefix}` : ''} '${importStmt.source}';`;
 		}
 
 		const defaultSpecs = importStmt.specifiers.filter(s => s.type === 'default');
-		const namespaceSpecs = importStmt.specifiers.filter(s => s.type === 'namespace');  
+		const namespaceSpecs = importStmt.specifiers.filter(s => s.type === 'namespace');
 		const namedSpecs = importStmt.specifiers.filter(s => s.type === 'named');
 
 		const parts: string[] = [];
@@ -317,14 +321,13 @@ export class ImportTransformer {
 		if (namedSpecs.length > 0) {
 			const namedItems = namedSpecs.map(spec => {
 				const typePrefix = spec.importKind === 'type' ? 'type ' : '';
-				const name = spec.imported === spec.local 
-					? spec.local 
-					: `${spec.imported} as ${spec.local}`;
+				const name =
+					spec.imported === spec.local ? spec.local : `${spec.imported} as ${spec.local}`;
 				return `${typePrefix}${name}`;
 			});
 
 			const shouldUseMultiline = namedItems.length > this.options.multilineThreshold;
-			
+
 			if (shouldUseMultiline) {
 				parts.push(`{\n${this.indentation}${namedItems.join(',\n' + this.indentation)}\n}`);
 			} else {
@@ -335,5 +338,4 @@ export class ImportTransformer {
 		const importList = parts.join(', ');
 		return `import ${typePrefix}${importList} from '${importStmt.source}';`;
 	}
-
 }

@@ -1,6 +1,6 @@
+import { exec } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
-import { exec } from 'child_process';
 import { promisify } from 'util';
 import {
 	PackageInfo,
@@ -23,32 +23,32 @@ export class PackageAnalyzer {
 	private async findProjectRoot(): Promise<string | null> {
 		let currentDir = path.resolve(this.cwd);
 		const root = path.parse(currentDir).root;
-		
+
 		const lockFiles = ['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml', 'pnpm-lock.yml'];
 
 		while (currentDir !== root) {
 			try {
-				// Check if package.json exists
-				await fs.access(path.join(currentDir, 'package.json'));
 				
-				// Check if at least one lock file exists
+				await fs.access(path.join(currentDir, 'package.json'));
+
+				
 				for (const lockFile of lockFiles) {
 					try {
 						await fs.access(path.join(currentDir, lockFile));
-						return currentDir; // Found both package.json and a lock file
+						return currentDir; 
 					} catch {
 						continue;
 					}
 				}
+
 				
-				// package.json exists but no lock files, continue searching up
 			} catch {
-				// No package.json, continue searching up
+				
 			}
 			currentDir = path.dirname(currentDir);
 		}
 
-		// Check root directory too
+		
 		try {
 			await fs.access(path.join(root, 'package.json'));
 			for (const lockFile of lockFiles) {
@@ -60,9 +60,9 @@ export class PackageAnalyzer {
 				}
 			}
 		} catch {
-			// No package.json in root
+			
 		}
-		
+
 		return null;
 	}
 
@@ -74,7 +74,7 @@ export class PackageAnalyzer {
 			throw new Error('No package.json found in current directory or any parent directory');
 		}
 
-		// Update cwd to the actual project root
+		
 		this.cwd = projectRoot;
 
 		const lockFiles = [
@@ -88,7 +88,7 @@ export class PackageAnalyzer {
 			try {
 				await fs.access(path.join(this.cwd, file));
 				const version = await this.getPackageManagerVersion(type);
-				
+
 				this.packageManager = {
 					type,
 					version,
@@ -111,9 +111,9 @@ export class PackageAnalyzer {
 
 	private async getPackageManagerVersion(pm: 'npm' | 'yarn' | 'pnpm'): Promise<string> {
 		try {
-			const { stdout } = await execAsync(`${pm} --version`, { 
+			const { stdout } = await execAsync(`${pm} --version`, {
 				cwd: this.cwd,
-				maxBuffer: 1024 * 1024 // 1MB buffer (small command)
+				maxBuffer: 1024 * 1024 
 			});
 			return stdout.trim();
 		} catch {
@@ -125,23 +125,21 @@ export class PackageAnalyzer {
 		try {
 			const pkgJson = await this.readPackageJson();
 			if (pkgJson.workspaces) {
-				return Array.isArray(pkgJson.workspaces) 
-					? pkgJson.workspaces 
+				return Array.isArray(pkgJson.workspaces)
+					? pkgJson.workspaces
 					: pkgJson.workspaces.packages || [];
 			}
-		} catch {
-			
-		}
+		} catch {}
 		return undefined;
 	}
 
 	async readPackageJson(filePath?: string): Promise<PackageInfo & { [key: string]: any }> {
 		const packagePath = filePath || path.join(this.cwd, 'package.json');
-		
+
 		try {
 			const content = await fs.readFile(packagePath, 'utf-8');
 			const packageJson = JSON.parse(content);
-			
+
 			return {
 				name: packageJson.name || 'unnamed-project',
 				version: packageJson.version || '0.0.0',
@@ -186,7 +184,7 @@ export class PackageAnalyzer {
 			}
 
 			const outdatedInfo = await this.checkOutdatedDependencies();
-			
+
 			for (const [name, info] of outdatedInfo) {
 				if (dependencies.has(name)) {
 					const dep = dependencies.get(name)!;
@@ -195,7 +193,6 @@ export class PackageAnalyzer {
 					dep.isOutdated = info.isOutdated;
 				}
 			}
-
 		} catch (error) {
 			throw new Error(`Failed to analyze dependencies: ${(error as Error).message}`);
 		}
@@ -228,16 +225,15 @@ export class PackageAnalyzer {
 					throw new Error(`Unsupported package manager: ${pm.type}`);
 			}
 
-			const { stdout } = await execAsync(command, { 
+			const { stdout } = await execAsync(command, {
 				cwd: this.cwd,
 				timeout: 30000,
-				maxBuffer: 10 * 1024 * 1024 // 10MB buffer
+				maxBuffer: 10 * 1024 * 1024 
 			});
 
 			if (stdout.trim()) {
 				return parser(stdout);
 			}
-
 		} catch (error) {
 			if ((error as any).code !== 1) {
 				console.warn(`Warning: Failed to check outdated dependencies: ${(error as Error).message}`);
@@ -249,10 +245,10 @@ export class PackageAnalyzer {
 
 	private parseNpmOutdated(output: string): Map<string, DependencyInfo> {
 		const outdated = new Map<string, DependencyInfo>();
-		
+
 		try {
 			const data = JSON.parse(output);
-			
+
 			for (const [name, info] of Object.entries(data as any)) {
 				const pkgInfo = info as any;
 				outdated.set(name, {
@@ -261,7 +257,7 @@ export class PackageAnalyzer {
 					latestVersion: pkgInfo.latest,
 					wantedVersion: pkgInfo.wanted,
 					isOutdated: true,
-					isDev: false, 
+					isDev: false,
 					isOptional: false,
 					isPeer: false
 				});
@@ -269,16 +265,16 @@ export class PackageAnalyzer {
 		} catch (error) {
 			console.warn(`Warning: Failed to parse npm outdated output: ${(error as Error).message}`);
 		}
-		
+
 		return outdated;
 	}
 
 	private parseYarnOutdated(output: string): Map<string, DependencyInfo> {
 		const outdated = new Map<string, DependencyInfo>();
-		
+
 		try {
 			const lines = output.split('\n').filter(line => line.trim());
-			
+
 			for (const line of lines) {
 				const data = JSON.parse(line);
 				if (data.type === 'table' && data.data?.body) {
@@ -302,16 +298,16 @@ export class PackageAnalyzer {
 		} catch (error) {
 			console.warn(`Warning: Failed to parse yarn outdated output: ${(error as Error).message}`);
 		}
-		
+
 		return outdated;
 	}
 
 	private parsePnpmOutdated(output: string): Map<string, DependencyInfo> {
 		const outdated = new Map<string, DependencyInfo>();
-		
+
 		try {
 			const data = JSON.parse(output);
-			
+
 			if (Array.isArray(data)) {
 				for (const pkg of data) {
 					if (pkg.current !== pkg.latest) {
@@ -331,13 +327,13 @@ export class PackageAnalyzer {
 		} catch (error) {
 			console.warn(`Warning: Failed to parse pnpm outdated output: ${(error as Error).message}`);
 		}
-		
+
 		return outdated;
 	}
 
 	async getDependencyTree(): Promise<DependencyTreeNode | null> {
 		const pm = await this.detectPackageManager();
-		
+
 		try {
 			let command: string;
 			let parser: (output: string) => DependencyTreeNode;
@@ -362,11 +358,10 @@ export class PackageAnalyzer {
 			const { stdout } = await execAsync(command, {
 				cwd: this.cwd,
 				timeout: 60000,
-				maxBuffer: 10 * 1024 * 1024 // 10MB buffer
+				maxBuffer: 10 * 1024 * 1024 
 			});
 
 			return parser(stdout);
-
 		} catch (error) {
 			console.warn(`Warning: Failed to get dependency tree: ${(error as Error).message}`);
 			return null;
@@ -401,7 +396,7 @@ export class PackageAnalyzer {
 	private parseYarnTree(output: string): DependencyTreeNode {
 		const lines = output.split('\n').filter(line => line.trim());
 		let rootNode: DependencyTreeNode | null = null;
-		
+
 		for (const line of lines) {
 			try {
 				const data = JSON.parse(line);
@@ -421,19 +416,21 @@ export class PackageAnalyzer {
 				continue;
 			}
 		}
-		
-		return rootNode || {
-			name: 'root',
-			version: '0.0.0',
-			path: this.cwd,
-			dev: false,
-			optional: false
-		};
+
+		return (
+			rootNode || {
+				name: 'root',
+				version: '0.0.0',
+				path: this.cwd,
+				dev: false,
+				optional: false
+			}
+		);
 	}
 
 	private parsePnpmTree(output: string): DependencyTreeNode {
 		const data = JSON.parse(output);
-		
+
 		if (Array.isArray(data) && data.length > 0) {
 			const root = data[0];
 			return {
@@ -445,7 +442,7 @@ export class PackageAnalyzer {
 				dependencies: new Map()
 			};
 		}
-		
+
 		return {
 			name: 'root',
 			version: '0.0.0',

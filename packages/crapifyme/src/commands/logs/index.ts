@@ -7,7 +7,8 @@ import {
 	writeFile,
 	detectVersionControl,
 	FileStats,
-	ExitCode
+	ExitCode,
+	showComplete
 } from '../../shared';
 import { LogsProcessor } from './logic';
 
@@ -117,10 +118,7 @@ export const logsCommand = new Command('logs')
 			if (globalOptions.json) {
 				logger.json(stats);
 			} else {
-				console.log('');
-				console.log('█▀▀ █▀█ █▀▄▀█ █▀█ █   █▀▀ ▀█▀ █▀▀');
-				console.log('█▄▄ █▄█ █░▀░█ █▀▀ █▄▄ ██▄ ░█░ ██▄');
-				console.log('');
+				showComplete();
 
 				if (stats.errors.length > 0) {
 					logger.error(

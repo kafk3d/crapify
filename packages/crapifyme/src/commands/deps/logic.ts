@@ -1,19 +1,24 @@
-import path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+
+import { AlternativesEngine } from './alternatives-db';
+import { BundleAnalyzer } from './bundle-analyzer';
+import { PackageAnalyzer } from './package-analyzer';
+import { SecurityScanner } from './security-scanner';
 import {
 	DepsProcessorOptions,
 	DepsAnalysisResult,
 	ProjectAnalysis,
 	DependencyInfo,
-	AnalysisType,
-	DependencyType,
-	DepsStats
+	AnalysisType
 } from './types';
-import { PackageAnalyzer } from './package-analyzer';
-import { SecurityScanner } from './security-scanner';
-import { BundleAnalyzer } from './bundle-analyzer';
-import { AlternativesEngine } from './alternatives-db';
+
+
+
+
+
+
+
 
 const execAsync = promisify(exec);
 
@@ -58,17 +63,15 @@ export class DepsProcessor {
 
 		try {
 			if (this.options.verbose) {
-				console.log('🔍 Starting dependency analysis...');
+				
 			}
 
 			const packageManager = await this.packageAnalyzer.detectPackageManager();
 			const packageJson = await this.packageAnalyzer.readPackageJson();
 
 			if (this.options.verbose) {
-				console.log(
-					`📦 Detected package manager: ${packageManager.type} ${packageManager.version}`
-				);
-				console.log(`📋 Project: ${packageJson.name} v${packageJson.version}`);
+				
+				
 			}
 
 			const projectAnalysis: ProjectAnalysis = {
@@ -118,13 +121,16 @@ export class DepsProcessor {
 				if (this.options.verbose) {
 					process.stdout.write('🔒 Checking security vulnerabilities');
 					const timer = setInterval(() => process.stdout.write('.'), 800);
-					setTimeout(() => { clearInterval(timer); process.stdout.write('\n'); }, 2000);
+					setTimeout(() => {
+						clearInterval(timer);
+						process.stdout.write('\n');
+					}, 2000);
 				}
 				await this.analyzeSecurity(projectAnalysis, errors);
 			}
 
 			if (shouldAnalyze(AnalysisType.SIZE) && this.options.analyzeBundleSize) {
-				if (this.options.verbose) console.log('📊 Analyzing bundle sizes...');
+				if (this.options.verbose) 
 				await this.analyzeBundleSize(projectAnalysis, errors);
 			}
 
@@ -132,18 +138,21 @@ export class DepsProcessor {
 				if (this.options.verbose) {
 					process.stdout.write('⚡ Finding lighter alternatives');
 					const timer = setInterval(() => process.stdout.write('.'), 600);
-					setTimeout(() => { clearInterval(timer); process.stdout.write('\n'); }, 1500);
+					setTimeout(() => {
+						clearInterval(timer);
+						process.stdout.write('\n');
+					}, 1500);
 				}
 				await this.analyzeAlternatives(projectAnalysis, warnings);
 			}
 
 			if (shouldAnalyze(AnalysisType.DUPLICATES)) {
-				if (this.options.verbose) console.log('🔍 Checking for duplicate dependencies...');
+				if (this.options.verbose) 
 				await this.analyzeDuplicates(projectAnalysis, warnings);
 			}
 
 			if (shouldAnalyze(AnalysisType.UNUSED) && this.options.checkUnused) {
-				if (this.options.verbose) console.log('🧹 Finding unused dependencies...');
+				if (this.options.verbose) 
 				await this.analyzeUnused(projectAnalysis, warnings);
 			}
 
@@ -344,7 +353,7 @@ export class DepsProcessor {
 			const { stdout } = await execAsync('npx depcheck --json', {
 				cwd: this.cwd,
 				timeout: this.options.timeout,
-				maxBuffer: 10 * 1024 * 1024 // 10MB buffer
+				maxBuffer: 10 * 1024 * 1024 
 			});
 
 			const depcheckResult = JSON.parse(stdout);
@@ -397,7 +406,7 @@ export class DepsProcessor {
 
 			const displayVulns = analysis.security.vulnerabilities.slice(0, 5);
 			for (const vuln of displayVulns) {
-				// Use the packageName field directly
+				
 				const pkgName = vuln.packageName || 'unknown';
 
 				const severity = vuln.severity.toUpperCase();
@@ -411,7 +420,7 @@ export class DepsProcessor {
 			lines.push('');
 		}
 
-		// Add detailed package size breakdown
+		
 		if (analysis.bundle.largestPackages.length > 0) {
 			lines.push('📊 PACKAGE SIZES');
 			lines.push('┌─────────────────────┬─────────┬─────────┬─────────┐');

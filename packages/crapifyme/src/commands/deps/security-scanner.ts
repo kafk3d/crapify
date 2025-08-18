@@ -42,7 +42,7 @@ export class SecurityScanner {
 			const { stdout, stderr } = await execAsync(command, {
 				cwd: this.cwd,
 				timeout: this.timeout,
-				maxBuffer: 10 * 1024 * 1024, // 10MB buffer
+				maxBuffer: 10 * 1024 * 1024, 
 				env: { ...process.env, NO_UPDATE_NOTIFIER: 'true' }
 			});
 
@@ -59,17 +59,18 @@ export class SecurityScanner {
 				vulnerabilities: [],
 				summary: { critical: 0, high: 0, moderate: 0, low: 0 }
 			};
-
 		} catch (error: any) {
 			if (error.code === 1) {
 				try {
 					const result = this.parseAuditError(error.stdout || error.stderr, packageManager.type);
 					return result;
 				} catch (parseError) {
-					console.warn(`Warning: Audit found vulnerabilities but output couldn't be parsed: ${(parseError as Error).message}`);
+					console.warn(
+						`Warning: Audit found vulnerabilities but output couldn't be parsed: ${(parseError as Error).message}`
+					);
 				}
 			}
-			
+
 			console.warn(`Warning: Security audit failed: ${error.message}`);
 			return {
 				vulnerabilities: [],
@@ -88,11 +89,11 @@ export class SecurityScanner {
 		try {
 			const auditData = JSON.parse(output);
 
-			// Handle new npm audit format (npm v7+)
+			
 			if (auditData.auditReportVersion === 2 && auditData.vulnerabilities) {
 				for (const [packageName, vulnData] of Object.entries(auditData.vulnerabilities as any)) {
 					const vuln = vulnData as any;
-					
+
 					if (vuln.via && Array.isArray(vuln.via)) {
 						for (const advisory of vuln.via) {
 							if (typeof advisory === 'object' && advisory.source) {
@@ -107,22 +108,30 @@ export class SecurityScanner {
 									patched_versions: advisory.patched_versions,
 									recommendation: `Update ${packageName} to version ${vuln.fixAvailable ? vuln.fixAvailable.version || 'latest' : 'latest'}`
 								};
-								
+
 								vulnerabilities.push(vulnerability);
+
 								
-								// Count severity
 								switch (vulnerability.severity) {
-									case 'critical': summary.critical++; break;
-									case 'high': summary.high++; break;
-									case 'moderate': summary.moderate++; break;
-									case 'low': summary.low++; break;
+									case 'critical':
+										summary.critical++;
+										break;
+									case 'high':
+										summary.high++;
+										break;
+									case 'moderate':
+										summary.moderate++;
+										break;
+									case 'low':
+										summary.low++;
+										break;
 								}
 							}
 						}
 					}
 				}
 			}
-			// Handle old npm audit format (npm v6)
+			
 			else if (auditData.advisories) {
 				if (auditData.metadata?.vulnerabilities) {
 					summary = {
@@ -136,7 +145,7 @@ export class SecurityScanner {
 				for (const [id, advisory] of Object.entries(auditData.advisories as any)) {
 					const adv = advisory as any;
 					const packageName = adv.module_name || adv.package_name || 'unknown';
-					
+
 					const vulnerability: SecurityVulnerability = {
 						id: id,
 						packageName: packageName,
@@ -152,7 +161,6 @@ export class SecurityScanner {
 					vulnerabilities.push(vulnerability);
 				}
 			}
-
 		} catch (error) {
 			console.warn(`Warning: Failed to parse npm audit output: ${(error as Error).message}`);
 		}
@@ -169,10 +177,10 @@ export class SecurityScanner {
 
 		try {
 			const lines = output.split('\n').filter(line => line.trim());
-			
+
 			for (const line of lines) {
 				const data = JSON.parse(line);
-				
+
 				if (data.type === 'auditSummary' && data.data) {
 					summary = {
 						critical: data.data.vulnerabilities?.critical || 0,
@@ -181,7 +189,7 @@ export class SecurityScanner {
 						low: data.data.vulnerabilities?.low || 0
 					};
 				}
-				
+
 				if (data.type === 'auditAdvisory' && data.data) {
 					const advisory = data.data.advisory as any;
 					const packageName = advisory.module_name || advisory.package_name || 'unknown';
@@ -200,7 +208,6 @@ export class SecurityScanner {
 					vulnerabilities.push(vulnerability);
 				}
 			}
-
 		} catch (error) {
 			console.warn(`Warning: Failed to parse yarn audit output: ${(error as Error).message}`);
 		}
@@ -246,7 +253,6 @@ export class SecurityScanner {
 					vulnerabilities.push(vulnerability);
 				}
 			}
-
 		} catch (error) {
 			console.warn(`Warning: Failed to parse pnpm audit output: ${(error as Error).message}`);
 		}
@@ -254,7 +260,10 @@ export class SecurityScanner {
 		return { vulnerabilities, summary };
 	}
 
-	private parseAuditError(output: string, pmType: string): {
+	private parseAuditError(
+		output: string,
+		pmType: string
+	): {
 		vulnerabilities: SecurityVulnerability[];
 		summary: { critical: number; high: number; moderate: number; low: number };
 	} {
@@ -279,7 +288,7 @@ export class SecurityScanner {
 
 	private normalizeSeverity(severity: string): 'low' | 'moderate' | 'high' | 'critical' {
 		const normalized = severity?.toLowerCase();
-		
+
 		switch (normalized) {
 			case 'critical':
 				return 'critical';
@@ -299,48 +308,49 @@ export class SecurityScanner {
 		if (vuln.patched_versions) {
 			return `Update to version ${vuln.patched_versions}`;
 		}
-		
+
 		if (vuln.vulnerable_versions && vuln.vulnerable_versions.includes('<')) {
 			const match = vuln.vulnerable_versions.match(/< ?([0-9.]+)/);
 			if (match) {
 				return `Update to version ${match[1]} or higher`;
 			}
 		}
-		
+
 		return 'Review package for security updates';
 	}
 
-	async checkPackageVulnerabilities(packageName: string, version: string): Promise<SecurityVulnerability[]> {
+	async checkPackageVulnerabilities(
+		packageName: string,
+		version: string
+	): Promise<SecurityVulnerability[]> {
 		try {
-			const { stdout } = await execAsync(
-				`npm view "${packageName}@${version}" deprecated --json`,
-				{ 
-					cwd: this.cwd, 
-					timeout: 15000,
-					maxBuffer: 10 * 1024 * 1024, // 10MB buffer for large packages
-					env: { ...process.env, NO_UPDATE_NOTIFIER: 'true' }
-				}
-			);
+			const { stdout } = await execAsync(`npm view "${packageName}@${version}" deprecated --json`, {
+				cwd: this.cwd,
+				timeout: 15000,
+				maxBuffer: 10 * 1024 * 1024, 
+				env: { ...process.env, NO_UPDATE_NOTIFIER: 'true' }
+			});
 
-			// npm view returns the deprecated message directly when using 'deprecated' field
-			const deprecatedMessage = stdout.trim();
 			
-			if (deprecatedMessage && deprecatedMessage !== 'undefined' && deprecatedMessage !== 'null') {
-				// Remove quotes if present
-				const cleanMessage = deprecatedMessage.replace(/^"|"$/g, '');
-				
-				return [{
-					id: `deprecated-${packageName}`,
-					packageName: packageName,
-					title: `Package ${packageName} is deprecated`,
-					description: cleanMessage,
-					severity: 'moderate' as const,
-					references: [],
-					vulnerable_versions: version,
-					recommendation: 'Find an alternative package'
-				}];
-			}
+			const deprecatedMessage = stdout.trim();
 
+			if (deprecatedMessage && deprecatedMessage !== 'undefined' && deprecatedMessage !== 'null') {
+				
+				const cleanMessage = deprecatedMessage.replace(/^"|"$/g, '');
+
+				return [
+					{
+						id: `deprecated-${packageName}`,
+						packageName: packageName,
+						title: `Package ${packageName} is deprecated`,
+						description: cleanMessage,
+						severity: 'moderate' as const,
+						references: [],
+						vulnerable_versions: version,
+						recommendation: 'Find an alternative package'
+					}
+				];
+			}
 		} catch (error) {
 			console.warn(`Warning: Failed to check package ${packageName}: ${(error as Error).message}`);
 		}
@@ -348,21 +358,23 @@ export class SecurityScanner {
 		return [];
 	}
 
-	async batchCheckVulnerabilities(packages: Array<{ name: string; version: string }>): Promise<Map<string, SecurityVulnerability[]>> {
+	async batchCheckVulnerabilities(
+		packages: Array<{ name: string; version: string }>
+	): Promise<Map<string, SecurityVulnerability[]>> {
 		const results = new Map<string, SecurityVulnerability[]>();
 		const batchSize = 10;
 
 		for (let i = 0; i < packages.length; i += batchSize) {
 			const batch = packages.slice(i, i + batchSize);
-			
-			const promises = batch.map(pkg => 
+
+			const promises = batch.map(pkg =>
 				this.checkPackageVulnerabilities(pkg.name, pkg.version)
 					.then(vulns => ({ package: pkg.name, vulnerabilities: vulns }))
 					.catch(() => ({ package: pkg.name, vulnerabilities: [] }))
 			);
 
 			const batchResults = await Promise.all(promises);
-			
+
 			for (const result of batchResults) {
 				if (result.vulnerabilities.length > 0) {
 					results.set(result.package, result.vulnerabilities);
@@ -391,14 +403,19 @@ export class SecurityScanner {
 		}
 	}
 
-	formatVulnerabilitySummary(summary: { critical: number; high: number; moderate: number; low: number }): string {
+	formatVulnerabilitySummary(summary: {
+		critical: number;
+		high: number;
+		moderate: number;
+		low: number;
+	}): string {
 		const parts = [];
-		
+
 		if (summary.critical > 0) parts.push(`${summary.critical} critical`);
 		if (summary.high > 0) parts.push(`${summary.high} high`);
 		if (summary.moderate > 0) parts.push(`${summary.moderate} moderate`);
 		if (summary.low > 0) parts.push(`${summary.low} low`);
-		
+
 		return parts.length > 0 ? parts.join(', ') : 'No vulnerabilities found';
 	}
 }

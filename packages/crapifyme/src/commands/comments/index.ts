@@ -7,7 +7,8 @@ import {
 	writeFile,
 	detectVersionControl,
 	CommentStats,
-	ExitCode
+	ExitCode,
+	showComplete
 } from '../../shared';
 import { AdvancedCommentRemover } from './advanced-logic';
 
@@ -131,10 +132,7 @@ export const commentsCommand = new Command('comments')
 			if (globalOptions.json) {
 				logger.json(stats);
 			} else {
-				console.log('');
-				console.log('█▀▀ █▀█ █▀▄▀█ █▀█ █   █▀▀ ▀█▀ █▀▀');
-				console.log('█▄▄ █▄█ █░▀░█ █▀▀ █▄▄ ██▄ ░█░ ██▄');
-				console.log('');
+				showComplete();
 
 				if (stats.errors.length > 0) {
 					logger.error(

@@ -1,7 +1,7 @@
 import { parse } from '@babel/parser';
 import traverse, { NodePath } from '@babel/traverse';
-import { 
-	ImportDeclaration, 
+import {
+	ImportDeclaration,
 	ExportDeclaration,
 	ImportSpecifier as BabelImportSpecifier,
 	ImportDefaultSpecifier,
@@ -9,11 +9,7 @@ import {
 	Identifier,
 	Node
 } from '@babel/types';
-import { 
-	ImportStatement, 
-	ImportSpecifier, 
-	ImportAnalysisResult 
-} from './types';
+import { ImportStatement, ImportSpecifier, ImportAnalysisResult } from './types';
 
 export class ASTAnalyzer {
 	private usedIdentifiers = new Set<string>();
@@ -27,7 +23,7 @@ export class ASTAnalyzer {
 			const ast = this.parseCode(content, filePath);
 			this.extractImports(ast, content);
 			this.analyzeUsage(ast);
-			
+
 			return {
 				imports: this.importStatements,
 				unusedImports: this.findUnusedImports(),
@@ -49,13 +45,13 @@ export class ASTAnalyzer {
 	private parseCode(content: string, filePath: string) {
 		const isTypeScript = /\.tsx?$/.test(filePath);
 		const isJSX = /\.(jsx|tsx)$/.test(filePath);
-		
+
 		const plugins: any[] = ['objectRestSpread', 'functionBind', 'decorators-legacy'];
-		
+
 		if (isTypeScript) {
 			plugins.push('typescript');
 		}
-		
+
 		if (isJSX) {
 			plugins.push('jsx');
 		}
@@ -85,7 +81,7 @@ export class ASTAnalyzer {
 				const importStatement: ImportStatement = {
 					source: node.source.value,
 					specifiers: this.extractSpecifiers(node.specifiers),
-					importKind: (importKind === 'type' || importKind === 'typeof') ? importKind : 'value',
+					importKind: importKind === 'type' || importKind === 'typeof' ? importKind : 'value',
 					startPos: node.start || 0,
 					endPos: node.end || 0,
 					leadingComments,
@@ -97,7 +93,9 @@ export class ASTAnalyzer {
 		});
 	}
 
-	private extractSpecifiers(specifiers: (BabelImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[]): ImportSpecifier[] {
+	private extractSpecifiers(
+		specifiers: (BabelImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[]
+	): ImportSpecifier[] {
 		return specifiers.map(spec => {
 			if (spec.type === 'ImportDefaultSpecifier') {
 				return {
@@ -115,10 +113,10 @@ export class ASTAnalyzer {
 					type: 'named' as const,
 					imported: 'name' in spec.imported ? spec.imported.name : spec.imported.value,
 					local: spec.local.name,
-					importKind: (importKind === 'typeof' || importKind === 'type') ? importKind : 'value'
+					importKind: importKind === 'typeof' || importKind === 'type' ? importKind : 'value'
 				};
 			}
-			
+
 			throw new Error(`Unknown import specifier type: ${(spec as any).type}`);
 		});
 	}
@@ -127,12 +125,12 @@ export class ASTAnalyzer {
 		const scopeStack: string[][] = [[]];
 
 		traverse(ast, {
-			enter: (path) => {
+			enter: path => {
 				if (path.isFunction() || path.isBlockStatement() || path.isProgram()) {
 					scopeStack.push([]);
 				}
 			},
-			exit: (path) => {
+			exit: path => {
 				if (path.isFunction() || path.isBlockStatement() || path.isProgram()) {
 					this.scopeChain.push(scopeStack.pop() || []);
 				}
@@ -146,7 +144,7 @@ export class ASTAnalyzer {
 					}
 				}
 			},
-			VariableDeclarator: (path) => {
+			VariableDeclarator: path => {
 				if (path.node.id.type === 'Identifier') {
 					const currentScope = scopeStack[scopeStack.length - 1];
 					if (currentScope) {
@@ -167,7 +165,7 @@ export class ASTAnalyzer {
 
 	private findDuplicateImports(): ImportStatement[][] {
 		const sourceGroups = new Map<string, ImportStatement[]>();
-		
+
 		for (const importStmt of this.importStatements) {
 			const source = importStmt.source;
 			if (!sourceGroups.has(source)) {
@@ -181,11 +179,10 @@ export class ASTAnalyzer {
 
 	canMergeImports(imports: ImportStatement[]): boolean {
 		if (imports.length <= 1) return false;
-		
+
 		const firstImport = imports[0];
-		return imports.every(imp => 
-			imp.importKind === firstImport.importKind &&
-			imp.source === firstImport.source
+		return imports.every(
+			imp => imp.importKind === firstImport.importKind && imp.source === firstImport.source
 		);
 	}
 
@@ -196,7 +193,7 @@ export class ASTAnalyzer {
 
 		const mergedSpecifiers: ImportSpecifier[] = [];
 		const seenLocals = new Set<string>();
-		
+
 		for (const importStmt of imports) {
 			for (const spec of importStmt.specifiers) {
 				if (!seenLocals.has(spec.local)) {

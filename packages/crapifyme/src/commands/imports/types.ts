@@ -81,7 +81,7 @@ export interface ImportTransformResult {
 
 export enum ImportGroupType {
 	EXTERNAL = 'external',
-	INTERNAL = 'internal', 
+	INTERNAL = 'internal',
 	RELATIVE = 'relative'
 }
 

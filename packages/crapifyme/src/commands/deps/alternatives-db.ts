@@ -1,5 +1,5 @@
-import { PackageAlternative, AlternativeDatabase } from './types';
 import { BundleAnalyzer } from './bundle-analyzer';
+import { PackageAlternative, AlternativeDatabase } from './types';
 
 export class AlternativesEngine {
 	private bundleAnalyzer: BundleAnalyzer;
@@ -12,13 +12,13 @@ export class AlternativesEngine {
 
 	private initializeDatabase(): AlternativeDatabase {
 		return {
-			'moment': {
+			moment: {
 				alternatives: [
 					{
 						name: 'dayjs',
 						description: 'Lightweight alternative to Moment.js with same modern API',
 						compatibility: 'minor-changes',
-						sizeSavings: { raw: 0, gzip: 0, percentage: 0 }, 
+						sizeSavings: { raw: 0, gzip: 0, percentage: 0 },
 						features: ['Immutable', 'Chainable', 'I18n support', 'Plugin system'],
 						migrationComplexity: 2,
 						reason: '97% smaller, similar API, actively maintained'
@@ -36,7 +36,7 @@ export class AlternativesEngine {
 				deprecated: false
 			},
 
-			'lodash': {
+			lodash: {
 				alternatives: [
 					{
 						name: 'lodash-es',
@@ -60,7 +60,7 @@ export class AlternativesEngine {
 				deprecated: false
 			},
 
-			'axios': {
+			axios: {
 				alternatives: [
 					{
 						name: 'fetch',
@@ -84,7 +84,7 @@ export class AlternativesEngine {
 				deprecated: false
 			},
 
-			'request': {
+			request: {
 				alternatives: [
 					{
 						name: 'axios',
@@ -109,7 +109,7 @@ export class AlternativesEngine {
 				deprecationReason: 'Package is deprecated and no longer maintained'
 			},
 
-			'uuid': {
+			uuid: {
 				alternatives: [
 					{
 						name: 'nanoid',
@@ -133,7 +133,7 @@ export class AlternativesEngine {
 				deprecated: false
 			},
 
-			'classnames': {
+			classnames: {
 				alternatives: [
 					{
 						name: 'clsx',
@@ -148,7 +148,7 @@ export class AlternativesEngine {
 				deprecated: false
 			},
 
-			'immutable': {
+			immutable: {
 				alternatives: [
 					{
 						name: 'immer',
@@ -163,7 +163,7 @@ export class AlternativesEngine {
 				deprecated: false
 			},
 
-			'bluebird': {
+			bluebird: {
 				alternatives: [
 					{
 						name: 'native-promises',
@@ -193,7 +193,7 @@ export class AlternativesEngine {
 				deprecated: false
 			},
 
-			'validator': {
+			validator: {
 				alternatives: [
 					{
 						name: 'yup',
@@ -219,9 +219,12 @@ export class AlternativesEngine {
 		};
 	}
 
-	async getSuggestions(packageName: string, currentVersion: string = 'latest'): Promise<PackageAlternative[]> {
+	async getSuggestions(
+		packageName: string,
+		currentVersion: string = 'latest'
+	): Promise<PackageAlternative[]> {
 		const packageData = this.alternativesDb[packageName];
-		
+
 		if (!packageData) {
 			return [];
 		}
@@ -231,18 +234,26 @@ export class AlternativesEngine {
 
 		for (const suggestion of suggestions) {
 			try {
-				const alternativeSize = suggestion.name === 'fetch' || suggestion.name === 'crypto.randomUUID' || suggestion.name === 'native-promises' || suggestion.name === 'String.prototype.padStart'
-					? { raw: 0, gzip: 0 }
-					: await this.getSafePackageSize(suggestion.name);
+				const alternativeSize =
+					suggestion.name === 'fetch' ||
+					suggestion.name === 'crypto.randomUUID' ||
+					suggestion.name === 'native-promises' ||
+					suggestion.name === 'String.prototype.padStart'
+						? { raw: 0, gzip: 0 }
+						: await this.getSafePackageSize(suggestion.name);
 
 				suggestion.sizeSavings = {
 					raw: currentSize.raw - alternativeSize.raw,
 					gzip: currentSize.gzip - alternativeSize.gzip,
-					percentage: currentSize.raw > 0 ? ((currentSize.raw - alternativeSize.raw) / currentSize.raw) * 100 : 0
+					percentage:
+						currentSize.raw > 0
+							? ((currentSize.raw - alternativeSize.raw) / currentSize.raw) * 100
+							: 0
 				};
-
 			} catch (error) {
-				console.warn(`Warning: Could not calculate size savings for ${suggestion.name}: ${(error as Error).message}`);
+				console.warn(
+					`Warning: Could not calculate size savings for ${suggestion.name}: ${(error as Error).message}`
+				);
 			}
 		}
 
@@ -251,7 +262,7 @@ export class AlternativesEngine {
 
 	async getAllSuggestions(packages: string[]): Promise<Map<string, PackageAlternative[]>> {
 		const suggestions = new Map<string, PackageAlternative[]>();
-		
+
 		for (const packageName of packages) {
 			if (this.alternativesDb[packageName]) {
 				const packageSuggestions = await this.getSuggestions(packageName);
@@ -260,11 +271,14 @@ export class AlternativesEngine {
 				}
 			}
 		}
-		
+
 		return suggestions;
 	}
 
-	private async getSafePackageSize(packageName: string, version: string = 'latest'): Promise<{ raw: number; gzip: number }> {
+	private async getSafePackageSize(
+		packageName: string,
+		version: string = 'latest'
+	): Promise<{ raw: number; gzip: number }> {
 		try {
 			const sizeInfo = await this.bundleAnalyzer.getPackageSize(packageName, version);
 			return {
@@ -287,10 +301,12 @@ export class AlternativesEngine {
 		return packageName in this.alternativesDb;
 	}
 
-	getPackageInfo(packageName: string): { deprecated: boolean; reason?: string; migrationGuide?: string } | null {
+	getPackageInfo(
+		packageName: string
+	): { deprecated: boolean; reason?: string; migrationGuide?: string } | null {
 		const data = this.alternativesDb[packageName];
 		if (!data) return null;
-		
+
 		return {
 			deprecated: data.deprecated || false,
 			reason: data.deprecationReason,
@@ -305,11 +321,13 @@ export class AlternativesEngine {
 			'major-refactor': '🟠'
 		}[alternative.compatibility];
 
-		const complexityStars = '★'.repeat(alternative.migrationComplexity) + '☆'.repeat(5 - alternative.migrationComplexity);
-		
-		const savings = alternative.sizeSavings.percentage > 0 
-			? `(-${alternative.sizeSavings.percentage.toFixed(1)}%, -${this.formatSize(alternative.sizeSavings.gzip)} gzipped)`
-			: '';
+		const complexityStars =
+			'★'.repeat(alternative.migrationComplexity) + '☆'.repeat(5 - alternative.migrationComplexity);
+
+		const savings =
+			alternative.sizeSavings.percentage > 0
+				? `(-${alternative.sizeSavings.percentage.toFixed(1)}%, -${this.formatSize(alternative.sizeSavings.gzip)} gzipped)`
+				: '';
 
 		return [
 			`${compatibilityIcon} ${alternative.name} ${savings}`,
@@ -324,19 +342,16 @@ export class AlternativesEngine {
 			return 'No alternative suggestions available for your dependencies.';
 		}
 
-		const lines = [
-			'⚡ LIGHTER ALTERNATIVES',
-			'─'.repeat(60)
-		];
+		const lines = ['⚡ LIGHTER ALTERNATIVES', '─'.repeat(60)];
 
 		let totalSavings = { raw: 0, gzip: 0 };
 
 		for (const [packageName, alternatives] of suggestions) {
 			lines.push(`\n📦 ${packageName}:`);
-			
-			for (const alt of alternatives.slice(0, 2)) { 
+
+			for (const alt of alternatives.slice(0, 2)) {
 				lines.push(this.formatSuggestion(packageName, alt));
-				
+
 				if (alt.sizeSavings.gzip > 0) {
 					totalSavings.raw += alt.sizeSavings.raw;
 					totalSavings.gzip += alt.sizeSavings.gzip;
@@ -346,7 +361,9 @@ export class AlternativesEngine {
 
 		if (totalSavings.gzip > 0) {
 			lines.push('', '💾 POTENTIAL SAVINGS:');
-			lines.push(`Total: ${this.formatSize(totalSavings.raw)} (${this.formatSize(totalSavings.gzip)} gzipped)`);
+			lines.push(
+				`Total: ${this.formatSize(totalSavings.raw)} (${this.formatSize(totalSavings.gzip)} gzipped)`
+			);
 		}
 
 		return lines.join('\n');
@@ -354,7 +371,7 @@ export class AlternativesEngine {
 
 	private formatSize(bytes: number): string {
 		if (bytes === 0) return '0B';
-		
+
 		const units = ['B', 'KB', 'MB', 'GB'];
 		let size = bytes;
 		let unitIndex = 0;
@@ -374,7 +391,7 @@ export class AlternativesEngine {
 				deprecated: false
 			};
 		}
-		
+
 		this.alternativesDb[packageName].alternatives.push(alternative);
 	}
 

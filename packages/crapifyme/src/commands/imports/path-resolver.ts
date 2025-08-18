@@ -6,7 +6,7 @@ export class PathResolver {
 	private aliases: PathAlias[] = [];
 	private projectRoot: string;
 	private tsConfigPaths: Record<string, string[]> = {};
-	
+
 	constructor(projectRoot: string = process.cwd()) {
 		this.projectRoot = projectRoot;
 		this.loadTsConfigPaths();
@@ -86,7 +86,7 @@ export class PathResolver {
 			const currentDir = path.dirname(currentFile);
 			const targetAbsolute = path.resolve(this.projectRoot, targetPath);
 			const relativePath = path.relative(currentDir, targetAbsolute);
-			
+
 			if (relativePath.startsWith('.')) {
 				return relativePath.replace(/\\/g, '/');
 			} else {
@@ -98,10 +98,7 @@ export class PathResolver {
 	}
 
 	normalizeImportPath(importPath: string): string {
-		return importPath
-			.replace(/\\/g, '/')
-			.replace(/\/+/g, '/')
-			.replace(/\/$/, '');
+		return importPath.replace(/\\/g, '/').replace(/\/+/g, '/').replace(/\/$/, '');
 	}
 
 	getFileExtensions(): string[] {
@@ -110,13 +107,13 @@ export class PathResolver {
 
 	resolveModulePath(importPath: string, currentFile: string): string | null {
 		const basePath = this.resolveImportPath(importPath, currentFile);
-		
+
 		if (this.isExternalModule(basePath)) {
 			return basePath;
 		}
 
 		const possiblePaths = this.generatePossiblePaths(basePath, currentFile);
-		
+
 		for (const possiblePath of possiblePaths) {
 			if (fs.existsSync(possiblePath)) {
 				return possiblePath;
@@ -127,20 +124,18 @@ export class PathResolver {
 	}
 
 	private createAliasRegex(pattern: string): RegExp {
-		const escapedPattern = pattern
-			.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-			.replace(/\\\*/g, '(.*)');
+		const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, '(.*)');
 		return new RegExp(`^${escapedPattern}`);
 	}
 
 	private loadTsConfigPaths(): void {
 		const tsConfigPath = path.join(this.projectRoot, 'tsconfig.json');
-		
+
 		if (fs.existsSync(tsConfigPath)) {
 			try {
 				const tsConfig = JSON.parse(fs.readFileSync(tsConfigPath, 'utf-8'));
 				const compilerOptions = tsConfig.compilerOptions;
-				
+
 				if (compilerOptions?.paths) {
 					this.tsConfigPaths = compilerOptions.paths;
 				}
@@ -184,10 +179,12 @@ export class PathResolver {
 	}
 
 	private isExternalModule(importPath: string): boolean {
-		return !importPath.startsWith('.') && 
-			   !importPath.startsWith('/') && 
-			   !importPath.startsWith('@/') && 
-			   !importPath.startsWith('~/');
+		return (
+			!importPath.startsWith('.') &&
+			!importPath.startsWith('/') &&
+			!importPath.startsWith('@/') &&
+			!importPath.startsWith('~/')
+		);
 	}
 
 	private resolveRelativePath(importPath: string, currentFile: string): string {
@@ -196,14 +193,14 @@ export class PathResolver {
 			const resolved = path.resolve(currentDir, importPath);
 			return path.relative(this.projectRoot, resolved).replace(/\\/g, '/');
 		}
-		
+
 		return importPath;
 	}
 
 	private generatePossiblePaths(basePath: string, currentFile: string): string[] {
 		const paths: string[] = [];
 		const currentDir = path.dirname(currentFile);
-		
+
 		let resolvedBase: string;
 		if (path.isAbsolute(basePath)) {
 			resolvedBase = basePath;
@@ -228,18 +225,20 @@ export class PathResolver {
 	static parseCliAliases(aliasString: string): PathAlias[] {
 		const aliases: PathAlias[] = [];
 		const pairs = aliasString.split(',');
-		
+
 		for (const pair of pairs) {
 			const [pattern, replacement] = pair.split(':').map(s => s.trim());
 			if (pattern && replacement) {
 				aliases.push({
 					pattern,
 					replacement,
-					regex: new RegExp(`^${pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, '(.*)')}`)
+					regex: new RegExp(
+						`^${pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, '(.*)')}`
+					)
 				});
 			}
 		}
-		
+
 		return aliases;
 	}
 }
