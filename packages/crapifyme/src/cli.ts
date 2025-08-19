@@ -6,6 +6,7 @@ import { commentsCommand } from './commands/comments';
 import { depsCommand } from './commands/deps';
 import { importsCommand } from './commands/imports';
 import { logsCommand } from './commands/logs';
+import { svgCommand } from './commands/svg';
 import { showBanner } from './shared';
 
 const pkg = require('../package.json');
@@ -28,12 +29,14 @@ Examples:
   $ crapifyme logs                      # Remove console.log from current directory
   $ crapifyme imports                   # Optimize imports (sort, group, remove unused, merge duplicates)
   $ crapifyme deps                      # Analyze dependencies (security, size, unused)
+  $ crapifyme svg                       # Optimize SVG files using SVGO engine
   $ crapifyme base64 decode <base64>    # Decode base64 to file
   $ crapifyme chars --fix --strict      # Fix non-ASCII characters with strict mode
   $ crapifyme comments --dry-run .      # Preview comment changes
   $ crapifyme logs --force              # Remove logs without VCS check
   $ crapifyme imports --style=absolute  # Convert to absolute imports  
   $ crapifyme deps --security-only      # Only check security vulnerabilities
+  $ crapifyme svg --preset=aggressive   # Maximize SVG compression with aggressive preset
 
 Global Options:
   --dry-run                Preview changes without modifying files
@@ -59,6 +62,7 @@ program.addCommand(commentsCommand);
 program.addCommand(depsCommand);
 program.addCommand(importsCommand);
 program.addCommand(logsCommand);
+program.addCommand(svgCommand);
 
 if (process.argv.length <= 2) {
 	program.help();

@@ -51,13 +51,21 @@
 		"@babel/parser": "^7.28.3",
 		"@babel/traverse": "^7.28.3",
 		"any-ascii": "^0.3.3",
+		"chalk": "^4.1.0",
+		"cli-progress": "^3.12.0",
 		"commander": "^11.0.0",
+		"fast-glob": "^3.3.3",
+		"filesize": "^11.0.2",
 		"glob": "^10.0.0",
-		"mime-types": "^2.1.35"
+		"is-svg": "^6.1.0",
+		"mime-types": "^2.1.35",
+		"ora": "^5.4.1",
+		"svgo": "^3.3.2"
 	},
 	"devDependencies": {
 		"@types/babel__generator": "^7.27.0",
 		"@types/babel__traverse": "^7.28.0",
+		"@types/cli-progress": "^3.11.6",
 		"@types/jest": "^30.0.0",
 		"@types/mime-types": "^2.1.1",
 		"@types/node": "^20.0.0",
