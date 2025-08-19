@@ -29,6 +29,7 @@ export interface Base64Options {
 	raw?: boolean;
 	quiet?: boolean;
 	sizeInfo?: boolean;
+	noSizeInfo?: boolean;
 	output?: string;
 }
 

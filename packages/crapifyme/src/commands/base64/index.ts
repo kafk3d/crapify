@@ -10,7 +10,8 @@ export const base64Command = new Command('base64')
 	.option('--css-only', 'Output only CSS background-image format')
 	.option('--data-url-only', 'Output only data URL format')
 	.option('--raw', 'Output raw base64 string without data URL wrapper')
-	.option('--size-info', 'Show detailed size analysis')
+	.option('--size-info', 'Show detailed size analysis (default: true)')
+	.option('--no-size-info', 'Hide size analysis')
 	.addHelpText(
 		'after',
 		`
@@ -21,7 +22,7 @@ Examples:
   $ crapifyme base64 image.svg --css-only         # Output only CSS format
   $ crapifyme base64 icon.ico --data-url-only     # Output only data URL format
   $ crapifyme base64 photo.jpg --raw              # Output raw base64 only
-  $ crapifyme base64 image.png --size-info        # Include detailed size analysis
+  $ crapifyme base64 image.png --no-size-info     # Hide size analysis
 
 Supported formats: png, jpg, jpeg, svg, gif, webp, bmp, ico, tiff, avif
 `
@@ -42,7 +43,8 @@ base64Command
 	.option('--css-only', 'Output only CSS background-image format')
 	.option('--data-url-only', 'Output only data URL format')
 	.option('--raw', 'Output raw base64 string without data URL wrapper')
-	.option('--size-info', 'Show detailed size analysis')
+	.option('--size-info', 'Show detailed size analysis (default: true)')
+	.option('--no-size-info', 'Hide size analysis')
 	.action(async (file: string, options: any, command: Command) => {
 		await handleEncode(file, options, command);
 	});
@@ -93,7 +95,7 @@ async function handleEncode(
 			if (!options.quiet && !globalOptions.quiet) {
 				logger.success(`Encoded: ${path.basename(filePath)}`);
 
-				if (options.sizeInfo || globalOptions.verbose) {
+				if (!options.noSizeInfo) {
 					console.log(`  ┣ Original size: ${processor.formatSize(result.originalSize)}`);
 					console.log(`  ┣ Base64 size: ${processor.formatSize(result.base64Size)}`);
 					console.log(`  ┣ Overhead: ${result.overhead.toFixed(1)}%`);

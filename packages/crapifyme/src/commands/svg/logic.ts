@@ -153,7 +153,11 @@ export class SvgProcessor {
 				if (options.glob) {
 					patterns.push(path.join(targetPath, options.glob));
 				} else {
-					patterns.push(path.join(targetPath, `**/*.{${extensions.join(',')}}`));
+					if (extensions.length === 1) {
+						patterns.push(path.join(targetPath, `**/*.${extensions[0]}`));
+					} else {
+						patterns.push(path.join(targetPath, `**/*.{${extensions.join(',')}}`));
+					}
 				}
 			}
 		} catch {

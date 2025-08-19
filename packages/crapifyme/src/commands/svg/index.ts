@@ -5,9 +5,13 @@ import { SvgProcessor } from './logic';
 import { SvgOptions, SvgStats, SVG_PRESETS } from './types';
 
 export const svgCommand = new Command('svg')
-	.description('Optimize SVG files using SVGO - the same engine as SVGOMG')
+	.description('Optimize SVG files using SVGO')
 	.argument('[target]', 'SVG file or directory to optimize (defaults to current directory)')
-	.option('--preset <preset>', `Optimization preset (${Object.keys(SVG_PRESETS).join(', ')})`, 'balanced')
+	.option(
+		'--preset <preset>',
+		`Optimization preset (${Object.keys(SVG_PRESETS).join(', ')})`,
+		'balanced'
+	)
 	.option('--config <path>', 'Path to custom SVGO configuration file')
 	.option('--plugins <plugins>', 'Comma-separated list of SVGO plugins to enable')
 	.option('--precision <number>', 'Floating point precision for coordinates', parseFloat)
@@ -25,7 +29,8 @@ export const svgCommand = new Command('svg')
 	.option('--parallel', 'Process files in parallel (default: true)', true)
 	.option('--max-concurrency <number>', 'Maximum number of concurrent operations', parseInt, 4)
 	.option('--watch', 'Watch mode for continuous optimization during development')
-	.option('--size-info', 'Show detailed size analysis and compression ratios')
+	.option('--size-info', 'Show detailed size analysis and compression ratios (default: true)')
+	.option('--no-size-info', 'Hide size analysis')
 	.option('--report <format>', 'Export report (json, csv)')
 	.option('--inline-styles', 'Convert style attributes to inline styles')
 	.option('--remove-viewbox', 'Remove viewBox when not needed')
@@ -98,7 +103,7 @@ Typical Size Reductions:
   Balanced preset:   30-60% file size reduction  
   Aggressive preset: 50-80% file size reduction
 
-Uses SVGO v3+ - the same optimization engine as SVGOMG.com
+Uses SVGO v3+
 Visit https://crapify.me for documentation and examples.
 `
 	)
@@ -133,17 +138,23 @@ async function handleSvgOptimization(
 
 		// Validate preset
 		if (mergedOptions.preset && !SVG_PRESETS[mergedOptions.preset]) {
-			throw new Error(`Invalid preset "${mergedOptions.preset}". Available presets: ${Object.keys(SVG_PRESETS).join(', ')}`);
+			throw new Error(
+				`Invalid preset "${mergedOptions.preset}". Available presets: ${Object.keys(SVG_PRESETS).join(', ')}`
+			);
 		}
 
 		// Parse plugins if provided
 		if (mergedOptions.plugins && typeof mergedOptions.plugins === 'string') {
-			mergedOptions.plugins = (mergedOptions.plugins as string).split(',').map((p: string) => p.trim());
+			mergedOptions.plugins = (mergedOptions.plugins as string)
+				.split(',')
+				.map((p: string) => p.trim());
 		}
 
 		// Parse exclude patterns if provided
 		if (mergedOptions.exclude && typeof mergedOptions.exclude === 'string') {
-			mergedOptions.exclude = (mergedOptions.exclude as string).split(',').map((p: string) => p.trim());
+			mergedOptions.exclude = (mergedOptions.exclude as string)
+				.split(',')
+				.map((p: string) => p.trim());
 		}
 
 		const processor = new SvgProcessor(logger);
@@ -171,39 +182,35 @@ async function handleSvgOptimization(
 		}
 
 		// Set appropriate exit code
-		const exitCode = result.stats.errors.length > 0 ? ExitCode.Error : 
-						 result.failedFiles.length > 0 ? ExitCode.IssuesFound : 
-						 ExitCode.Success;
+		const exitCode =
+			result.stats.errors.length > 0
+				? ExitCode.Error
+				: result.failedFiles.length > 0
+					? ExitCode.IssuesFound
+					: ExitCode.Success;
 
 		process.exit(exitCode);
-
 	} catch (error) {
 		logger.error('SVG optimization failed', error as Error);
 		process.exit(ExitCode.Error);
 	}
 }
 
-async function displayResults(
-	result: any,
-	options: SvgOptions,
-	logger: Logger
-): Promise<void> {
+async function displayResults(result: any, options: SvgOptions, logger: Logger): Promise<void> {
 	const { stats } = result;
 
 	if (!options.quiet) {
 		// Show completion banner if not in quiet mode and processing was successful
-		if (stats.filesProcessed > 0) {
-			showComplete();
-		}
-
 		// Display summary
-		logger.success(`Processed ${stats.filesProcessed} SVG file${stats.filesProcessed === 1 ? '' : 's'}`);
-		
+		logger.success(
+			`Processed ${stats.filesProcessed} SVG file${stats.filesProcessed === 1 ? '' : 's'}`
+		);
+
 		if (stats.filesSkipped > 0) {
 			logger.info(`Skipped ${stats.filesSkipped} file${stats.filesSkipped === 1 ? '' : 's'}`);
 		}
 
-		if (options.sizeInfo || options.verbose) {
+		if (options.sizeInfo !== false) {
 			const compressionPercent = ((stats.bytesSaved / stats.bytesOriginal) * 100).toFixed(1);
 			console.log(`  ┣ Original size: ${formatBytes(stats.bytesOriginal)}`);
 			console.log(`  ┣ Optimized size: ${formatBytes(stats.bytesOptimized)}`);
@@ -216,7 +223,9 @@ async function displayResults(
 
 		// Show errors if any
 		if (stats.errors.length > 0) {
-			logger.warn(`${stats.errors.length} error${stats.errors.length === 1 ? '' : 's'} encountered:`);
+			logger.warn(
+				`${stats.errors.length} error${stats.errors.length === 1 ? '' : 's'} encountered:`
+			);
 			stats.errors.forEach((error: any) => {
 				console.log(`  ┣ ${error.file}: ${error.error}`);
 			});
@@ -228,6 +237,10 @@ async function displayResults(
 			stats.warnings.forEach((warning: any) => {
 				console.log(`  ┣ ${warning.file}: ${warning.warning}`);
 			});
+		}
+
+		if (stats.filesProcessed > 0) {
+			showComplete();
 		}
 	}
 }

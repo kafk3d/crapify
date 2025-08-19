@@ -24,7 +24,7 @@ npx crapifyme deps
 # Analyze dependencies: security, size, unused
 
 npx crapifyme svg
-# Optimize SVG files using SVGO (same as SVGOMG)
+# Optimize SVG files using SVGO
 
 npx crapifyme comments --dry-run
 # Preview changes without modifying files
@@ -221,115 +221,6 @@ crapifyme chars --extensions "js,ts,py,go" --fix src/
 - Comprehensive Unicode range detection
 - Safe mode with version control detection
 
-### SVG Tool
-
-Professional SVG optimization using SVGO - the same engine as SVGOMG.com - with intelligent presets and advanced configuration options.
-
-```bash
-# Basic optimization (balanced preset by default)
-crapifyme svg
-
-# Optimize specific file or directory
-crapifyme svg logo.svg
-crapifyme svg assets/icons/
-
-# Different optimization presets
-crapifyme svg --preset=minimal assets/     # Light optimization, preserves structure
-crapifyme svg --preset=balanced assets/    # Balanced compression (default)
-crapifyme svg --preset=aggressive assets/  # Maximum compression
-
-# Advanced output modes
-crapifyme svg --copy icons/                # Create .optimized.svg copies
-crapifyme svg --backup --in-place icons/   # Create .original.svg backups
-crapifyme svg --stdout logo.svg            # Output to console
-crapifyme svg --output-dir=optimized/ src/ # Save to different directory
-
-# Performance and processing options
-crapifyme svg --parallel --max-concurrency=8 large-dir/  # High-performance batch
-crapifyme svg --multipass --precision=1 icons/           # Multiple optimization passes
-crapifyme svg --glob "**/*.svg" --exclude="**/node_modules/**" # Advanced file matching
-
-# Preservation options
-crapifyme svg --keep-ids --keep-titles components/       # Preserve accessibility
-crapifyme svg --plugins="cleanupAttrs,removeComments" logo.svg  # Custom plugins
-
-# Advanced optimization features
-crapifyme svg --convert-colors --sort-attrs --minify-styles assets/  # Color & style optimization
-crapifyme svg --remove-viewbox --remove-xmlns standalone-icons/     # Aggressive cleanup
-
-# Development workflow
-crapifyme svg --watch --preset=balanced src/             # Watch mode for development
-crapifyme svg --report=json --size-info assets/          # Generate detailed reports
-crapifyme svg --config=svgo.config.js assets/            # Use custom configuration
-```
-
-**Optimization Presets:**
-
-- **Minimal**: 10-30% file size reduction, preserves most attributes and structure
-- **Balanced**: 30-60% file size reduction with good compression while maintaining usability (default)
-- **Aggressive**: 50-80% file size reduction with maximum compression
-
-**Output Modes:**
-
-- **In-place**: Overwrite original files (default, prompts for confirmation)
-- **Copy**: Create `.optimized.svg` copies alongside originals
-- **Backup**: Create `.original.svg` backups before optimization
-- **Stdout**: Output optimized SVG to console (single files only)
-- **Output Directory**: Save optimized files to specified directory
-
-**Advanced Features:**
-
-- **SVGO v3+ Engine**: Uses the same optimization engine as SVGOMG.com
-- **Parallel Processing**: Process multiple files simultaneously with configurable concurrency
-- **Progress Tracking**: Real-time progress bars and spinners for batch operations
-- **Validation**: Input/output SVG structure validation to ensure integrity
-- **Custom Configuration**: Support for SVGO configuration files and custom plugin selection
-- **Watch Mode**: Continuous optimization during development
-- **Detailed Reporting**: Export optimization reports in JSON/CSV formats with metrics
-
-**Safety Features:**
-
-- **Dry Run Mode**: Preview changes without modifying files (`--dry-run`)
-- **Version Control Detection**: Requires VCS or `--force` flag for safety
-- **Automatic Backups**: Optional backup creation before optimization
-- **SVG Validation**: Validates SVG structure before and after optimization
-- **Error Recovery**: Graceful handling of malformed or problematic SVG files
-
-**Performance Optimizations:**
-
-- **Smart File Detection**: Skips already optimized files based on content analysis
-- **Memory Efficient**: Handles large SVG files (>10MB) with streaming support
-- **Concurrent Processing**: Configurable worker pool for batch operations
-- **Fast Glob Matching**: High-performance file pattern matching
-
-**Integration Features:**
-
-- **Build Tool Integration**: Exit codes optimized for CI/CD pipelines
-- **Report Generation**: Detailed analytics with size reduction metrics
-- **Configuration Inheritance**: Project-level and directory-specific settings
-- **Custom Plugin System**: Extensible with SVGO's plugin ecosystem
-
-**Example Output:**
-```
-✔ Processed 15 SVG files
-  ┣ Original size: 45.2 KB
-  ┣ Optimized size: 28.7 KB
-  ┣ Bytes saved: 16.5 KB
-  ┣ Compression: 36.5%
-  ┣ Avg ratio: 1.58:1
-  ┗ Processing time: 234.00ms
-```
-
-**Typical Use Cases:**
-
-- **Production Optimization**: Prepare SVG assets for web deployment with maximum compression
-- **Development Workflow**: Continuous optimization during asset creation and modification
-- **Asset Pipeline**: Integrate into build systems for automated SVG optimization
-- **Legacy Cleanup**: Batch process existing SVG collections for size reduction
-- **Quality Assurance**: Validate and standardize SVG files across projects
-
-Uses SVGO v3+ with preset-default configuration system for reliable, predictable results.
-
 ### Comments Tool
 
 ```bash
@@ -403,6 +294,115 @@ crapifyme imports --no-sort --no-group src/
 - **Scope analysis** for precise unused import detection
 - **Character-level replacement** preserves all formatting
 - **TypeScript support** with proper type import handling
+
+### SVG Tool
+
+Professional SVG optimization using SVGO - with intelligent presets and advanced configuration options.
+
+```bash
+# Basic optimization (balanced preset by default)
+crapifyme svg
+
+# Optimize specific file or directory
+crapifyme svg logo.svg
+crapifyme svg assets/icons/
+
+# Different optimization presets
+crapifyme svg --preset=minimal assets/     # Light optimization, preserves structure
+crapifyme svg --preset=balanced assets/    # Balanced compression (default)
+crapifyme svg --preset=aggressive assets/  # Maximum compression
+
+# Advanced output modes
+crapifyme svg --copy icons/                # Create .optimized.svg copies
+crapifyme svg --backup --in-place icons/   # Create .original.svg backups
+crapifyme svg --stdout logo.svg            # Output to console
+crapifyme svg --output-dir=optimized/ src/ # Save to different directory
+
+# Performance and processing options
+crapifyme svg --parallel --max-concurrency=8 large-dir/  # High-performance batch
+crapifyme svg --multipass --precision=1 icons/           # Multiple optimization passes
+crapifyme svg --glob "**/*.svg" --exclude="**/node_modules/**" # Advanced file matching
+
+# Preservation options
+crapifyme svg --keep-ids --keep-titles components/       # Preserve accessibility
+crapifyme svg --plugins="cleanupAttrs,removeComments" logo.svg  # Custom plugins
+
+# Advanced optimization features
+crapifyme svg --convert-colors --sort-attrs --minify-styles assets/  # Color & style optimization
+crapifyme svg --remove-viewbox --remove-xmlns standalone-icons/     # Aggressive cleanup
+
+# Development workflow
+crapifyme svg --watch --preset=balanced src/             # Watch mode for development
+crapifyme svg --report=json --size-info assets/          # Generate detailed reports
+crapifyme svg --config=svgo.config.js assets/            # Use custom configuration
+```
+
+**Optimization Presets:**
+
+- **Minimal**: 10-30% file size reduction, preserves most attributes and structure
+- **Balanced**: 30-60% file size reduction with good compression while maintaining usability (default)
+- **Aggressive**: 50-80% file size reduction with maximum compression
+
+**Output Modes:**
+
+- **In-place**: Overwrite original files (default, prompts for confirmation)
+- **Copy**: Create `.optimized.svg` copies alongside originals
+- **Backup**: Create `.original.svg` backups before optimization
+- **Stdout**: Output optimized SVG to console (single files only)
+- **Output Directory**: Save optimized files to specified directory
+
+**Advanced Features:**
+
+- **SVGO v3+ Engine**
+- **Parallel Processing**: Process multiple files simultaneously with configurable concurrency
+- **Progress Tracking**: Real-time progress bars and spinners for batch operations
+- **Validation**: Input/output SVG structure validation to ensure integrity
+- **Custom Configuration**: Support for SVGO configuration files and custom plugin selection
+- **Watch Mode**: Continuous optimization during development
+- **Detailed Reporting**: Export optimization reports in JSON/CSV formats with metrics
+
+**Safety Features:**
+
+- **Dry Run Mode**: Preview changes without modifying files (`--dry-run`)
+- **Version Control Detection**: Requires VCS or `--force` flag for safety
+- **Automatic Backups**: Optional backup creation before optimization
+- **SVG Validation**: Validates SVG structure before and after optimization
+- **Error Recovery**: Graceful handling of malformed or problematic SVG files
+
+**Performance Optimizations:**
+
+- **Smart File Detection**: Skips already optimized files based on content analysis
+- **Memory Efficient**: Handles large SVG files (>10MB) with streaming support
+- **Concurrent Processing**: Configurable worker pool for batch operations
+- **Fast Glob Matching**: High-performance file pattern matching
+
+**Integration Features:**
+
+- **Build Tool Integration**: Exit codes optimized for CI/CD pipelines
+- **Report Generation**: Detailed analytics with size reduction metrics
+- **Configuration Inheritance**: Project-level and directory-specific settings
+- **Custom Plugin System**: Extensible with SVGO's plugin ecosystem
+
+**Example Output:**
+```
+✔ Processed 15 SVG files
+  ┣ Original size: 45.2 KB
+  ┣ Optimized size: 28.7 KB
+  ┣ Bytes saved: 16.5 KB
+  ┣ Compression: 36.5%
+  ┣ Avg ratio: 1.58:1
+  ┗ Processing time: 234.00ms
+```
+
+**Typical Use Cases:**
+
+- **Production Optimization**: Prepare SVG assets for web deployment with maximum compression
+- **Development Workflow**: Continuous optimization during asset creation and modification
+- **Asset Pipeline**: Integrate into build systems for automated SVG optimization
+- **Legacy Cleanup**: Batch process existing SVG collections for size reduction
+- **Quality Assurance**: Validate and standardize SVG files across projects
+
+Uses SVGO v3+ with preset-default configuration system for reliable, predictable results.
 
 ### Deps Tool
 
@@ -614,7 +614,8 @@ crapifyme deps --pm=pnpm
 | `--parallel` | **true** | Process files in parallel |
 | `--max-concurrency <number>` | 4 | Maximum number of concurrent operations |
 | `--watch` | **false** | Watch mode for continuous optimization during development |
-| `--size-info` | **false** | Show detailed size analysis and compression ratios |
+| `--size-info` | **true** | Show detailed size analysis and compression ratios |
+| `--no-size-info` | **false** | Hide size analysis |
 | `--report <format>` | - | Export report (json, csv) |
 | `--inline-styles` | **false** | Convert style attributes to inline styles |
 | `--remove-viewbox` | **false** | Remove viewBox when not needed |
