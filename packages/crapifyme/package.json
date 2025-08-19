@@ -50,6 +50,7 @@
 		"@babel/generator": "^7.28.3",
 		"@babel/parser": "^7.28.3",
 		"@babel/traverse": "^7.28.3",
+		"any-ascii": "^0.3.3",
 		"commander": "^11.0.0",
 		"glob": "^10.0.0"
 	},

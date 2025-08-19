@@ -5,6 +5,9 @@ A toolkit of oddly specific CLI utilities for developers and vibecoders
 ## Quick Start
 
 ```bash
+npx crapifyme chars
+# Detect and fix non-Latin characters (Cyrillic, Greek, CJK, Arabic)
+
 npx crapifyme comments
 # Remove noisy comments, keep critical ones
 
@@ -29,6 +32,9 @@ npx crapifyme comments --dry-run
 ```bash
 npm install -g crapifyme
 # Install globally for frequent use
+
+crapifyme chars --fix src/
+# Fix non-Latin characters in src directory
 
 crapifyme comments src/
 # Process specific directory with comments tool
@@ -107,6 +113,46 @@ Rule-based engine that preserves critical comments while removing noise.
 - Validation to prevent excessive content removal
 
 ## Commands
+
+### Chars Tool
+
+Enterprise-grade Unicode-to-ASCII transliteration for cleaning non-Latin characters from codebases.
+
+```bash
+# Detect non-Latin characters (detection mode)
+crapifyme chars
+
+# Automatically fix detected issues
+crapifyme chars --fix src/
+
+# Strict mode - flag all non-ASCII characters
+crapifyme chars --strict --fix src/
+
+# Ignore characters in strings and comments
+crapifyme chars --ignore-strings --ignore-comments src/
+
+# Filter by severity level
+crapifyme chars --severity=high src/
+
+# Custom file extensions
+crapifyme chars --extensions "js,ts,py,go" --fix src/
+```
+
+**Character Detection:**
+
+- **Cyrillic**: `Привет` → `Privet` (Russian, Ukrainian, Bulgarian)
+- **Greek**: `α β γ δ` → `a v g d` (Mathematical symbols, Greek text)
+- **CJK**: `你好世界` → `NiHaoShiJie` (Chinese, Japanese, Korean)
+- **Arabic**: `مرحبا` → `mrhb` (Arabic script)
+- **Accented**: `résumé café` → `resume cafe` (Latin with diacritics)
+- **Invisible**: Zero-width spaces, byte order marks
+
+**Features:**
+- Uses `any-ascii` library for professional-grade transliteration
+- Context display showing surrounding code
+- Severity-based filtering (low, medium, high, critical)
+- Comprehensive Unicode range detection
+- Safe mode with version control detection
 
 ### Comments Tool
 
@@ -281,6 +327,20 @@ crapifyme deps --pm=pnpm
 | `--quiet`   | Suppress all output except errors         |
 | `--json`    | Machine-readable JSON output              |
 
+### Chars Tool
+
+| Option                     | Description                                                      |
+| -------------------------- | ---------------------------------------------------------------- |
+| `--fix`                    | Automatically fix detected characters with ASCII replacements    |
+| `--strict`                 | Enable strict mode (flag all non-ASCII characters)              |
+| `--interactive`            | Prompt for each replacement (requires --fix)                    |
+| `--severity <level>`       | Minimum severity to report (low/medium/high/critical)           |
+| `--show-context <number>`  | Number of characters to show around each issue (default: 40)    |
+| `--ignore-strings`         | Ignore characters inside string literals                        |
+| `--ignore-comments`        | Ignore characters inside comments                               |
+| `-e, --extensions <ext>`   | File extensions to process (default: js,ts,jsx,tsx,vue,py,etc.) |
+| `-x, --exclude <patterns>` | Glob exclusion patterns                                          |
+
 ### Comments Tool
 
 | Option                        | Description                                                                              |
@@ -360,10 +420,16 @@ crapifyme deps --pm=pnpm
 
 ```bash
 # Production preparation
+crapifyme chars --fix --strict src/             # Remove non-ASCII chars
 crapifyme comments --no-preserve-development src/
 crapifyme logs src/
 crapifyme imports src/
 crapifyme deps --no-include-dev
+
+# Unicode text cleanup
+crapifyme chars --severity=high src/            # Detect high-priority issues only
+crapifyme chars --fix --ignore-strings src/     # Fix code, preserve strings
+crapifyme chars --strict --extensions="js,ts" src/  # ASCII-only for specific files
 
 # Security audit
 crapifyme deps --security-only
@@ -378,6 +444,7 @@ crapifyme deps --unused-only
 crapifyme deps --duplicates-only
 
 # Legacy cleanup
+crapifyme chars --fix legacy/                   # Fix encoding issues
 crapifyme comments --keep "@author,@copyright" legacy/
 crapifyme imports --style=absolute legacy/
 crapifyme deps --output=summary  # Quick overview
@@ -392,6 +459,7 @@ crapifyme imports --framework=react src/
 crapifyme deps --size-only
 
 # CI/CD Integration
+crapifyme chars --severity=high --json --quiet src/   # Character encoding check
 crapifyme deps --security-only --output=json --quiet  # Security check
 crapifyme deps --output=summary --no-bundle-size      # Quick health check
 
