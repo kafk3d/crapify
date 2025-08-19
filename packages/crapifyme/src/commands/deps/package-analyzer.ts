@@ -128,15 +128,17 @@ export class PackageAnalyzer {
 	private async validateProjectContext(): Promise<void> {
 		try {
 			const pkgJson = await this.readPackageJson();
-			const isWorkspaceRoot = !!pkgJson.workspaces && (!pkgJson.dependencies || Object.keys(pkgJson.dependencies).length === 0);
-			
+			const isWorkspaceRoot =
+				!!pkgJson.workspaces &&
+				(!pkgJson.dependencies || Object.keys(pkgJson.dependencies).length === 0);
+
 			if (isWorkspaceRoot) {
 				console.warn('⚠️  Running in workspace root with minimal dependencies.');
-				console.warn('💡 For better analysis, run from a specific workspace package (e.g., cd packages/website && npx crapifyme deps)');
+				console.warn(
+					'💡 For better analysis, run from a specific workspace package (e.g., cd packages/website && npx crapifyme deps)'
+				);
 			}
-		} catch {
-			// Ignore validation errors
-		}
+		} catch {}
 	}
 
 	async readPackageJson(filePath?: string): Promise<PackageInfo & { [key: string]: any }> {

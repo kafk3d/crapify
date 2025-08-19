@@ -28,7 +28,8 @@ export class SecurityScanner {
 					parser = this.parseNpmAudit.bind(this);
 					break;
 				case 'yarn':
-					command = 'yarn audit --json';
+					const isYarnV1 = packageManager.version.startsWith('1.');
+					command = isYarnV1 ? 'yarn audit --json --level moderate' : 'yarn audit --json';
 					parser = this.parseYarnAudit.bind(this);
 					break;
 				case 'pnpm':
@@ -66,16 +67,18 @@ export class SecurityScanner {
 					if (result.vulnerabilities.length > 0) {
 						return result;
 					}
-				} catch (parseError) {
-					// Silent failure - audit commands often have parsing quirks
-				}
+				} catch (parseError) {}
 			}
 
 			// Only warn for actual command failures, not normal audit findings
 			if (error.code !== 1) {
-				console.warn(`Warning: Security audit failed: ${error.message}`);
+				if (packageManager.type === 'yarn' && error.message.includes('audit')) {
+					console.warn(`Note: Yarn v1 audit has limited compatibility. Security analysis skipped.`);
+				} else {
+					console.warn(`Warning: Security audit failed: ${error.message}`);
+				}
 			}
-			
+
 			return {
 				vulnerabilities: [],
 				summary: { critical: 0, high: 0, moderate: 0, low: 0 }
@@ -325,12 +328,15 @@ export class SecurityScanner {
 	): Promise<SecurityVulnerability[]> {
 		try {
 			const { realPackageName, realVersion } = this.parsePackageAlias(packageName, version);
-			const { stdout } = await execAsync(`npm view "${realPackageName}@${realVersion}" deprecated --json`, {
-				cwd: this.cwd,
-				timeout: 15000,
-				maxBuffer: 10 * 1024 * 1024,
-				env: { ...process.env, NO_UPDATE_NOTIFIER: 'true' }
-			});
+			const { stdout } = await execAsync(
+				`npm view "${realPackageName}@${realVersion}" deprecated --json`,
+				{
+					cwd: this.cwd,
+					timeout: 15000,
+					maxBuffer: 10 * 1024 * 1024,
+					env: { ...process.env, NO_UPDATE_NOTIFIER: 'true' }
+				}
+			);
 
 			const deprecatedMessage = stdout.trim();
 
@@ -418,7 +424,10 @@ export class SecurityScanner {
 		return parts.length > 0 ? parts.join(', ') : 'No vulnerabilities found';
 	}
 
-	private parsePackageAlias(packageName: string, version: string): { realPackageName: string; realVersion: string } {
+	private parsePackageAlias(
+		packageName: string,
+		version: string
+	): { realPackageName: string; realVersion: string } {
 		if (version.startsWith('npm:')) {
 			const match = version.match(/^npm:(.+?)@(.+)$/);
 			if (match) {

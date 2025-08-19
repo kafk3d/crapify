@@ -425,7 +425,10 @@ export class BundleAnalyzer {
 		return Math.min(estimatedSize, 2 * 1024 * 1024);
 	}
 
-	private parsePackageAlias(packageName: string, version: string): { realPackageName: string; realVersion: string } {
+	private parsePackageAlias(
+		packageName: string,
+		version: string
+	): { realPackageName: string; realVersion: string } {
 		if (version.startsWith('npm:')) {
 			const match = version.match(/^npm:(.+?)@(.+)$/);
 			if (match) {
