@@ -5,6 +5,12 @@ A toolkit of oddly specific CLI utilities for developers and vibecoders
 ## Quick Start
 
 ```bash
+npx crapifyme base64 image.png
+# Encode images to base64 (data URL + CSS formats)
+
+npx crapifyme chars
+# Detect and fix non-Latin characters (Cyrillic, Greek, CJK, Arabic)
+
 npx crapifyme comments
 # Remove noisy comments, keep critical ones
 
@@ -29,6 +35,12 @@ npx crapifyme comments --dry-run
 ```bash
 npm install -g crapifyme
 # Install globally for frequent use
+
+crapifyme base64 icon.svg --css-only
+# Generate CSS background-image format only
+
+crapifyme chars --fix src/
+# Fix non-Latin characters in src directory
 
 crapifyme comments src/
 # Process specific directory with comments tool
@@ -107,6 +119,101 @@ Rule-based engine that preserves critical comments while removing noise.
 - Validation to prevent excessive content removal
 
 ## Commands
+
+### Base64 Tool
+
+Professional image-to-base64 encoding and decoding with multiple output formats for web development.
+
+```bash
+# Basic encoding (outputs both data URL and CSS formats)
+crapifyme base64 image.png
+
+# Explicit encoding with size analysis
+crapifyme base64 encode photo.jpg --size-info
+
+# Specific output formats
+crapifyme base64 icon.svg --css-only
+crapifyme base64 logo.png --data-url-only
+crapifyme base64 banner.jpg --raw
+
+# Decoding base64 to files
+crapifyme base64 decode "data:image/png;base64,iVBORw0KGgo..." -o output.png
+crapifyme base64 decode "iVBORw0KGgoAAAA..." # Auto-generates filename
+```
+
+**Supported Image Formats:**
+- **PNG, JPG, JPEG**: Standard web image formats
+- **SVG**: Vector graphics with proper MIME type handling
+- **GIF, WebP**: Modern web formats with optimization
+- **BMP, ICO**: Legacy formats for compatibility
+- **TIFF, AVIF**: High-quality and next-gen formats
+
+**Output Formats:**
+- **Data URL**: `data:image/png;base64,iVBORw0KGgo...` (for HTML/CSS)
+- **CSS Background**: `background-image: url("data:image/...")` (ready-to-use CSS)
+- **Raw Base64**: Plain base64 string without MIME wrapper
+
+**Features:**
+- **MIME Type Detection**: Automatic detection from file extensions
+- **Size Analysis**: Original vs base64 size with overhead percentage
+- **Memory Efficient**: Handles files up to 100MB without memory issues
+- **Error Validation**: File existence, format support, base64 validation
+- **Cross-platform**: Works on Windows, macOS, and Linux
+
+**Example Output:**
+```
+✔ Encoded: logo.png
+  ┣ Original size: 15.3 KB
+  ┣ Base64 size: 20.4 KB
+  ┣ Overhead: 33.3%
+  ┗ MIME type: image/png
+
+Data URL:
+data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA...
+
+CSS Background Image:
+background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA...");
+```
+
+### Chars Tool
+
+Enterprise-grade Unicode-to-ASCII transliteration for cleaning non-Latin characters from codebases.
+
+```bash
+# Detect non-Latin characters (detection mode)
+crapifyme chars
+
+# Automatically fix detected issues
+crapifyme chars --fix src/
+
+# Strict mode - flag all non-ASCII characters
+crapifyme chars --strict --fix src/
+
+# Ignore characters in strings and comments
+crapifyme chars --ignore-strings --ignore-comments src/
+
+# Filter by severity level
+crapifyme chars --severity=high src/
+
+# Custom file extensions
+crapifyme chars --extensions "js,ts,py,go" --fix src/
+```
+
+**Character Detection:**
+
+- **Cyrillic**: `Привет` → `Privet` (Russian, Ukrainian, Bulgarian)
+- **Greek**: `α β γ δ` → `a v g d` (Mathematical symbols, Greek text)
+- **CJK**: `你好世界` → `NiHaoShiJie` (Chinese, Japanese, Korean)
+- **Arabic**: `مرحبا` → `mrhb` (Arabic script)
+- **Accented**: `résumé café` → `resume cafe` (Latin with diacritics)
+- **Invisible**: Zero-width spaces, byte order marks
+
+**Features:**
+- Uses `any-ascii` library for professional-grade transliteration
+- Context display showing surrounding code
+- Severity-based filtering (low, medium, high, critical)
+- Comprehensive Unicode range detection
+- Safe mode with version control detection
 
 ### Comments Tool
 
@@ -281,6 +388,30 @@ crapifyme deps --pm=pnpm
 | `--quiet`   | Suppress all output except errors         |
 | `--json`    | Machine-readable JSON output              |
 
+### Base64 Tool
+
+| Option | Description |
+|--------|-------------|
+| `--css-only` | Output only CSS background-image format |
+| `--data-url-only` | Output only data URL format |
+| `--raw` | Output raw base64 string without data URL wrapper |
+| `--size-info` | Show detailed size analysis (original, base64, overhead) |
+| `-o, --output <path>` | Output file path for decode command |
+
+### Chars Tool
+
+| Option                     | Description                                                      |
+| -------------------------- | ---------------------------------------------------------------- |
+| `--fix`                    | Automatically fix detected characters with ASCII replacements    |
+| `--strict`                 | Enable strict mode (flag all non-ASCII characters)              |
+| `--interactive`            | Prompt for each replacement (requires --fix)                    |
+| `--severity <level>`       | Minimum severity to report (low/medium/high/critical)           |
+| `--show-context <number>`  | Number of characters to show around each issue (default: 40)    |
+| `--ignore-strings`         | Ignore characters inside string literals                        |
+| `--ignore-comments`        | Ignore characters inside comments                               |
+| `-e, --extensions <ext>`   | File extensions to process (default: js,ts,jsx,tsx,vue,py,etc.) |
+| `-x, --exclude <patterns>` | Glob exclusion patterns                                          |
+
 ### Comments Tool
 
 | Option                        | Description                                                                              |
@@ -360,16 +491,29 @@ crapifyme deps --pm=pnpm
 
 ```bash
 # Production preparation
+crapifyme base64 logo.png --css-only           # Generate CSS-ready assets
+crapifyme chars --fix --strict src/             # Remove non-ASCII chars
 crapifyme comments --no-preserve-development src/
 crapifyme logs src/
 crapifyme imports src/
 crapifyme deps --no-include-dev
+
+# Web development workflow
+crapifyme base64 icons/sprite.svg --data-url-only    # For HTML embedding
+crapifyme base64 images/ --size-info --verbose       # Batch process with analysis
+crapifyme base64 decode "data:image/..." -o recovered.png  # Extract embedded images
+
+# Unicode text cleanup
+crapifyme chars --severity=high src/            # Detect high-priority issues only
+crapifyme chars --fix --ignore-strings src/     # Fix code, preserve strings
+crapifyme chars --strict --extensions="js,ts" src/  # ASCII-only for specific files
 
 # Security audit
 crapifyme deps --security-only
 crapifyme deps --security-only --output=json  # For CI/CD
 
 # Bundle size optimization
+crapifyme base64 assets/ --raw --quiet | wc -c     # Calculate base64 impact
 crapifyme deps --size-only --include-gzip
 
 # Dependency maintenance
@@ -378,6 +522,8 @@ crapifyme deps --unused-only
 crapifyme deps --duplicates-only
 
 # Legacy cleanup
+crapifyme base64 old-images/ --size-info        # Analyze legacy assets
+crapifyme chars --fix legacy/                   # Fix encoding issues
 crapifyme comments --keep "@author,@copyright" legacy/
 crapifyme imports --style=absolute legacy/
 crapifyme deps --output=summary  # Quick overview
@@ -387,11 +533,14 @@ crapifyme imports --framework=nextjs --alias="@/*:./src/*" src/
 crapifyme deps --pm=yarn --workspaces  # Monorepo support
 
 # Performance optimization  
+crapifyme base64 sprites/ --css-only            # Optimize sprite assets
 crapifyme logs --no-preserve-error --no-preserve-warn dist/
 crapifyme imports --framework=react src/
 crapifyme deps --size-only
 
 # CI/CD Integration
+crapifyme base64 build/assets/ --json --quiet   # Asset processing pipeline
+crapifyme chars --severity=high --json --quiet src/   # Character encoding check
 crapifyme deps --security-only --output=json --quiet  # Security check
 crapifyme deps --output=summary --no-bundle-size      # Quick health check
 

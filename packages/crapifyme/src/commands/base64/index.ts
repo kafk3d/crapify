@@ -1,10 +1,6 @@
 import { Command } from 'commander';
 import path from 'path';
-import {
-	Logger,
-	ExitCode,
-	showComplete
-} from '../../shared';
+import { Logger, ExitCode, showComplete } from '../../shared';
 import { Base64Processor } from './logic';
 import { Base64Stats, Base64Options } from './types';
 
@@ -15,7 +11,9 @@ export const base64Command = new Command('base64')
 	.option('--data-url-only', 'Output only data URL format')
 	.option('--raw', 'Output raw base64 string without data URL wrapper')
 	.option('--size-info', 'Show detailed size analysis')
-	.addHelpText('after', `
+	.addHelpText(
+		'after',
+		`
 Examples:
   $ crapifyme base64 image.png                    # Encode image to base64 (default)
   $ crapifyme base64 encode image.jpg             # Explicit encode
@@ -26,7 +24,8 @@ Examples:
   $ crapifyme base64 image.png --size-info        # Include detailed size analysis
 
 Supported formats: png, jpg, jpeg, svg, gif, webp, bmp, ico, tiff, avif
-`)
+`
+	)
 	.action(async (file: string | undefined, options: Base64Options, command: Command) => {
 		if (file) {
 			await handleEncode(file, options, command);
@@ -58,22 +57,26 @@ base64Command
 		await handleDecode(base64String, options, command);
 	});
 
-async function handleEncode(filePath: string, options: Base64Options, command: Command): Promise<void> {
+async function handleEncode(
+	filePath: string,
+	options: Base64Options,
+	command: Command
+): Promise<void> {
 	const globalOptions = command.parent?.parent?.opts() || {};
 	const logger = new Logger(globalOptions.verbose, globalOptions.quiet, globalOptions.json);
 
 	try {
 		const processor = new Base64Processor(logger);
-		
+
 		// Validate file
 		processor.validateFilePath(filePath);
-		
+
 		if (globalOptions.verbose) {
 			logger.info(`Encoding: ${filePath}`);
 		}
 
 		const result = await processor.encodeFile(filePath, options);
-		
+
 		const stats: Base64Stats = {
 			filesProcessed: 1,
 			bytesProcessed: result.originalSize,
@@ -88,9 +91,8 @@ async function handleEncode(filePath: string, options: Base64Options, command: C
 			});
 		} else {
 			if (!options.quiet && !globalOptions.quiet) {
-				showComplete();
 				logger.success(`Encoded: ${path.basename(filePath)}`);
-				
+
 				if (options.sizeInfo || globalOptions.verbose) {
 					console.log(`  ┣ Original size: ${processor.formatSize(result.originalSize)}`);
 					console.log(`  ┣ Base64 size: ${processor.formatSize(result.base64Size)}`);
@@ -114,6 +116,8 @@ async function handleEncode(filePath: string, options: Base64Options, command: C
 				console.log('');
 				console.log('CSS Background Image:');
 				console.log(result.cssBackgroundImage);
+
+				showComplete();
 			}
 		}
 
@@ -124,19 +128,23 @@ async function handleEncode(filePath: string, options: Base64Options, command: C
 	}
 }
 
-async function handleDecode(base64String: string, options: { output?: string }, command: Command): Promise<void> {
+async function handleDecode(
+	base64String: string,
+	options: { output?: string },
+	command: Command
+): Promise<void> {
 	const globalOptions = command.parent?.parent?.opts() || {};
 	const logger = new Logger(globalOptions.verbose, globalOptions.quiet, globalOptions.json);
 
 	try {
 		const processor = new Base64Processor(logger);
-		
+
 		if (globalOptions.verbose) {
 			logger.info('Decoding base64 string');
 		}
 
 		const result = await processor.decodeBase64(base64String, options.output);
-		
+
 		const stats: Base64Stats = {
 			filesProcessed: 1,
 			bytesProcessed: result.originalSize,
@@ -153,7 +161,7 @@ async function handleDecode(base64String: string, options: { output?: string }, 
 			if (!globalOptions.quiet) {
 				showComplete();
 				logger.success(`Decoded to: ${result.outputPath}`);
-				
+
 				if (globalOptions.verbose) {
 					console.log(`  ┣ Base64 size: ${processor.formatSize(result.originalSize)}`);
 					console.log(`  ┣ Decoded size: ${processor.formatSize(result.decodedSize)}`);

@@ -37,8 +37,8 @@ export function showBanner(): void {
 
 export function showComplete(): void {
 	console.log('');
-	console.log('█▀▀ █▀█ ▄▀█ █▀█ █ █▀▀ █▄█');
-	console.log('█▄▄ █▀▄ █▀█ █▀▀ █ █▀░ ░█░');
+	console.log('█▀▀ █▀█ █▀▄▀█ █▀█ █░░ █▀▀ ▀█▀ █▀▀');
+	console.log('█▄▄ █▄█ █░▀░█ █▀▀ █▄▄ ██▄ ░█░ ██▄');
 	console.log('');
 }
 

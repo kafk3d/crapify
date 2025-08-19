@@ -27,7 +27,11 @@ export const charsCommand = new Command('chars')
 	.option('--show-context <number>', 'Number of characters to show around each issue', '40')
 	.option('--ignore-strings', 'Ignore characters inside string literals')
 	.option('--ignore-comments', 'Ignore characters inside comments')
-	.option('--severity <level>', 'Minimum severity level to report (low,medium,high,critical)', 'low')
+	.option(
+		'--severity <level>',
+		'Minimum severity level to report (low,medium,high,critical)',
+		'low'
+	)
 	.action(async (paths: string[], options: any, command: Command) => {
 		const globalOptions = command.parent?.opts() || {};
 		const logger = new Logger(globalOptions.verbose, globalOptions.quiet, globalOptions.json);
@@ -76,7 +80,11 @@ export const charsCommand = new Command('chars')
 			logger.info(`Found ${files.length} file${files.length === 1 ? '' : 's'} to process`);
 
 			if (globalOptions.dryRun || !options.fix) {
-				logger.info(options.fix ? 'DRY RUN - No files will be modified' : 'DETECTION MODE - No files will be modified');
+				logger.info(
+					options.fix
+						? 'DRY RUN - No files will be modified'
+						: 'DETECTION MODE - No files will be modified'
+				);
 			}
 
 			const detectorOptions: CharacterDetectorOptions = {
@@ -107,12 +115,13 @@ export const charsCommand = new Command('chars')
 			for (const file of files) {
 				try {
 					const content = await readFile(file);
-					const result = options.fix && !globalOptions.dryRun 
-						? detector.fixCharacters(content, file)
-						: detector.detectCharacters(content, file);
+					const result =
+						options.fix && !globalOptions.dryRun
+							? detector.fixCharacters(content, file)
+							: detector.detectCharacters(content, file);
 
-					const filteredIssues = result.issues.filter(issue => 
-						getSeverityLevel(issue.severity) >= getSeverityLevel(minSeverity)
+					const filteredIssues = result.issues.filter(
+						issue => getSeverityLevel(issue.severity) >= getSeverityLevel(minSeverity)
 					);
 
 					if (result.modified && !globalOptions.dryRun) {
@@ -130,20 +139,28 @@ export const charsCommand = new Command('chars')
 
 					if (filteredIssues.length > 0) {
 						logger.success(`${file}`);
-						
+
 						if (globalOptions.verbose || !globalOptions.json) {
-							for (const issue of filteredIssues.slice(0, 10)) { // Show first 10 issues
-								const prefix = issue.severity === IssueSeverity.CRITICAL ? '⚠️ ' : 
-											   issue.severity === IssueSeverity.HIGH ? '🔴 ' :
-											   issue.severity === IssueSeverity.MEDIUM ? '🟡 ' : '🔵 ';
-								
-								console.log(`  ${prefix}Line ${issue.line}:${issue.column} - ${issue.character} (U+${issue.codePoint.toString(16).toUpperCase().padStart(4, '0')}) [${issue.script}]`);
+							for (const issue of filteredIssues.slice(0, 10)) {
+								// Show first 10 issues
+								const prefix =
+									issue.severity === IssueSeverity.CRITICAL
+										? '⚠️ '
+										: issue.severity === IssueSeverity.HIGH
+											? '🔴 '
+											: issue.severity === IssueSeverity.MEDIUM
+												? '🟡 '
+												: '🔵 ';
+
+								console.log(
+									`  ${prefix}Line ${issue.line}:${issue.column} - ${issue.character} (U+${issue.codePoint.toString(16).toUpperCase().padStart(4, '0')}) [${issue.script}]`
+								);
 								if (issue.replacement) {
 									console.log(`    ↳ Suggests: "${issue.replacement}"`);
 								}
 								console.log(`    Context: ${issue.context}`);
 							}
-							
+
 							if (filteredIssues.length > 10) {
 								console.log(`  ... and ${filteredIssues.length - 10} more issues`);
 							}
@@ -168,8 +185,6 @@ export const charsCommand = new Command('chars')
 			if (globalOptions.json) {
 				logger.json(stats);
 			} else {
-				showComplete();
-
 				if (stats.errors.length > 0) {
 					logger.error(
 						`Processing completed with ${stats.errors.length} error${stats.errors.length === 1 ? '' : 's'}`
@@ -192,6 +207,8 @@ export const charsCommand = new Command('chars')
 						}
 					}
 				}
+
+				showComplete();
 
 				if (globalOptions.dryRun && options.fix && stats.charactersFound > 0) {
 					logger.warn('DRY RUN MODE - No files were actually modified');
@@ -216,20 +233,30 @@ export const charsCommand = new Command('chars')
 
 function parseSeverity(severity: string): IssueSeverity {
 	switch (severity.toLowerCase()) {
-		case 'low': return IssueSeverity.LOW;
-		case 'medium': return IssueSeverity.MEDIUM;
-		case 'high': return IssueSeverity.HIGH;
-		case 'critical': return IssueSeverity.CRITICAL;
-		default: return IssueSeverity.LOW;
+		case 'low':
+			return IssueSeverity.LOW;
+		case 'medium':
+			return IssueSeverity.MEDIUM;
+		case 'high':
+			return IssueSeverity.HIGH;
+		case 'critical':
+			return IssueSeverity.CRITICAL;
+		default:
+			return IssueSeverity.LOW;
 	}
 }
 
 function getSeverityLevel(severity: IssueSeverity): number {
 	switch (severity) {
-		case IssueSeverity.LOW: return 1;
-		case IssueSeverity.MEDIUM: return 2;
-		case IssueSeverity.HIGH: return 3;
-		case IssueSeverity.CRITICAL: return 4;
-		default: return 1;
+		case IssueSeverity.LOW:
+			return 1;
+		case IssueSeverity.MEDIUM:
+			return 2;
+		case IssueSeverity.HIGH:
+			return 3;
+		case IssueSeverity.CRITICAL:
+			return 4;
+		default:
+			return 1;
 	}
 }
