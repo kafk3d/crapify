@@ -5,6 +5,9 @@ A toolkit of oddly specific CLI utilities for developers and vibecoders
 ## Quick Start
 
 ```bash
+npx crapifyme base64 image.png
+# Encode images to base64 (data URL + CSS formats)
+
 npx crapifyme chars
 # Detect and fix non-Latin characters (Cyrillic, Greek, CJK, Arabic)
 
@@ -32,6 +35,9 @@ npx crapifyme comments --dry-run
 ```bash
 npm install -g crapifyme
 # Install globally for frequent use
+
+crapifyme base64 icon.svg --css-only
+# Generate CSS background-image format only
 
 crapifyme chars --fix src/
 # Fix non-Latin characters in src directory
@@ -113,6 +119,61 @@ Rule-based engine that preserves critical comments while removing noise.
 - Validation to prevent excessive content removal
 
 ## Commands
+
+### Base64 Tool
+
+Professional image-to-base64 encoding and decoding with multiple output formats for web development.
+
+```bash
+# Basic encoding (outputs both data URL and CSS formats)
+crapifyme base64 image.png
+
+# Explicit encoding with size analysis
+crapifyme base64 encode photo.jpg --size-info
+
+# Specific output formats
+crapifyme base64 icon.svg --css-only
+crapifyme base64 logo.png --data-url-only
+crapifyme base64 banner.jpg --raw
+
+# Decoding base64 to files
+crapifyme base64 decode "data:image/png;base64,iVBORw0KGgo..." -o output.png
+crapifyme base64 decode "iVBORw0KGgoAAAA..." # Auto-generates filename
+```
+
+**Supported Image Formats:**
+- **PNG, JPG, JPEG**: Standard web image formats
+- **SVG**: Vector graphics with proper MIME type handling
+- **GIF, WebP**: Modern web formats with optimization
+- **BMP, ICO**: Legacy formats for compatibility
+- **TIFF, AVIF**: High-quality and next-gen formats
+
+**Output Formats:**
+- **Data URL**: `data:image/png;base64,iVBORw0KGgo...` (for HTML/CSS)
+- **CSS Background**: `background-image: url("data:image/...")` (ready-to-use CSS)
+- **Raw Base64**: Plain base64 string without MIME wrapper
+
+**Features:**
+- **MIME Type Detection**: Automatic detection from file extensions
+- **Size Analysis**: Original vs base64 size with overhead percentage
+- **Memory Efficient**: Handles files up to 100MB without memory issues
+- **Error Validation**: File existence, format support, base64 validation
+- **Cross-platform**: Works on Windows, macOS, and Linux
+
+**Example Output:**
+```
+✔ Encoded: logo.png
+  ┣ Original size: 15.3 KB
+  ┣ Base64 size: 20.4 KB
+  ┣ Overhead: 33.3%
+  ┗ MIME type: image/png
+
+Data URL:
+data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA...
+
+CSS Background Image:
+background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA...");
+```
 
 ### Chars Tool
 
@@ -327,6 +388,16 @@ crapifyme deps --pm=pnpm
 | `--quiet`   | Suppress all output except errors         |
 | `--json`    | Machine-readable JSON output              |
 
+### Base64 Tool
+
+| Option | Description |
+|--------|-------------|
+| `--css-only` | Output only CSS background-image format |
+| `--data-url-only` | Output only data URL format |
+| `--raw` | Output raw base64 string without data URL wrapper |
+| `--size-info` | Show detailed size analysis (original, base64, overhead) |
+| `-o, --output <path>` | Output file path for decode command |
+
 ### Chars Tool
 
 | Option                     | Description                                                      |
@@ -420,11 +491,17 @@ crapifyme deps --pm=pnpm
 
 ```bash
 # Production preparation
+crapifyme base64 logo.png --css-only           # Generate CSS-ready assets
 crapifyme chars --fix --strict src/             # Remove non-ASCII chars
 crapifyme comments --no-preserve-development src/
 crapifyme logs src/
 crapifyme imports src/
 crapifyme deps --no-include-dev
+
+# Web development workflow
+crapifyme base64 icons/sprite.svg --data-url-only    # For HTML embedding
+crapifyme base64 images/ --size-info --verbose       # Batch process with analysis
+crapifyme base64 decode "data:image/..." -o recovered.png  # Extract embedded images
 
 # Unicode text cleanup
 crapifyme chars --severity=high src/            # Detect high-priority issues only
@@ -436,6 +513,7 @@ crapifyme deps --security-only
 crapifyme deps --security-only --output=json  # For CI/CD
 
 # Bundle size optimization
+crapifyme base64 assets/ --raw --quiet | wc -c     # Calculate base64 impact
 crapifyme deps --size-only --include-gzip
 
 # Dependency maintenance
@@ -444,6 +522,7 @@ crapifyme deps --unused-only
 crapifyme deps --duplicates-only
 
 # Legacy cleanup
+crapifyme base64 old-images/ --size-info        # Analyze legacy assets
 crapifyme chars --fix legacy/                   # Fix encoding issues
 crapifyme comments --keep "@author,@copyright" legacy/
 crapifyme imports --style=absolute legacy/
@@ -454,11 +533,13 @@ crapifyme imports --framework=nextjs --alias="@/*:./src/*" src/
 crapifyme deps --pm=yarn --workspaces  # Monorepo support
 
 # Performance optimization  
+crapifyme base64 sprites/ --css-only            # Optimize sprite assets
 crapifyme logs --no-preserve-error --no-preserve-warn dist/
 crapifyme imports --framework=react src/
 crapifyme deps --size-only
 
 # CI/CD Integration
+crapifyme base64 build/assets/ --json --quiet   # Asset processing pipeline
 crapifyme chars --severity=high --json --quiet src/   # Character encoding check
 crapifyme deps --security-only --output=json --quiet  # Security check
 crapifyme deps --output=summary --no-bundle-size      # Quick health check

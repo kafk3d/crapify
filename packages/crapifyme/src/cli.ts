@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
+import { base64Command } from './commands/base64';
 import { charsCommand } from './commands/chars';
 import { commentsCommand } from './commands/comments';
 import { depsCommand } from './commands/deps';
@@ -21,11 +22,13 @@ program
 		'after',
 		`
 Examples:
+  $ crapifyme base64 image.png          # Encode image to base64 format
   $ crapifyme chars                     # Detect non-Latin characters in current directory
   $ crapifyme comments                  # Remove comments from current directory
   $ crapifyme logs                      # Remove console.log from current directory
   $ crapifyme imports                   # Optimize imports (sort, group, remove unused, merge duplicates)
   $ crapifyme deps                      # Analyze dependencies (security, size, unused)
+  $ crapifyme base64 decode <base64>    # Decode base64 to file
   $ crapifyme chars --fix --strict      # Fix non-ASCII characters with strict mode
   $ crapifyme comments --dry-run .      # Preview comment changes
   $ crapifyme logs --force              # Remove logs without VCS check
@@ -50,6 +53,7 @@ program
 	.option('-q, --quiet', 'Suppress output')
 	.option('--json', 'Output as JSON');
 
+program.addCommand(base64Command);
 program.addCommand(charsCommand);
 program.addCommand(commentsCommand);
 program.addCommand(depsCommand);

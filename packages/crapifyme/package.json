@@ -52,12 +52,14 @@
 		"@babel/traverse": "^7.28.3",
 		"any-ascii": "^0.3.3",
 		"commander": "^11.0.0",
-		"glob": "^10.0.0"
+		"glob": "^10.0.0",
+		"mime-types": "^2.1.35"
 	},
 	"devDependencies": {
 		"@types/babel__generator": "^7.27.0",
 		"@types/babel__traverse": "^7.28.0",
 		"@types/jest": "^30.0.0",
+		"@types/mime-types": "^2.1.1",
 		"@types/node": "^20.0.0",
 		"jest": "^30.0.5",
 		"ts-jest": "^29.4.1",
