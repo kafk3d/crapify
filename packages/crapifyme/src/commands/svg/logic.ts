@@ -51,53 +51,115 @@ export class SvgProcessor {
 		const failedFiles: Array<{ file: string; error: string }> = [];
 
 		try {
-			// Safety checks
 			await this.performSafetyChecks(options);
 
-			// Find files to process
 			const files = await this.findSvgFiles(target, options);
-			
+
 			if (files.length === 0) {
 				this.logger.warn('No SVG files found to process');
 				return { results, stats, skippedFiles, failedFiles };
 			}
 
-			// Create processing configuration
 			const config = createProcessingConfig(options);
 
-			// Setup progress tracking
 			if (!options.quiet && files.length > 1) {
 				this.setupProgressTracking(files.length, options);
 			}
 
-			// Process files
 			if (options.parallel && files.length > 1) {
-				await this.processFilesParallel(files, config, options, results, skippedFiles, failedFiles, stats);
+				await this.processFilesParallel(
+					files,
+					config,
+					options,
+					results,
+					skippedFiles,
+					failedFiles,
+					stats
+				);
 			} else {
-				await this.processFilesSequential(files, config, options, results, skippedFiles, failedFiles, stats);
+				await this.processFilesSequential(
+					files,
+					config,
+					options,
+					results,
+					skippedFiles,
+					failedFiles,
+					stats
+				);
 			}
 
-			// Cleanup progress tracking
 			this.cleanupProgressTracking();
 
-			// Calculate final statistics
 			this.calculateFinalStats(stats, startTime);
 
-			// Generate reports if requested
 			if (options.report) {
 				await this.generateReport(results, stats, options);
 			}
 
 			return { results, stats, skippedFiles, failedFiles };
-
 		} catch (error) {
 			this.cleanupProgressTracking();
 			throw error;
 		}
 	}
 
+	async processSvgCode(svgContent: string, options: SvgOptions): Promise<SvgOptimizationResult> {
+		const startTime = Date.now();
+
+		try {
+			const originalSize = Buffer.byteLength(svgContent, 'utf8');
+
+			const config = createProcessingConfig(options);
+
+			if (config.validateInput) {
+				const validation = this.validateSvg(svgContent, 'direct-input');
+				if (!validation.isValid) {
+					throw new Error(`Invalid SVG: ${validation.errors.join(', ')}`);
+				}
+			}
+
+			const svgoConfig = this.createSvgoConfig(config, options);
+
+			const result = optimize(svgContent, svgoConfig);
+
+			if ('error' in result) {
+				throw new Error(`SVGO optimization failed: ${result.error}`);
+			}
+
+			const optimizedContent = result.data;
+			const optimizedSize = Buffer.byteLength(optimizedContent, 'utf8');
+
+			if (config.validateOutput) {
+				const validation = this.validateSvg(optimizedContent, 'direct-output');
+				if (!validation.isValid) {
+					throw new Error(`Output validation failed: ${validation.errors.join(', ')}`);
+				}
+			}
+
+			const bytesSaved = originalSize - optimizedSize;
+			const compressionRatio = originalSize / optimizedSize;
+			const processingTime = Date.now() - startTime;
+
+			return {
+				inputPath: 'direct-input',
+				outputPath: 'stdout',
+				originalSize,
+				optimizedSize,
+				compressionRatio,
+				bytesSaved,
+				pluginsApplied: this.getAppliedPlugins(svgoConfig),
+				processingTime,
+				originalContent: svgContent,
+				optimizedContent
+			};
+		} catch (error) {
+			throw new Error(
+				`Failed to process SVG code: ${error instanceof Error ? error.message : String(error)}`
+			);
+		}
+	}
+
 	private async performSafetyChecks(options: SvgOptions): Promise<void> {
-		// Check version control if not forced
 		if (!options.force && !options.dryRun) {
 			const vcs = detectVersionControl();
 			if (!vcs.detected) {
@@ -107,20 +169,17 @@ export class SvgProcessor {
 			}
 		}
 
-		// Validate output directory if specified
 		if (options.outputDir) {
 			const outputPath = resolvePath(options.outputDir);
 			try {
 				await fs.access(outputPath);
 			} catch {
-				// Directory doesn't exist, try to create it
 				if (!options.dryRun) {
 					await fs.mkdir(outputPath, { recursive: true });
 				}
 			}
 		}
 
-		// Validate configuration file if specified
 		if (options.config) {
 			const configPath = resolvePath(options.config);
 			try {
@@ -135,21 +194,20 @@ export class SvgProcessor {
 		const targetPath = resolvePath(target);
 		let patterns: string[] = [];
 
-		// Handle different target types
 		try {
 			const stat = await fs.stat(targetPath);
-			
+
 			if (stat.isFile()) {
-				// Single file
 				if (!isSupportedSvgExtension(path.extname(targetPath).slice(1))) {
 					throw new Error(`Unsupported file type: ${path.extname(targetPath)}`);
 				}
 				return [targetPath];
 			} else if (stat.isDirectory()) {
-				// Directory - create glob patterns
-				const extensions = options.extensions ? 
-					(typeof options.extensions === 'string' ? options.extensions.split(',') : options.extensions) : 
-					[...DEFAULT_SVG_EXTENSIONS];
+				const extensions = options.extensions
+					? typeof options.extensions === 'string'
+						? options.extensions.split(',')
+						: options.extensions
+					: [...DEFAULT_SVG_EXTENSIONS];
 				if (options.glob) {
 					patterns.push(path.join(targetPath, options.glob));
 				} else {
@@ -161,11 +219,9 @@ export class SvgProcessor {
 				}
 			}
 		} catch {
-			// Path doesn't exist, treat as glob pattern
 			patterns.push(targetPath);
 		}
 
-		// Find files using fast-glob
 		const files = await fastGlob(patterns, {
 			ignore: [
 				'**/node_modules/**',
@@ -184,16 +240,19 @@ export class SvgProcessor {
 
 	private setupProgressTracking(totalFiles: number, options: SvgOptions): void {
 		if (options.verbose) {
-			// Use progress bar for verbose mode
-			this.progressBar = new cliProgress.SingleBar({
-				format: chalk.cyan('Optimizing SVGs') + ' [{bar}] {percentage}% | {value}/{total} files | ETA: {eta}s',
-				barCompleteChar: '█',
-				barIncompleteChar: '░',
-				hideCursor: true
-			}, cliProgress.Presets.shades_classic);
+			this.progressBar = new cliProgress.SingleBar(
+				{
+					format:
+						chalk.cyan('Optimizing SVGs') +
+						' [{bar}] {percentage}% | {value}/{total} files | ETA: {eta}s',
+					barCompleteChar: '█',
+					barIncompleteChar: '░',
+					hideCursor: true
+				},
+				cliProgress.Presets.shades_classic
+			);
 			this.progressBar.start(totalFiles, 0);
 		} else {
-			// Use spinner for normal mode
 			this.spinner = ora({
 				text: `Optimizing ${totalFiles} SVG files...`,
 				color: 'cyan'
@@ -245,7 +304,7 @@ export class SvgProcessor {
 				failedFiles.push({ file, error: errorMessage });
 				stats.errors.push({ file, error: errorMessage });
 			}
-			
+
 			this.updateProgress(i + 1, files.length);
 		}
 	}
@@ -261,9 +320,9 @@ export class SvgProcessor {
 	): Promise<void> {
 		const concurrency = Math.min(options.maxConcurrency || 4, files.length);
 		const chunks = this.chunkArray(files, Math.ceil(files.length / concurrency));
-		
+
 		let completed = 0;
-		
+
 		const processChunk = async (chunk: string[]) => {
 			for (const file of chunk) {
 				try {
@@ -280,7 +339,7 @@ export class SvgProcessor {
 					failedFiles.push({ file, error: errorMessage });
 					stats.errors.push({ file, error: errorMessage });
 				}
-				
+
 				completed++;
 				this.updateProgress(completed, files.length);
 			}
@@ -295,13 +354,11 @@ export class SvgProcessor {
 		options: SvgOptions
 	): Promise<SvgOptimizationResult | null> {
 		const startTime = Date.now();
-		
+
 		try {
-			// Read original file
 			const originalContent = await fs.readFile(filePath, 'utf8');
 			const originalSize = Buffer.byteLength(originalContent, 'utf8');
 
-			// Validate input if required
 			if (config.validateInput) {
 				const validation = this.validateSvg(originalContent, filePath);
 				if (!validation.isValid) {
@@ -309,17 +366,14 @@ export class SvgProcessor {
 				}
 			}
 
-			// Skip if already optimized (basic heuristic)
 			if (this.isAlreadyOptimized(originalContent, options)) {
 				return null;
 			}
 
-			// Create SVGO configuration
 			const svgoConfig = this.createSvgoConfig(config, options);
 
-			// Optimize SVG
 			const result = optimize(originalContent, svgoConfig);
-			
+
 			if ('error' in result) {
 				throw new Error(`SVGO optimization failed: ${result.error}`);
 			}
@@ -327,7 +381,6 @@ export class SvgProcessor {
 			const optimizedContent = result.data;
 			const optimizedSize = Buffer.byteLength(optimizedContent, 'utf8');
 
-			// Validate output if required
 			if (config.validateOutput) {
 				const validation = this.validateSvg(optimizedContent, filePath);
 				if (!validation.isValid) {
@@ -335,14 +388,11 @@ export class SvgProcessor {
 				}
 			}
 
-			// Calculate metrics
 			const bytesSaved = originalSize - optimizedSize;
 			const compressionRatio = originalSize / optimizedSize;
 
-			// Determine output path
 			const outputPath = this.getOutputPath(filePath, options);
 
-			// Handle output modes
 			if (!options.dryRun) {
 				await this.handleOutput(filePath, outputPath, originalContent, optimizedContent, options);
 			}
@@ -361,9 +411,10 @@ export class SvgProcessor {
 				originalContent,
 				optimizedContent
 			};
-
 		} catch (error) {
-			throw new Error(`Failed to process ${path.basename(filePath)}: ${error instanceof Error ? error.message : String(error)}`);
+			throw new Error(
+				`Failed to process ${path.basename(filePath)}: ${error instanceof Error ? error.message : String(error)}`
+			);
 		}
 	}
 
@@ -371,35 +422,29 @@ export class SvgProcessor {
 		const errors: string[] = [];
 		const warnings: string[] = [];
 
-		// Basic SVG validation
 		if (!isSvg(content)) {
 			errors.push('Not a valid SVG file');
 		}
 
-		// Check for SVG root element
 		if (!content.includes('<svg')) {
 			errors.push('Missing SVG root element');
 		}
 
-		// Check file size
 		const fileSize = Buffer.byteLength(content, 'utf8');
 		if (fileSize === 0) {
 			errors.push('Empty file');
-		} else if (fileSize > 10 * 1024 * 1024) { // 10MB
+		} else if (fileSize > 10 * 1024 * 1024) {
 			warnings.push('Large file size (>10MB)');
 		}
 
-		// Check for viewBox
 		const hasViewBox = content.includes('viewBox');
 		if (!hasViewBox) {
 			warnings.push('Missing viewBox attribute');
 		}
 
-		// Check for accessibility elements
 		const hasTitle = content.includes('<title');
 		const hasDesc = content.includes('<desc');
 
-		// Count elements (rough estimate)
 		const elementCount = (content.match(/<[^\/][^>]*>/g) || []).length;
 
 		return {
@@ -419,7 +464,6 @@ export class SvgProcessor {
 			return false;
 		}
 
-		// Basic heuristics for already optimized SVGs
 		const indicators = [
 			'<!-- Generated by SVGO -->',
 			'<!-- Optimized by SVGO -->',
@@ -434,7 +478,6 @@ export class SvgProcessor {
 	private createSvgoConfig(config: SvgProcessingConfig, options: SvgOptions): SvgoConfig {
 		const plugins: any[] = [];
 
-		// Use preset-default as the base for all presets
 		const presetDefaultConfig: any = {
 			name: 'preset-default',
 			params: {
@@ -442,7 +485,6 @@ export class SvgProcessor {
 			}
 		};
 
-		// Configure based on preset and options
 		if (config.keepIds) {
 			presetDefaultConfig.params.overrides.cleanupIds = false;
 		}
@@ -452,7 +494,6 @@ export class SvgProcessor {
 			presetDefaultConfig.params.overrides.removeDesc = false;
 		}
 
-		// Advanced options
 		if (options.removeViewbox) {
 			presetDefaultConfig.params.overrides.removeViewBox = true;
 		}
@@ -471,7 +512,6 @@ export class SvgProcessor {
 
 		plugins.push(presetDefaultConfig);
 
-		// Apply custom plugins
 		if (config.customPlugins.length > 0) {
 			plugins.push(...config.customPlugins);
 		}
@@ -498,7 +538,6 @@ export class SvgProcessor {
 			return path.join(dir, `${name}.optimized${ext}`);
 		}
 
-		// Default: in-place
 		return inputPath;
 	}
 
@@ -509,27 +548,24 @@ export class SvgProcessor {
 		optimizedContent: string,
 		options: SvgOptions
 	): Promise<void> {
-		// Handle backup
 		if (options.backup && outputPath === inputPath) {
 			const backupPath = inputPath.replace(/\.svg$/, '.original.svg');
 			await fs.writeFile(backupPath, originalContent);
 		}
 
-		// Handle stdout
 		if (options.stdout && !options.outputDir) {
 			console.log(optimizedContent);
 			return;
 		}
 
-		// Write optimized content
 		await fs.writeFile(outputPath, optimizedContent);
 	}
 
 	private getAppliedPlugins(config: SvgoConfig): string[] {
 		if (!config.plugins) return [];
-		return config.plugins.map(plugin => 
-			typeof plugin === 'string' ? plugin : plugin.name
-		).filter(Boolean);
+		return config.plugins
+			.map(plugin => (typeof plugin === 'string' ? plugin : plugin.name))
+			.filter(Boolean);
 	}
 
 	private updateStats(stats: SvgStats, result: SvgOptimizationResult): void {
@@ -543,7 +579,8 @@ export class SvgProcessor {
 
 	private calculateFinalStats(stats: SvgStats, startTime: number): void {
 		stats.processingTime = Date.now() - startTime;
-		stats.avgCompressionRatio = stats.filesProcessed > 0 ? stats.bytesOriginal / stats.bytesOptimized : 0;
+		stats.avgCompressionRatio =
+			stats.filesProcessed > 0 ? stats.bytesOriginal / stats.bytesOptimized : 0;
 	}
 
 	private chunkArray<T>(array: T[], chunkSize: number): T[][] {
@@ -554,7 +591,11 @@ export class SvgProcessor {
 		return chunks;
 	}
 
-	private async generateReport(results: SvgOptimizationResult[], stats: SvgStats, options: SvgOptions): Promise<void> {
+	private async generateReport(
+		results: SvgOptimizationResult[],
+		stats: SvgStats,
+		options: SvgOptions
+	): Promise<void> {
 		if (!options.report) return;
 
 		const reportData = {
@@ -585,10 +626,10 @@ export class SvgProcessor {
 
 	private convertToCsv(data: any[]): string {
 		if (data.length === 0) return '';
-		
+
 		const headers = Object.keys(data[0]);
 		const rows = data.map(row => headers.map(header => row[header]).join(','));
-		
+
 		return [headers.join(','), ...rows].join('\n');
 	}
 }

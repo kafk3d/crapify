@@ -5,8 +5,11 @@ import { SvgProcessor } from './logic';
 import { SvgOptions, SvgStats, SVG_PRESETS } from './types';
 
 export const svgCommand = new Command('svg')
-	.description('Optimize SVG files using SVGO')
-	.argument('[target]', 'SVG file or directory to optimize (defaults to current directory)')
+	.description('Optimize SVG files or direct SVG code using SVGO')
+	.argument(
+		'[target]',
+		'SVG file, directory, or direct SVG code to optimize (defaults to current directory)'
+	)
 	.option(
 		'--preset <preset>',
 		`Optimization preset (${Object.keys(SVG_PRESETS).join(', ')})`,
@@ -48,6 +51,8 @@ Examples:
   $ crapifyme svg                                    # Optimize all SVGs in current directory
   $ crapifyme svg logo.svg                          # Optimize single SVG file
   $ crapifyme svg assets/                           # Optimize all SVGs in directory
+  $ crapifyme svg '<svg>...</svg>'                  # Optimize SVG code directly (outputs to console)
+  $ crapifyme svg --preset=aggressive '<svg>...</svg>' # Direct SVG optimization with preset
   $ crapifyme svg --glob "**/*.svg" --preset=aggressive  # Aggressive optimization with glob
   $ crapifyme svg icon.svg --stdout                 # Output to console
   $ crapifyme svg --copy --preset=minimal assets/   # Create optimized copies with minimal preset
@@ -120,7 +125,6 @@ async function handleSvgOptimization(
 	const logger = new Logger(globalOptions.verbose, globalOptions.quiet, globalOptions.json);
 
 	try {
-		// Merge global and local options
 		const mergedOptions: SvgOptions = {
 			...options,
 			dryRun: globalOptions.dryRun || options.dryRun,
@@ -130,27 +134,23 @@ async function handleSvgOptimization(
 			json: globalOptions.json || options.json
 		};
 
-		// Handle skip-validation option
 		if (options.skipValidation) {
 			mergedOptions.validateInput = false;
 			mergedOptions.validateOutput = false;
 		}
 
-		// Validate preset
 		if (mergedOptions.preset && !SVG_PRESETS[mergedOptions.preset]) {
 			throw new Error(
 				`Invalid preset "${mergedOptions.preset}". Available presets: ${Object.keys(SVG_PRESETS).join(', ')}`
 			);
 		}
 
-		// Parse plugins if provided
 		if (mergedOptions.plugins && typeof mergedOptions.plugins === 'string') {
 			mergedOptions.plugins = (mergedOptions.plugins as string)
 				.split(',')
 				.map((p: string) => p.trim());
 		}
 
-		// Parse exclude patterns if provided
 		if (mergedOptions.exclude && typeof mergedOptions.exclude === 'string') {
 			mergedOptions.exclude = (mergedOptions.exclude as string)
 				.split(',')
@@ -159,37 +159,63 @@ async function handleSvgOptimization(
 
 		const processor = new SvgProcessor(logger);
 
-		// Set default target if not provided
-		const targetPath = target || process.cwd();
+		const isSvgCode =
+			target && (target.trim().startsWith('<svg') || target.trim().startsWith('<?xml'));
 
-		if (mergedOptions.verbose) {
-			logger.info(`Starting SVG optimization`);
-			logger.info(`Target: ${targetPath}`);
-			logger.info(`Preset: ${mergedOptions.preset || 'balanced'}`);
-			if (mergedOptions.dryRun) {
-				logger.info('Dry run mode - no files will be modified');
+		if (isSvgCode) {
+			if (mergedOptions.verbose) {
+				logger.info(`Processing direct SVG code`);
+				logger.info(`Preset: ${mergedOptions.preset || 'balanced'}`);
 			}
-		}
 
-		// Process SVG files
-		const result = await processor.processSvgFiles(targetPath, mergedOptions);
+			mergedOptions.stdout = true;
+			mergedOptions.force = true;
 
-		// Handle output based on options
-		if (mergedOptions.json) {
-			logger.json(result);
+			const result = await processor.processSvgCode(target, mergedOptions);
+
+			if (mergedOptions.json) {
+				logger.json(result);
+			} else {
+				console.log(result.optimizedContent);
+				logger.success(``);
+				if (!mergedOptions.quiet && mergedOptions.sizeInfo !== false) {
+					const compressionPercent = ((result.bytesSaved / result.originalSize) * 100).toFixed(1);
+					console.error(`Original size: ${formatBytes(result.originalSize)}`);
+					console.error(`Optimized size: ${formatBytes(result.optimizedSize)}`);
+					console.error(`Bytes saved: ${formatBytes(result.bytesSaved)} (${compressionPercent}%)`);
+				}
+			}
+
+			process.exit(ExitCode.Success);
 		} else {
-			await displayResults(result, mergedOptions, logger);
+			const targetPath = target || process.cwd();
+
+			if (mergedOptions.verbose) {
+				logger.info(`Starting SVG optimization`);
+				logger.info(`Target: ${targetPath}`);
+				logger.info(`Preset: ${mergedOptions.preset || 'balanced'}`);
+				if (mergedOptions.dryRun) {
+					logger.info('Dry run mode - no files will be modified');
+				}
+			}
+
+			const result = await processor.processSvgFiles(targetPath, mergedOptions);
+
+			if (mergedOptions.json) {
+				logger.json(result);
+			} else {
+				await displayResults(result, mergedOptions, logger);
+			}
+
+			const exitCode =
+				result.stats.errors.length > 0
+					? ExitCode.Error
+					: result.failedFiles.length > 0
+						? ExitCode.IssuesFound
+						: ExitCode.Success;
+
+			process.exit(exitCode);
 		}
-
-		// Set appropriate exit code
-		const exitCode =
-			result.stats.errors.length > 0
-				? ExitCode.Error
-				: result.failedFiles.length > 0
-					? ExitCode.IssuesFound
-					: ExitCode.Success;
-
-		process.exit(exitCode);
 	} catch (error) {
 		logger.error('SVG optimization failed', error as Error);
 		process.exit(ExitCode.Error);
@@ -200,8 +226,6 @@ async function displayResults(result: any, options: SvgOptions, logger: Logger):
 	const { stats } = result;
 
 	if (!options.quiet) {
-		// Show completion banner if not in quiet mode and processing was successful
-		// Display summary
 		logger.success(
 			`Processed ${stats.filesProcessed} SVG file${stats.filesProcessed === 1 ? '' : 's'}`
 		);
@@ -221,7 +245,6 @@ async function displayResults(result: any, options: SvgOptions, logger: Logger):
 			console.log('');
 		}
 
-		// Show errors if any
 		if (stats.errors.length > 0) {
 			logger.warn(
 				`${stats.errors.length} error${stats.errors.length === 1 ? '' : 's'} encountered:`
@@ -231,7 +254,6 @@ async function displayResults(result: any, options: SvgOptions, logger: Logger):
 			});
 		}
 
-		// Show warnings if any
 		if (stats.warnings.length > 0 && options.verbose) {
 			logger.info(`${stats.warnings.length} warning${stats.warnings.length === 1 ? '' : 's'}:`);
 			stats.warnings.forEach((warning: any) => {

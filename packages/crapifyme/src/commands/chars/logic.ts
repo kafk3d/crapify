@@ -14,18 +14,22 @@ export class CharacterDetector {
 	private options: CharacterDetectorOptions;
 
 	private static readonly CHARACTER_RANGES: CharacterRange[] = [
-		{ start: 0x0080, end: 0x00FF, script: ScriptType.LATIN_EXTENDED, severity: IssueSeverity.MEDIUM },
-		{ start: 0x0100, end: 0x024F, script: ScriptType.LATIN_EXTENDED, severity: IssueSeverity.LOW },
-		{ start: 0x1E00, end: 0x1EFF, script: ScriptType.LATIN_EXTENDED, severity: IssueSeverity.LOW },
-		{ start: 0x0370, end: 0x03FF, script: ScriptType.GREEK, severity: IssueSeverity.MEDIUM },
-		{ start: 0x0400, end: 0x04FF, script: ScriptType.CYRILLIC, severity: IssueSeverity.HIGH },
-		{ start: 0x4E00, end: 0x9FFF, script: ScriptType.CJK, severity: IssueSeverity.HIGH },
-		{ start: 0x3400, end: 0x4DBF, script: ScriptType.CJK, severity: IssueSeverity.HIGH },
-		{ start: 0x0600, end: 0x06FF, script: ScriptType.ARABIC, severity: IssueSeverity.HIGH },
-		{ start: 0x200B, end: 0x200D, script: ScriptType.INVISIBLE, severity: IssueSeverity.CRITICAL },
-		{ start: 0xFEFF, end: 0xFEFF, script: ScriptType.INVISIBLE, severity: IssueSeverity.CRITICAL }
+		{
+			start: 0x0080,
+			end: 0x00ff,
+			script: ScriptType.LATIN_EXTENDED,
+			severity: IssueSeverity.MEDIUM
+		},
+		{ start: 0x0100, end: 0x024f, script: ScriptType.LATIN_EXTENDED, severity: IssueSeverity.LOW },
+		{ start: 0x1e00, end: 0x1eff, script: ScriptType.LATIN_EXTENDED, severity: IssueSeverity.LOW },
+		{ start: 0x0370, end: 0x03ff, script: ScriptType.GREEK, severity: IssueSeverity.MEDIUM },
+		{ start: 0x0400, end: 0x04ff, script: ScriptType.CYRILLIC, severity: IssueSeverity.HIGH },
+		{ start: 0x4e00, end: 0x9fff, script: ScriptType.CJK, severity: IssueSeverity.HIGH },
+		{ start: 0x3400, end: 0x4dbf, script: ScriptType.CJK, severity: IssueSeverity.HIGH },
+		{ start: 0x0600, end: 0x06ff, script: ScriptType.ARABIC, severity: IssueSeverity.HIGH },
+		{ start: 0x200b, end: 0x200d, script: ScriptType.INVISIBLE, severity: IssueSeverity.CRITICAL },
+		{ start: 0xfeff, end: 0xfeff, script: ScriptType.INVISIBLE, severity: IssueSeverity.CRITICAL }
 	];
-
 
 	constructor(logger: Logger, options: CharacterDetectorOptions = {}) {
 		this.logger = logger;
@@ -45,11 +49,11 @@ export class CharacterDetector {
 
 		for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
 			const line = lines[lineIndex];
-			
+
 			for (let charIndex = 0; charIndex < line.length; charIndex++) {
 				const char = line[charIndex];
 				const codePoint = char.codePointAt(0) || 0;
-				
+
 				if (this.shouldIgnoreCharacter(char, codePoint, line, charIndex)) {
 					continue;
 				}
@@ -58,7 +62,7 @@ export class CharacterDetector {
 				if (scriptInfo || (this.options.strict && codePoint > 127)) {
 					const context = this.getContext(line, charIndex, this.options.showContext || 40);
 					const replacement = anyAscii(char);
-					
+
 					issues.push({
 						character: char,
 						codePoint,
@@ -113,7 +117,12 @@ export class CharacterDetector {
 		};
 	}
 
-	private shouldIgnoreCharacter(char: string, codePoint: number, line: string, charIndex: number): boolean {
+	private shouldIgnoreCharacter(
+		char: string,
+		codePoint: number,
+		line: string,
+		charIndex: number
+	): boolean {
 		if (codePoint <= 127 && !this.options.strict) {
 			return true;
 		}
@@ -142,10 +151,10 @@ export class CharacterDetector {
 		const start = Math.max(0, charIndex - Math.floor(contextLength / 2));
 		const end = Math.min(line.length, charIndex + Math.floor(contextLength / 2));
 		const context = line.substring(start, end);
-		
+
 		const prefix = start > 0 ? '...' : '';
 		const suffix = end < line.length ? '...' : '';
-		
+
 		return prefix + context + suffix;
 	}
 
@@ -156,7 +165,7 @@ export class CharacterDetector {
 
 		for (let i = 0; i < charIndex; i++) {
 			const char = line[i];
-			
+
 			if (escaped) {
 				escaped = false;
 				continue;
@@ -183,13 +192,13 @@ export class CharacterDetector {
 		const beforeChar = line.substring(0, charIndex);
 		const singleLineComment = beforeChar.indexOf('//');
 		const blockCommentStart = beforeChar.indexOf('/*');
-		
+
 		return singleLineComment !== -1 || blockCommentStart !== -1;
 	}
 
 	getScriptTypeStats(issues: CharacterIssue[]): Record<ScriptType, number> {
 		const stats: Record<ScriptType, number> = {} as Record<ScriptType, number>;
-		
+
 		for (const scriptType of Object.values(ScriptType)) {
 			stats[scriptType] = 0;
 		}

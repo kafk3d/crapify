@@ -35,7 +35,6 @@ Supported formats: png, jpg, jpeg, svg, gif, webp, bmp, ico, tiff, avif
 		}
 	});
 
-// Encode subcommand
 base64Command
 	.command('encode')
 	.description('Encode image file to base64 format')
@@ -49,7 +48,6 @@ base64Command
 		await handleEncode(file, options, command);
 	});
 
-// Decode subcommand
 base64Command
 	.command('decode')
 	.description('Decode base64 string to file')
@@ -70,7 +68,6 @@ async function handleEncode(
 	try {
 		const processor = new Base64Processor(logger);
 
-		// Validate file
 		processor.validateFilePath(filePath);
 
 		if (globalOptions.verbose) {
@@ -104,7 +101,6 @@ async function handleEncode(
 				}
 			}
 
-			// Output formats based on options
 			if (options.raw) {
 				console.log(result.rawBase64);
 			} else if (options.cssOnly) {
@@ -112,7 +108,6 @@ async function handleEncode(
 			} else if (options.dataUrlOnly) {
 				console.log(result.dataUrl);
 			} else {
-				// Default: show both formats
 				console.log('Data URL:');
 				console.log(result.dataUrl);
 				console.log('');
@@ -175,7 +170,6 @@ async function handleDecode(
 					}
 				}
 			} else {
-				// In quiet mode, just output the file path
 				console.log(result.outputPath);
 			}
 		}

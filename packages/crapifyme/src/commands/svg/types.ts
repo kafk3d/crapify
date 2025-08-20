@@ -35,53 +35,45 @@ export interface SvgBatchResult {
 }
 
 export interface SvgOptions {
-	// Output modes
 	inPlace?: boolean;
 	copy?: boolean;
 	backup?: boolean;
 	stdout?: boolean;
 	outputDir?: string;
 
-	// Optimization presets
 	preset?: 'minimal' | 'balanced' | 'aggressive';
 	config?: string;
-	
-	// SVGO configuration
+
 	plugins?: string[] | string;
 	precision?: number;
 	keepIds?: boolean;
 	keepTitles?: boolean;
 	multipass?: boolean;
-	
-	// File processing
+
 	glob?: string;
 	recursive?: boolean;
 	extensions?: string[] | string;
 	exclude?: string[] | string;
-	
-	// Safety and performance
+
 	dryRun?: boolean;
 	force?: boolean;
 	parallel?: boolean;
 	maxConcurrency?: number;
 	watch?: boolean;
-	
-	// Reporting
+
 	verbose?: boolean;
 	quiet?: boolean;
 	json?: boolean;
 	report?: string;
 	sizeInfo?: boolean;
-	
-	// Advanced options
+
 	inlineStyles?: boolean;
 	removeViewbox?: boolean;
 	sortAttrs?: boolean;
 	removeXmlns?: boolean;
 	minifyStyles?: boolean;
 	convertColors?: boolean;
-	
-	// Validation
+
 	validateInput?: boolean;
 	validateOutput?: boolean;
 	skipValidation?: boolean;
@@ -119,31 +111,25 @@ export interface SvgProcessingConfig {
 }
 
 export const DEFAULT_SVG_EXTENSIONS = ['svg'] as const;
-export type SupportedSvgExtension = typeof DEFAULT_SVG_EXTENSIONS[number];
+export type SupportedSvgExtension = (typeof DEFAULT_SVG_EXTENSIONS)[number];
 
 export const SVG_PRESETS: Record<string, SvgPreset> = {
 	minimal: {
 		name: 'minimal',
 		description: 'Light optimization, preserves most attributes and structure',
-		plugins: [
-			'preset-default'
-		]
+		plugins: ['preset-default']
 	},
 	balanced: {
 		name: 'balanced',
 		description: 'Balanced optimization with good compression while maintaining usability',
-		plugins: [
-			'preset-default'
-		],
+		plugins: ['preset-default'],
 		multipass: true,
 		precision: 2
 	},
 	aggressive: {
 		name: 'aggressive',
 		description: 'Maximum compression with potential loss of some functionality',
-		plugins: [
-			'preset-default'
-		],
+		plugins: ['preset-default'],
 		multipass: true,
 		precision: 1
 	}
@@ -156,21 +142,23 @@ export function isSupportedSvgExtension(ext: string): ext is SupportedSvgExtensi
 export function getSvgPreset(name: string): SvgPreset {
 	const preset = SVG_PRESETS[name];
 	if (!preset) {
-		throw new Error(`Unknown preset: ${name}. Available presets: ${Object.keys(SVG_PRESETS).join(', ')}`);
+		throw new Error(
+			`Unknown preset: ${name}. Available presets: ${Object.keys(SVG_PRESETS).join(', ')}`
+		);
 	}
 	return preset;
 }
 
 export function createProcessingConfig(options: SvgOptions): SvgProcessingConfig {
 	const preset = getSvgPreset(options.preset || 'balanced');
-	
+
 	return {
 		preset,
-		customPlugins: options.plugins ? 
-			(Array.isArray(options.plugins) ? 
-				options.plugins.map((p: string) => ({ name: p })) : 
-				[{ name: options.plugins }]
-			) : [],
+		customPlugins: options.plugins
+			? Array.isArray(options.plugins)
+				? options.plugins.map((p: string) => ({ name: p }))
+				: [{ name: options.plugins }]
+			: [],
 		precision: options.precision ?? preset.precision ?? 2,
 		multipass: options.multipass ?? preset.multipass ?? false,
 		keepIds: options.keepIds ?? false,

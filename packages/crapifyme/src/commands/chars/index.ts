@@ -142,7 +142,6 @@ export const charsCommand = new Command('chars')
 
 						if (globalOptions.verbose || !globalOptions.json) {
 							for (const issue of filteredIssues.slice(0, 10)) {
-								// Show first 10 issues
 								const prefix =
 									issue.severity === IssueSeverity.CRITICAL
 										? '⚠️ '

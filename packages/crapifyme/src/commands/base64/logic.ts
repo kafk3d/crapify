@@ -15,34 +15,29 @@ export class Base64Processor {
 
 	async encodeFile(filePath: string, options: Base64Options): Promise<Base64EncodingResult> {
 		const absolutePath = path.resolve(filePath);
-		
-		// Check if file exists
+
 		if (!fssync.existsSync(absolutePath)) {
 			throw new Error(`File not found: ${filePath}`);
 		}
 
-		// Check file extension
 		const ext = path.extname(absolutePath).slice(1).toLowerCase();
 		if (!isSupportedImageExtension(ext)) {
-			throw new Error(`Unsupported file format: .${ext}. Supported formats: png, jpg, jpeg, svg, gif, webp, bmp, ico, tiff, avif`);
+			throw new Error(
+				`Unsupported file format: .${ext}. Supported formats: png, jpg, jpeg, svg, gif, webp, bmp, ico, tiff, avif`
+			);
 		}
 
-		// Read file
 		const fileBuffer = await fs.readFile(absolutePath);
 		const originalSize = fileBuffer.length;
 
-		// Detect MIME type
 		const mimeType = mimeTypeLookup(absolutePath) || `image/${ext === 'svg' ? 'svg+xml' : ext}`;
 
-		// Encode to base64
 		const rawBase64 = fileBuffer.toString('base64');
 		const base64Size = rawBase64.length;
 
-		// Create formats
 		const dataUrl = `data:${mimeType};base64,${rawBase64}`;
 		const cssBackgroundImage = `background-image: url("${dataUrl}");`;
 
-		// Calculate overhead
 		const overhead = ((base64Size - originalSize) / originalSize) * 100;
 
 		return {
@@ -61,7 +56,6 @@ export class Base64Processor {
 		let mimeType: string | undefined;
 		let detectedFormat: string | undefined;
 
-		// Parse input - check if it's a data URL
 		if (input.startsWith('data:')) {
 			const match = input.match(/^data:([^;]+);base64,(.+)$/);
 			if (!match) {
@@ -69,42 +63,34 @@ export class Base64Processor {
 			}
 			mimeType = match[1];
 			base64Data = match[2];
-			
-			// Extract format from MIME type
+
 			if (mimeType.startsWith('image/')) {
 				detectedFormat = mimeType.split('/')[1];
 				if (detectedFormat === 'svg+xml') detectedFormat = 'svg';
 			}
 		} else {
-			// Assume raw base64
 			base64Data = input;
 		}
 
-		// Validate base64
 		if (!this.isValidBase64(base64Data)) {
 			throw new Error('Invalid base64 string');
 		}
 
-		// Decode
 		const buffer = Buffer.from(base64Data, 'base64');
 		const decodedSize = buffer.length;
 
-		// Determine output path
 		let finalOutputPath: string;
 		if (outputPath) {
 			finalOutputPath = path.resolve(outputPath);
 		} else {
-			// Generate filename
 			const timestamp = Date.now();
 			const extension = detectedFormat || 'bin';
 			finalOutputPath = path.resolve(`decoded_${timestamp}.${extension}`);
 		}
 
-		// Ensure output directory exists
 		const outputDir = path.dirname(finalOutputPath);
 		await fs.mkdir(outputDir, { recursive: true });
 
-		// Write file
 		await fs.writeFile(finalOutputPath, buffer);
 
 		return {
@@ -134,7 +120,7 @@ export class Base64Processor {
 
 	validateFilePath(filePath: string): void {
 		const absolutePath = path.resolve(filePath);
-		
+
 		if (!fssync.existsSync(absolutePath)) {
 			throw new Error(`File not found: ${filePath}`);
 		}
@@ -144,10 +130,11 @@ export class Base64Processor {
 			throw new Error(`Path is not a file: ${filePath}`);
 		}
 
-		// Check file size (limit to 100MB as per spec)
-		const maxSize = 100 * 1024 * 1024; // 100MB
+		const maxSize = 100 * 1024 * 1024;
 		if (stats.size > maxSize) {
-			throw new Error(`File too large (${this.formatSize(stats.size)}). Maximum size is ${this.formatSize(maxSize)}.`);
+			throw new Error(
+				`File too large (${this.formatSize(stats.size)}). Maximum size is ${this.formatSize(maxSize)}.`
+			);
 		}
 	}
 }

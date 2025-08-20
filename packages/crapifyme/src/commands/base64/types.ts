@@ -12,7 +12,7 @@ export interface Base64EncodingResult {
 	originalSize: number;
 	base64Size: number;
 	mimeType: string;
-	overhead: number; // percentage
+	overhead: number;
 }
 
 export interface Base64DecodingResult {
@@ -34,10 +34,19 @@ export interface Base64Options {
 }
 
 export const SUPPORTED_IMAGE_EXTENSIONS = [
-	'png', 'jpg', 'jpeg', 'svg', 'gif', 'webp', 'bmp', 'ico', 'tiff', 'avif'
+	'png',
+	'jpg',
+	'jpeg',
+	'svg',
+	'gif',
+	'webp',
+	'bmp',
+	'ico',
+	'tiff',
+	'avif'
 ] as const;
 
-export type SupportedImageExtension = typeof SUPPORTED_IMAGE_EXTENSIONS[number];
+export type SupportedImageExtension = (typeof SUPPORTED_IMAGE_EXTENSIONS)[number];
 
 export function isSupportedImageExtension(ext: string): ext is SupportedImageExtension {
 	return SUPPORTED_IMAGE_EXTENSIONS.includes(ext.toLowerCase() as SupportedImageExtension);
