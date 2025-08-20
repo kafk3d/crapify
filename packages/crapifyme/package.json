@@ -1,6 +1,6 @@
 {
 	"name": "crapifyme",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"description": "Ultra-fast developer productivity CLI tools - remove comments, logs, and more",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
