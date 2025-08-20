@@ -24,7 +24,7 @@ npx crapifyme deps
 # Analyze dependencies: security, size, unused
 
 npx crapifyme svg
-# Optimize SVG files using SVGO
+# Optimize SVG files or direct SVG code using SVGO
 
 npx crapifyme comments --dry-run
 # Preview changes without modifying files
@@ -59,6 +59,9 @@ crapifyme deps
 
 crapifyme svg assets/
 # Optimize all SVG files in assets directory with balanced preset
+
+crapifyme svg '<svg>...</svg>'
+# Optimize SVG code directly from clipboard (outputs to console)
 ```
 
 ## Preservation System
@@ -297,7 +300,7 @@ crapifyme imports --no-sort --no-group src/
 
 ### SVG Tool
 
-Professional SVG optimization using SVGO - with intelligent presets and advanced configuration options.
+Professional SVG optimization using SVGO - with intelligent presets, advanced configuration options, and direct code processing.
 
 ```bash
 # Basic optimization (balanced preset by default)
@@ -306,6 +309,11 @@ crapifyme svg
 # Optimize specific file or directory
 crapifyme svg logo.svg
 crapifyme svg assets/icons/
+
+# Direct SVG code optimization (copy-paste workflow)
+crapifyme svg '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">...</svg>'
+crapifyme svg --preset=aggressive '<svg>...</svg>'  # With custom preset
+crapifyme svg --quiet '<svg>...</svg>'              # Clean output for piping
 
 # Different optimization presets
 crapifyme svg --preset=minimal assets/     # Light optimization, preserves structure
@@ -354,6 +362,7 @@ crapifyme svg --config=svgo.config.js assets/            # Use custom configurat
 **Advanced Features:**
 
 - **SVGO v3+ Engine**
+- **Direct Code Processing**: Copy-paste SVG code directly from clipboard for instant optimization
 - **Parallel Processing**: Process multiple files simultaneously with configurable concurrency
 - **Progress Tracking**: Real-time progress bars and spinners for batch operations
 - **Validation**: Input/output SVG structure validation to ensure integrity
@@ -396,6 +405,7 @@ crapifyme svg --config=svgo.config.js assets/            # Use custom configurat
 
 **Typical Use Cases:**
 
+- **Copy-Paste Workflow**: Optimize SVG code directly from clipboard or code editors
 - **Production Optimization**: Prepare SVG assets for web deployment with maximum compression
 - **Development Workflow**: Continuous optimization during asset creation and modification
 - **Asset Pipeline**: Integrate into build systems for automated SVG optimization
@@ -650,6 +660,7 @@ crapifyme imports src/
 crapifyme deps --no-include-dev
 
 # Web development workflow
+crapifyme svg '<svg>...</svg>'                       # Quick copy-paste SVG optimization
 crapifyme svg --watch --preset=balanced src/icons/  # Continuous SVG optimization during development
 crapifyme base64 icons/sprite.svg --data-url-only    # For HTML embedding
 crapifyme base64 images/ --size-info --verbose       # Batch process with analysis
@@ -665,6 +676,7 @@ crapifyme deps --security-only
 crapifyme deps --security-only --output=json  # For CI/CD
 
 # Bundle size optimization
+crapifyme svg --preset=aggressive '<svg>...</svg>'  # Maximum compression for inline SVG
 crapifyme svg --preset=aggressive --multipass assets/ # Maximum SVG compression
 crapifyme base64 assets/ --raw --quiet | wc -c     # Calculate base64 impact
 crapifyme deps --size-only --include-gzip
@@ -699,6 +711,10 @@ crapifyme base64 build/assets/ --json --quiet   # Asset processing pipeline
 crapifyme chars --severity=high --json --quiet src/   # Character encoding check
 crapifyme deps --security-only --output=json --quiet  # Security check
 crapifyme deps --output=summary --no-bundle-size      # Quick health check
+
+# Quick SVG optimization workflow
+crapifyme svg --quiet '<svg>...</svg>' > optimized.svg  # Save optimized SVG to file
+crapifyme svg '<svg>...</svg>' | pbcopy              # Copy optimized SVG to clipboard (macOS)
 
 # Selective optimization
 crapifyme svg --keep-ids --keep-titles components/ # Preserve accessibility elements
